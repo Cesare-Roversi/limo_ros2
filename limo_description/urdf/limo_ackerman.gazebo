@@ -10,9 +10,9 @@
     <xacro:limo_steering_hinge_transmission wheel_prefix="left_steering_hinge" />
     <xacro:limo_steering_hinge_transmission wheel_prefix="right_steering_hinge" />
     <!-- Controller configurations -->
-    <xacro:gazebo_laser frame_prefix="laser" />
+    <!-- <xacro:gazebo_laser frame_prefix="laser" />
     <xacro:gazebo_depth_camera frame_prefix="depth_camera" />
-    <xacro:gazebo_imu frame_prefix="imu" />
+    <xacro:gazebo_imu frame_prefix="imu" /> -->
 
     <gazebo>
         <mu1 value="10"/>
@@ -25,11 +25,11 @@
     </gazebo>
 
     <gazebo>
-        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+        <!-- <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
             <robotNamespace>$(arg robot_namespace)</robotNamespace>
-        </plugin>
+        </plugin> -->
 
-        <plugin name="four_diff_controller" filename="libgazebo_ros_ackerman.so">
+        <!-- <plugin name="four_diff_controller" filename="libgazebo_ros_ackerman.so">
             <updateRate>100.0</updateRate>
             <robotNamespace>$(arg robot_namespace)</robotNamespace>
             <leftFrontJoint>front_left_wheel</leftFrontJoint>
@@ -49,6 +49,6 @@
             <covariance_x>0.000100</covariance_x>
             <covariance_y>0.000100</covariance_y>
             <covariance_yaw>0.010000</covariance_yaw>
-        </plugin>
+        </plugin> -->
     </gazebo>
 </robot>

@@ -15,6 +15,10 @@ from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution, PythonExpression
+from launch_ros.parameter_descriptions import ParameterValue
+from launch.substitutions import Command
+
 
 from launch_ros.actions import Node
 
@@ -25,9 +29,20 @@ def generate_launch_description():
     world_file_path = 'worlds/empty_world.model'
     rviz_path = 'rviz/gazebo.rviz'
 
+
+    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+
     pkg_path = os.path.join(get_package_share_directory(package_name))
     world_path = os.path.join(pkg_path, world_file_path)
     default_rviz_config_path = os.path.join(pkg_path, rviz_path)
+
+
+
+    car_xacro_path = PathJoinSubstitution([pkg_path, 'gazebo', 'ackermann_with_sensor.xacro'])
+
+    car_description_content = ParameterValue(Command(['xacro ', car_xacro_path]), value_type=str)
+
+    
 
     rviz_arg = DeclareLaunchArgument(name='rvizconfig', default_value=str(default_rviz_config_path),
                                      description='Absolute path to rviz config file')
@@ -52,13 +67,65 @@ def generate_launch_description():
     )
 
     # Einbindung der Gazebo-Startdatei, die im gazebo_ros-Paket enthalten ist
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
-    )
+    # gazebo = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource([os.path.join(
+    #         get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
+    # )
+
+    gz_sim = IncludeLaunchDescription(
+		PythonLaunchDescriptionSource(
+			os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
+		# launch_arguments={
+		# 	'gz_args': [PathJoinSubstitution([
+		# 		drone_gazebo_dir,
+		# 		'worlds',
+		# 		gz_world_file, 
+		# 	]),
+		# 	' -r', 
+		# 	'-s'
+		# 	],
+		# 	'on_exit_shutdown': 'True',
+		# 	'paused': 'False',
+		# 	'use_sim_time': 'true'
+		# }.items(),
+	)
+
+    model_path = PathJoinSubstitution(
+        [pkg_path, 'models', 'limo_car/urdf/limo_ackermann_base.xacro'])
+
+    # spawn_entity = Node(
+    #     package='ros_gz_sim',
+    #     executable='create',
+    #     name='spawn_entity',
+    #     output='screen',
+    #     parameters=[{
+    #         'world': 'default.sdf',  # Uncomment and set if needed
+    #         # 'file': model_path,    # Uncomment and set if needed
+    #         # 'model_string': model_path,
+    #         # 'topic': 'robot_description',
+    #         # 'entity_name': 'mbot',
+    #         # 'allow_renaming': allow_renaming,  # Uncomment if needed
+    #         # 'x': '0.0',
+    #         # 'y': '0.0',
+    #         # 'z': '0.0',
+    #         # 'R': '0.0',
+    #         # 'P': '0.0',
+    #         # 'Y': '0.0',
+    #     }]
+    # )
+
+
+    # spawn_entity = Node(
+    # package='ros_gz_sim',
+    # executable='create',
+    # name='spawn_entity',
+    # arguments=['-file', car_description_content.value, '-z', '0.0', '-name', 'limo_car'],
+    # prefix='gnome-terminal --tab --',
+    # output='screen'
+    # )
 
     # laufen ein leere node aus den gazebo_ros package
-    spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
+    spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=['-topic', 'robot_description',
                                    '-entity', 'mbot',
                                    '-x', spawn_x_val,
@@ -70,7 +137,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         mbot,
-        gazebo,
+        gz_sim,
         spawn_entity,
         rviz_arg,
         rviz_node

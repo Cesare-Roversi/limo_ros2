@@ -14,6 +14,8 @@ from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
 
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable
+
 import xacro
 
 
@@ -24,9 +26,14 @@ def generate_launch_description():
 
     # finden path für Modell
     pkg_path = os.path.join(get_package_share_directory('limo_car'))
-    xacro_file = os.path.join(pkg_path, 'gazebo', 'ackermann_with_sensor.xacro')
+    description_path = os.path.join(get_package_share_directory('limo_description'))
+    xacro_file = os.path.join(description_path, 'urdf', 'limo_ackerman.xacro')
     robot_description_config = xacro.process_file(xacro_file)
 
+    
+    gz_plugin_env = SetEnvironmentVariable(
+		'GZ_SIM_SYSTEM_PLUGIN_PATH', "opt/ros/humble/lib/"
+	)
     # Erstellt ein robot_state_publisher Node
     params = {'robot_description': robot_description_config.toxml(),
             'use_sim_time': use_sim_time}
