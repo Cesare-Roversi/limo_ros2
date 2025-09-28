@@ -27,13 +27,26 @@ def generate_launch_description():
     # finden path für Modell
     pkg_path = os.path.join(get_package_share_directory('limo_car'))
     description_path = os.path.join(get_package_share_directory('limo_description'))
-    xacro_file = os.path.join(description_path, 'urdf', 'limo_ackerman.xacro')
+    xacro_file = os.path.join(description_path, 'urdf', 'limo_ackermann.xacro.urdf')
     robot_description_config = xacro.process_file(xacro_file)
 
-    
+    # get the directory containing this launch file
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+
+    # optional: log or print for debugging
+    print(f"Current launch directory: {current_dir}")
+
+    ros_ctrl_plugin_dir = os.path.join(pkg_path, 'src', 'gz_ros2_control')
+
+    # Set the GZ_SIM_SYSTEM_PLUGIN_PATH environment variable
+    plugin_paths = os.pathsep.join([
+        '/opt/ros/humble/lib',
+        ros_ctrl_plugin_dir
+    ])
     gz_plugin_env = SetEnvironmentVariable(
-		'GZ_SIM_SYSTEM_PLUGIN_PATH', "opt/ros/humble/lib/"
-	)
+        'GZ_SIM_SYSTEM_PLUGIN_PATH',
+        plugin_paths
+    )
     # Erstellt ein robot_state_publisher Node
     params = {'robot_description': robot_description_config.toxml(),
             'use_sim_time': use_sim_time}
