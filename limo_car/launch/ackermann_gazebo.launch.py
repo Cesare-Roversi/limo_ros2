@@ -18,9 +18,12 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution, PythonExpression
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import Command
+from launch.actions import RegisterEventHandler
+from launch.event_handlers import OnProcessExit
 
 
 from launch_ros.actions import Node
+from launch.actions import TimerAction
 
 def generate_launch_description():
 
@@ -57,7 +60,7 @@ def generate_launch_description():
     # Position dafür, wo die Modelle herstellt werden
     spawn_x_val = '0.0'
     spawn_y_val = '0.0'
-    spawn_z_val = '0.0'
+    spawn_z_val = '0.2'
     spawn_yaw_val = '0.0'
 
     mbot = IncludeLaunchDescription(
@@ -75,16 +78,15 @@ def generate_launch_description():
     gz_sim = IncludeLaunchDescription(
 		PythonLaunchDescriptionSource(
 			os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
-		# launch_arguments={
-		# 	'gz_args': [
-        #     '--force-version 6',
-		# 	' -r', 
-		# 	'-s'
-		# 	],
-		# 	'on_exit_shutdown': 'True',
-		# 	'paused': 'False',
-		# 	'use_sim_time': 'true'
-		# }.items(),
+		launch_arguments={
+			'gz_args': [
+            'default.sdf ',
+			' -r', 
+			],
+			'on_exit_shutdown': 'True',
+			'paused': 'False',
+			'use_sim_time': 'true'
+		}.items(),
 	)
 
     model_path = PathJoinSubstitution(
@@ -123,19 +125,62 @@ def generate_launch_description():
 
     # laufen ein leere node aus den gazebo_ros package
     spawn_entity = Node(package='ros_gz_sim', executable='create',
-                        arguments=['-topic', 'robot_description',
+                        arguments=[
+                                   '-topic', 'robot_description',
                                    '-entity', 'mbot',
+                                    # '-file', 'src/limo_ros2/limo_description/urdf/limo_ackermann.sdf',
                                    '-x', spawn_x_val,
                                    '-y', spawn_y_val,
                                    '-z', spawn_z_val,
                                    '-Y', spawn_yaw_val],
                         output='screen')
+    
+
+    robot_controllers = PathJoinSubstitution(
+        [
+            pkg_path,
+            'config',
+            'ackermann_drive_controller.yaml',
+        ]
+    )
+
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster'],
+    )
+    ackermann_steering_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['ackermann_steering_controller',
+                   '--param-file',
+                   robot_controllers,
+                   ],
+    )
+
+    # wrap the existing spawner in a TimerAction to delay its execution
+    delayed_joint_state_broadcaster_spawner = TimerAction(period=20.0, actions=[joint_state_broadcaster_spawner])
+    
 
 
     return LaunchDescription([
         mbot,
         gz_sim,
         spawn_entity,
+        # joint_state_broadcaster_spawner, 
+        # ackermann_steering_controller_spawner,
         rviz_arg,
-        rviz_node
+        rviz_node,
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=spawn_entity,
+                on_exit=[delayed_joint_state_broadcaster_spawner],
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[ackermann_steering_controller_spawner],
+            )
+        ),
     ])

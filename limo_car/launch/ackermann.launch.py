@@ -10,8 +10,10 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.actions import DeclareLaunchArgument
+from launch.actions import RegisterEventHandler
+from launch.event_handlers import OnProcessExit
 from launch_ros.actions import Node
 
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable
@@ -41,6 +43,7 @@ def generate_launch_description():
     # Set the GZ_SIM_SYSTEM_PLUGIN_PATH environment variable
     plugin_paths = os.pathsep.join([
         '/opt/ros/humble/lib',
+        '/usr/lib/',
         ros_ctrl_plugin_dir
     ])
     gz_plugin_env = SetEnvironmentVariable(
@@ -57,10 +60,50 @@ def generate_launch_description():
         parameters=[params]
     )
 
+
+    robot_controllers = PathJoinSubstitution(
+        [
+            pkg_path,
+            'config',
+            'ackermann_drive_controller.yaml',
+        ]
+    )
+
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster'],
+    )
+    ackermann_steering_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['ackermann_steering_controller',
+                   '--param-file',
+                   robot_controllers,
+                   ],
+    )
+
     return LaunchDescription([
+        gz_plugin_env,
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
             description='Use sim time if true'),
-        node_robot_state_publisher
+
+        # RegisterEventHandler(
+        #     event_handler=OnProcessExit(
+        #         target_action=gz_spawn_entity,
+        #         on_exit=[joint_state_broadcaster_spawner],
+        #     )
+        # ),
+        # RegisterEventHandler(
+        #     event_handler=OnProcessExit(
+        #         target_action=joint_state_broadcaster_spawner,
+        #         on_exit=[ackermann_steering_controller_spawner],
+        #     )
+        # ),
+        node_robot_state_publisher, 
+        # joint_state_broadcaster_spawner, 
+        # ackermann_steering_controller_spawner,
+
     ])
