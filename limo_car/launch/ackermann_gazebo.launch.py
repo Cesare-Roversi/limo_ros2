@@ -19,7 +19,7 @@ from launch.substitutions import PathJoinSubstitution, PythonExpression
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import Command
 from launch.actions import RegisterEventHandler
-from launch.event_handlers import OnProcessExit
+from launch.event_handlers import OnProcessExit, OnProcessIO
 
 
 from launch_ros.actions import Node
@@ -30,7 +30,7 @@ def generate_launch_description():
     # definiert Path für Modell
     package_name = 'limo_car'
     world_file_path = 'worlds/empty_world.model'
-    rviz_path = 'rviz/gazebo.rviz'
+    rviz_path = 'config/drone_hardware.rviz'
 
 
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
@@ -162,6 +162,17 @@ def generate_launch_description():
     delayed_joint_state_broadcaster_spawner = TimerAction(period=20.0, actions=[joint_state_broadcaster_spawner])
     
 
+    # Bridge ROS topics and Gazebo messages for establishing communication
+    ros_gz_bridge = Node(
+		package='ros_gz_bridge',
+		executable='parameter_bridge',
+		parameters=[{
+			'config_file': os.path.join(pkg_path, 'config', 'ros_gz_bridge.yaml'),
+			# 'qos_overrides./tf_static.publisher.durability': 'transient_local',
+		}],
+		prefix='gnome-terminal --tab --',
+		output='screen'
+	)
 
     return LaunchDescription([
         mbot,
@@ -183,4 +194,10 @@ def generate_launch_description():
                 on_exit=[ackermann_steering_controller_spawner],
             )
         ),
+        TimerAction(
+		period=30.0,  # delay in seconds
+		actions=[ros_gz_bridge]
+	)
+        
     ])
+
