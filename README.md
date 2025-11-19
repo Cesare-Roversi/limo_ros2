@@ -94,12 +94,21 @@ source install/setup.bash
 ros2 launch limo_car ackermann_gazebo.launch.py
 ```
 
-In another terminal, source the workspace again and run the robot steering GUI:
+In another terminal, source the workspace again:
 
 ```bash
 source /opt/ros/humble/setup.bash
 source ~/limo_ws/install/setup.bash
+```
+
+and run the robot steering GUI:
+```bash
 ros2 run rqt_robot_steering rqt_robot_steering
+```
+Or using the teleop twist keyboard tool to command the robot with keybord inputs: 
+
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap cmd_vel:=/ackermann_steering_controller/reference -p stamped:=true
 ```
 
 ## Maintainer
