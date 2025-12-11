@@ -81,6 +81,9 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-
 sudo apt-get update
 sudo apt-get install gz-harmonic
 ```
+```bash
+apt-get install ros-humble-ros-gzharmonic
+```
 
 Source your ROS2 Humble installation:
 
