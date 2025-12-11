@@ -34,13 +34,15 @@
   <!-- Chassis -->
   <link name="chassis">
       <visual>
-          <origin xyz="0 0 -0.15" rpy="0 0 1.57" />
+          <origin xyz="0 0 0.0" rpy="0 0 1.57" />
           <geometry>
-              <mesh filename="model://limo_base.dae" scale="1 1 1"/>
+              <!-- <mesh filename="model://limo_base.dae" scale="1 1 1"/> -->
+              <box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
           </geometry>
       </visual>
       <collision>
-          <origin xyz="0 0 0" rpy="0 0 0" />
+          <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+          <origin xyz="0 0 0.0" rpy="0 0 1.57" />
         <geometry>
             <box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
         </geometry>
@@ -71,9 +73,12 @@
       </geometry>
     </collision>
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+      <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
       <geometry>
-          <mesh filename="model://limo_wheel.dae" />
+          <!-- <mesh filename="model://limo_wheel.dae" /> -->
+
+          <cylinder length="${wheel_length}" radius="${wheel_radius}" />
       </geometry>
     </visual>
 
@@ -101,9 +106,11 @@
       </geometry>
     </collision>
     <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+        <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
         <geometry>
-            <mesh filename="model://limo_wheel.dae" />
+            <!-- <mesh filename="model://limo_wheel.dae" /> -->
+            <cylinder length="${wheel_length}" radius="${wheel_radius}" />
         </geometry>
     </visual>
     <inertial>
@@ -194,9 +201,11 @@
       </geometry>
     </collision>
     <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+        <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
         <geometry>
-            <mesh filename="file://$(find limo_description)/meshes/limo_wheel.dae" />
+            <!-- <mesh filename="file://$(find limo_description)/meshes/limo_wheel.dae" /> -->
+            <cylinder length="${wheel_length}" radius="${wheel_radius}" />
         </geometry>
     </visual>
     <inertial>
@@ -224,9 +233,11 @@
       </geometry>
     </collision>
     <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+        <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
         <geometry>
-            <mesh filename="file://$(find limo_description)/meshes/limo_wheel.dae" />
+            <!-- <mesh filename="file://$(find limo_description)/meshes/limo_wheel.dae" /> -->
+            <cylinder length="${wheel_length}" radius="${wheel_radius}" />
         </geometry>
     </visual>
     <inertial>

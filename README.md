@@ -63,11 +63,39 @@ Download and install teleop-twist-keyboard
 sudo apt-get install ros-humble-teleop-twist-keyboard
 ```
 
+### Install additional ros and gz dependencies: 
+
+```bash
+sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers
+```
+### Fix Gazebo installation:
+
+```bash
+sudo apt-get update
+sudo apt-get install curl lsb-release gnupg
+```
+
+```bash
+sudo curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+sudo apt-get update
+sudo apt-get install gz-harmonic
+```
+
 Source your ROS2 Humble installation:
 
 ```bash
 source /opt/ros/humble/setup.bash
 ```
+### Install rosdep: 
+
+```bash
+sudo apt-get install python-pip
+sudo pip install -U rosdep
+sudo rosdep init
+rosdep update
+```
+
 Install dependencies using `rosdep`:
 ```bash
 rosdep update
