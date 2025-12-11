@@ -25,7 +25,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY launch gazebo rviz src worlds config
+  DIRECTORY launch gazebo rviz config
   DESTINATION share/${PROJECT_NAME}
 )
 
