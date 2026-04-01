@@ -54,15 +54,6 @@ Download and install teleop-twist-keyboard
 sudo apt-get install ros-humble-teleop-twist-keyboard
 ```
 
-```bash
-sudo apt-get install ros-humble-rqt-robot-steering 
-```
-
-Download and install teleop-twist-keyboard
-```bash
-sudo apt-get install ros-humble-teleop-twist-keyboard
-```
-
 ### Install additional ros and gz dependencies: 
 
 ```bash
@@ -134,7 +125,7 @@ source ~/limo_ws/install/setup.bash
 
 and run the robot steering GUI:
 ```bash
-ros2 run rqt_robot_steering rqt_robot_steering
+ros2 run rqt_robot_steering rqt_robot_steering --ros-args --remap /cmd_vel:=/ackermann_steering_controller/reference 
 ```
 Or using the teleop twist keyboard tool to command the robot with keybord inputs: 
 

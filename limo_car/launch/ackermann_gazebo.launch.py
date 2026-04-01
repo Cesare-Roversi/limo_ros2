@@ -27,53 +27,27 @@ from launch.actions import TimerAction
 
 def generate_launch_description():
 
-    # definiert Path für Modell
+    # Define paths for model and world files
     package_name = 'limo_car'
     world_file_path = 'worlds/empty_world.model'
-    rviz_path = 'config/drone_hardware.rviz'
-
-
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-
     pkg_path = os.path.join(get_package_share_directory(package_name))
     world_path = os.path.join(pkg_path, world_file_path)
-    default_rviz_config_path = os.path.join(pkg_path, rviz_path)
 
-
-
-    car_xacro_path = PathJoinSubstitution([pkg_path, 'gazebo', 'ackermann_with_sensor.xacro'])
-
-    car_description_content = ParameterValue(Command(['xacro ', car_xacro_path]), value_type=str)
-
-    
-
-    rviz_arg = DeclareLaunchArgument(name='rvizconfig', default_value=str(default_rviz_config_path),
-                                     description='Absolute path to rviz config file')
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='screen',
-        arguments=['-d', LaunchConfiguration('rvizconfig')],
-    )
-
-    # Position dafür, wo die Modelle herstellt werden
+   
+    # Position of the spawned entity
     spawn_x_val = '0.0'
     spawn_y_val = '0.0'
     spawn_z_val = '0.2'
     spawn_yaw_val = '0.0'
 
+    # Launch the 
     mbot = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory(package_name),'launch', 'ackermann.launch.py'
         )]), launch_arguments={'use_sim_time': 'true', 'world': world_path}.items()
     )
 
-    # Einbindung der Gazebo-Startdatei, die im gazebo_ros-Paket enthalten ist
-    # gazebo = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource([os.path.join(
-    #         get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
-    # )
 
     gz_sim = IncludeLaunchDescription(
 		PythonLaunchDescriptionSource(
@@ -89,46 +63,13 @@ def generate_launch_description():
 		}.items(),
 	)
 
-    model_path = PathJoinSubstitution(
-        [pkg_path, 'models', 'limo_car/urdf/limo_ackermann_base.xacro'])
 
-    # spawn_entity = Node(
-    #     package='ros_gz_sim',
-    #     executable='create',
-    #     name='spawn_entity',
-    #     output='screen',
-    #     parameters=[{
-    #         'world': 'default.sdf',  # Uncomment and set if needed
-    #         # 'file': model_path,    # Uncomment and set if needed
-    #         # 'model_string': model_path,
-    #         # 'topic': 'robot_description',
-    #         # 'entity_name': 'mbot',
-    #         # 'allow_renaming': allow_renaming,  # Uncomment if needed
-    #         # 'x': '0.0',
-    #         # 'y': '0.0',
-    #         # 'z': '0.0',
-    #         # 'R': '0.0',
-    #         # 'P': '0.0',
-    #         # 'Y': '0.0',
-    #     }]
-    # )
-
-
-    # spawn_entity = Node(
-    # package='ros_gz_sim',
-    # executable='create',
-    # name='spawn_entity',
-    # arguments=['-file', car_description_content.value, '-z', '0.0', '-name', 'limo_car'],
-    # prefix='gnome-terminal --tab --',
-    # output='screen'
-    # )
-
-    # laufen ein leere node aus den gazebo_ros package
+    
+    
     spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=[
                                    '-topic', 'robot_description',
                                    '-entity', 'mbot',
-                                    # '-file', 'src/limo_ros2/limo_description/urdf/limo_ackermann.sdf',
                                    '-x', spawn_x_val,
                                    '-y', spawn_y_val,
                                    '-z', spawn_z_val,
@@ -168,20 +109,24 @@ def generate_launch_description():
 		executable='parameter_bridge',
 		parameters=[{
 			'config_file': os.path.join(pkg_path, 'config', 'ros_gz_bridge.yaml'),
-			# 'qos_overrides./tf_static.publisher.durability': 'transient_local',
 		}],
 		prefix='gnome-terminal --tab --',
 		output='screen'
 	)
 
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', os.path.join(pkg_path, 'config', 'limo_visual.rviz')],
+        parameters=[{'use_sim_time': True}],
+        output='screen'
+    )
+
     return LaunchDescription([
         mbot,
         gz_sim,
         spawn_entity,
-        # joint_state_broadcaster_spawner, 
-        # ackermann_steering_controller_spawner,
-        rviz_arg,
-        rviz_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
@@ -195,8 +140,8 @@ def generate_launch_description():
             )
         ),
         TimerAction(
-		period=30.0,  # delay in seconds
-		actions=[ros_gz_bridge]
+		period=10.0,  # delay in seconds
+		actions=[ros_gz_bridge, rviz_node]
 	)
         
     ])
