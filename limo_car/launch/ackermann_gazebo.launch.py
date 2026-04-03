@@ -9,7 +9,6 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
@@ -20,7 +19,6 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import Command
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessExit, OnProcessIO
-
 
 from launch_ros.actions import Node
 from launch.actions import TimerAction
@@ -48,7 +46,6 @@ def generate_launch_description():
         )]), launch_arguments={'use_sim_time': 'true', 'world': world_path}.items()
     )
 
-
     gz_sim = IncludeLaunchDescription(
 		PythonLaunchDescriptionSource(
 			os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
@@ -62,9 +59,6 @@ def generate_launch_description():
 			'use_sim_time': 'true'
 		}.items(),
 	)
-
-
-    
     
     spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=[
@@ -76,7 +70,6 @@ def generate_launch_description():
                                    '-Y', spawn_yaw_val],
                         output='screen')
     
-
     robot_controllers = PathJoinSubstitution(
         [
             pkg_path,

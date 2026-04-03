@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /RobotModel1
+        - /RobotModel1/Description Topic1
       Splitter Ratio: 0.5
     Tree Height: 338
   - Class: rviz_common/Selection
@@ -109,6 +111,111 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot_description
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        chassis:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_wheel_steering:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        limo_ackermann_d435_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_left_ir_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_left_ir_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_right_ir_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        limo_ackermann_d435_right_ir_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rear_left_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_right_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_wheel_steering:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
+      Name: RobotModel
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -155,7 +262,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 15.692626953125
+      Distance: 2.723233461380005
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -193,5 +300,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1472
-  X: 1098
-  Y: 241
+  X: 1334
+  Y: 322

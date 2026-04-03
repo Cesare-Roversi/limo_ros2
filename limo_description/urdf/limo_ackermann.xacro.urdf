@@ -370,13 +370,31 @@
 
   </gazebo>
 
-<plugin
-  filename="gz-sim-joint-state-publisher-system"
-  name="gz::sim::systems::JointStatePublisher">
-  <topic>joint_states</topic>
-</plugin>
+  <gazebo>
+    <plugin
+      filename="gz-sim-joint-state-publisher-system"
+      name="gz::sim::systems::JointStatePublisher">
+      <topic>joint_states</topic>
+    </plugin>
+  </gazebo>
+
+<gazebo>
+
+  <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+      <publish_link_pose>true</publish_link_pose>
+      <publish_sensor_pose>true</publish_sensor_pose>
+      <publish_model_pose>false</publish_model_pose>
+      <use_pose_vector_msg>true</use_pose_vector_msg>
+    </plugin>
+
+    <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>saye</robot_base_frame>
+      <odom_topic>odom</odom_topic> 
+      <dimensions>3</dimensions>
+    </plugin>
 
 
-  
+  </gazebo>
 
 </robot>
