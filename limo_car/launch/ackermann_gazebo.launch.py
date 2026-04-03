@@ -27,10 +27,12 @@ def generate_launch_description():
 
     # Define paths for model and world files
     package_name = 'limo_car'
-    world_file_path = 'worlds/empty_world.model'
+    world_file_name = 'worlds/wall.sdf'
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     pkg_path = os.path.join(get_package_share_directory(package_name))
-    world_path = os.path.join(pkg_path, world_file_path)
+
+    description_pkg_path = os.path.join(get_package_share_directory('limo_description'))
+    world_path = os.path.join(description_pkg_path, world_file_name)
 
    
     # Position of the spawned entity
@@ -39,11 +41,11 @@ def generate_launch_description():
     spawn_z_val = '0.2'
     spawn_yaw_val = '0.0'
 
-    # Launch the 
+    # Launch the ackermann launch
     mbot = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory(package_name),'launch', 'ackermann.launch.py'
-        )]), launch_arguments={'use_sim_time': 'true', 'world': world_path}.items()
+        )]), launch_arguments={'use_sim_time': 'true'}.items()
     )
 
     gz_sim = IncludeLaunchDescription(
@@ -51,7 +53,7 @@ def generate_launch_description():
 			os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
 		launch_arguments={
 			'gz_args': [
-            'default.sdf ',
+            world_path,
 			' -r', 
 			],
 			'on_exit_shutdown': 'True',

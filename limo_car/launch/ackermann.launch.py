@@ -47,10 +47,18 @@ def generate_launch_description():
         'GZ_SIM_SYSTEM_PLUGIN_PATH',
         plugin_paths
     )
+
+    # Do: export GZ_SIM_RESOURCE_PATH=/usr/share/gz/gz-sim8/:$GZ_SIM_RESOURCE_PATH
+
+    # gz_resource_env = SetEnvironmentVariable(
+    #     'GZ_SIM_RESOURCE_PATH',
+    #     '/usr/share/gz/gz-sim8/:$GZ_SIM_RESOURCE_PATH'
+    # )
     
     # Start a robot state publisher node
     params = {'robot_description': robot_description_config.toxml(),
             'use_sim_time': use_sim_time}
+    
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -68,6 +76,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         gz_plugin_env,
+        # gz_resource_env,
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
