@@ -38,13 +38,14 @@ def generate_launch_description():
     pkg_path = os.path.join(get_package_share_directory(package_name))
 
     description_pkg_path = os.path.join(get_package_share_directory('limo_description'))
-    world_path = os.path.join(description_pkg_path, world_file_name)
+    # world_path = os.path.join(description_pkg_path, world_file_name) #old
+    world_path = '~/shared/3d_resources/world_povo/world_povo.sdf'
 
    
     # Position of the spawned entity
     spawn_x_val = '0.0'
     spawn_y_val = '0.0'
-    spawn_z_val = '0.2'
+    spawn_z_val = '0.65' #! in teoria appena sopra il terreno
     spawn_yaw_val = '0.0'
 
     # Launch the ackermann launch
