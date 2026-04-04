@@ -33,13 +33,10 @@ def generate_launch_description():
 
     # Define paths for model and world files
     package_name = 'limo_car'
-    world_file_name = 'worlds/wall.sdf'
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     pkg_path = os.path.join(get_package_share_directory(package_name))
 
     description_pkg_path = os.path.join(get_package_share_directory('limo_description'))
-    # world_path = os.path.join(description_pkg_path, world_file_name) #old
-    # Wrap your path in expanduser
     world_path = os.path.expanduser('~/shared/3d_resources/world_povo/world_povo.sdf')
 
    
