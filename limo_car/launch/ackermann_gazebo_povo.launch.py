@@ -39,7 +39,8 @@ def generate_launch_description():
 
     description_pkg_path = os.path.join(get_package_share_directory('limo_description'))
     # world_path = os.path.join(description_pkg_path, world_file_name) #old
-    world_path = '~/shared/3d_resources/world_povo/world_povo.sdf'
+    # Wrap your path in expanduser
+    world_path = os.path.expanduser('~/shared/3d_resources/world_povo/world_povo.sdf')
 
    
     # Position of the spawned entity
