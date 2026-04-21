@@ -14,30 +14,32 @@ def generate_launch_description():
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
-    map_yaml_path = LaunchConfiguration('map',default=os.path.join(limo_bringup_dir,'maps','map1021.yaml'))
-    nav2_param_path = LaunchConfiguration('params_file',default=os.path.join(limo_bringup_dir,'param','nav2_ackermann.yaml')) 
+    map_yaml_path = LaunchConfiguration('map', default=os.path.join(limo_bringup_dir, 'maps', 'map1021.yaml'))
+    nav2_param_path = LaunchConfiguration('params_file', default=os.path.join(limo_bringup_dir, 'param', 'nav2_ackermann_modificato.yaml'))
     #! ESISTEVANO un file UGUALI ma con: nav2.yaml, navigation2.yaml
-
-    rviz_config_dir = os.path.join(nav2_bringup_dir,'rviz','nav2_default_view.rviz')
+    
+    rviz_config_path = LaunchConfiguration('rviz_config', default=os.path.join(nav2_bringup_dir, 'rviz', 'nav2_default_view.rviz'))
 
     return LaunchDescription([
-        DeclareLaunchArgument('use_sim_time',default_value=use_sim_time,description='Use simulation (Gazebo) clock if true'),
-        DeclareLaunchArgument('map',default_value=map_yaml_path,description='Full path to map file to load'),
-        DeclareLaunchArgument('params_file',default_value=nav2_param_path,description='Full path to param file to load'),
+        DeclareLaunchArgument('use_sim_time', default_value=use_sim_time,     description='Use simulation (Gazebo) clock if true'),
+        DeclareLaunchArgument('map',          default_value=map_yaml_path,    description='Full path to map yaml file to load'),
+        DeclareLaunchArgument('params_file',  default_value=nav2_param_path,  description='Full path to nav2 param file to load'),
+        DeclareLaunchArgument('rviz_config',  default_value=rviz_config_path, description='Full path to rviz config file to load'),
 
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([nav2_bringup_dir,'/launch','/bringup_launch.py']),
+            PythonLaunchDescriptionSource([nav2_bringup_dir, '/launch', '/bringup_launch.py']),
             launch_arguments={
-                'map': map_yaml_path,
+                'map':          map_yaml_path,
                 'use_sim_time': use_sim_time,
-                'params_file': nav2_param_path}.items(),
+                'params_file':  nav2_param_path,
+            }.items(),
         ),
-        
+
         Node(
             package='rviz2',
             executable='rviz2',
             name='rviz2',
-            arguments=['-d', rviz_config_dir],
+            arguments=['-d', rviz_config_path],
             parameters=[{'use_sim_time': use_sim_time}],
             output='screen'),
     ])

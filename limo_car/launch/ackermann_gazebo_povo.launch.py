@@ -1,10 +1,3 @@
-# Autor: Zhui Li
-# E-Mail: lz554113510@gmail.com
-# Company: Institut für Intermodale Transport- und Logistiksysteme in Technische Universität Braunschweig
-# Description: Diese py-Datei basiert auf Regeln und definiert Funktionen durch python,
-# um den Launch der Simulation in Gazebo zu ermöglichen. Danach mit der Simulation in Gazebo kann man die weitere
-# Forschung arbeiten. Diese Launch-Datei dient zu Ackermann-Type.
-
 import os
 import shutil
 
@@ -23,115 +16,106 @@ from launch.event_handlers import OnProcessExit, OnProcessIO
 
 from launch_ros.actions import Node
 from launch.actions import TimerAction
+from launch.conditions import IfCondition
+
+#! è molto simile a ackermann_gazebo.launch.py, questo sarà in nostro principale
+
 
 def generate_launch_description():
 
-    # I check if gnome desktop environment + gnome terminal are being used:
     has_desktop_environment = os.environ.get('XDG_CURRENT_DESKTOP', 'NONE') != 'NONE'
     has_gnome_terminal = shutil.which('gnome-terminal') is not None
 
-
-    # Define paths for model and world files
     package_name = 'limo_car'
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     pkg_path = os.path.join(get_package_share_directory(package_name))
 
-    description_pkg_path = os.path.join(get_package_share_directory('limo_description'))
-    world_path = os.path.expanduser('~/shared/3d_resources/world_povo/world_povo.sdf')
+    # PARAMETRI:
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    world_path_cfg = LaunchConfiguration('world_path')
+    spawn_x = LaunchConfiguration('spawn_x')
+    spawn_y = LaunchConfiguration('spawn_y')
+    spawn_z = LaunchConfiguration('spawn_z')
+    spawn_yaw = LaunchConfiguration('spawn_yaw')
+    start_rviz = LaunchConfiguration('start_rviz')
+    rviz_config = LaunchConfiguration('rviz_config')
+    jsb_delay_val = LaunchConfiguration('jsb_delay')
+    bridge_rviz_delay_val = LaunchConfiguration('bridge_rviz_delay')
 
-   
-    # Position of the spawned entity
-    spawn_x_val = '0.0'
-    spawn_y_val = '0.0'
-    spawn_z_val = '0.65' #! in teoria appena sopra il terreno
-    spawn_yaw_val = '0.0'
+    declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true')
+    declare_world_path = DeclareLaunchArgument('world_path', default_value=os.path.expanduser('~/shared/tesi-limo-ros2/3d_resources/world_povo/world_povo.sdf'))
+    declare_spawn_x = DeclareLaunchArgument('spawn_x', default_value='0.0')
+    declare_spawn_y = DeclareLaunchArgument('spawn_y', default_value='0.0')
+    declare_spawn_z = DeclareLaunchArgument('spawn_z', default_value='0.65')
+    declare_spawn_yaw = DeclareLaunchArgument('spawn_yaw', default_value='0.0')
+    declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='True')
+    declare_rviz_config = DeclareLaunchArgument('rviz_config', default_value=os.path.join(pkg_path, 'config', 'limo_visual.rviz'))
+    declare_jsb_delay = DeclareLaunchArgument('jsb_delay', default_value='20.0')
+    declare_bridge_rviz_delay = DeclareLaunchArgument('bridge_rviz_delay', default_value='10.0')
+    
 
-    # Launch the ackermann launch
+
+
     mbot = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory(package_name),'launch', 'ackermann.launch.py'
-        )]), launch_arguments={'use_sim_time': 'true'}.items()
+        PythonLaunchDescriptionSource([os.path.join(get_package_share_directory(package_name),'launch', 'ackermann.launch.py')]), 
+        launch_arguments={'use_sim_time': use_sim_time}.items()
     )
 
     gz_sim = IncludeLaunchDescription(
-		PythonLaunchDescriptionSource(
-			os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
-		launch_arguments={
-			'gz_args': [
-            world_path,
-			' -r', 
-			],
-			'on_exit_shutdown': 'True',
-			'paused': 'False',
-			'use_sim_time': 'true'
-		}.items(),
-	)
+        PythonLaunchDescriptionSource(os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
+        launch_arguments={
+            'gz_args': [world_path_cfg, ' -r'],
+            'on_exit_shutdown': 'True',
+            'paused': 'False',
+            'use_sim_time': use_sim_time
+        }.items(),
+    )
     
     spawn_entity = Node(package='ros_gz_sim', executable='create',
-                        arguments=[
-                                   '-topic', 'robot_description',
-                                   '-entity', 'mbot',
-                                   '-x', spawn_x_val,
-                                   '-y', spawn_y_val,
-                                   '-z', spawn_z_val,
-                                   '-Y', spawn_yaw_val],
+                        arguments=['-topic', 'robot_description', '-entity', 'mbot',
+                                   '-x', spawn_x, '-y', spawn_y, '-z', spawn_z, '-Y', spawn_yaw],
                         output='screen')
     
-    robot_controllers = PathJoinSubstitution(
-        [
-            pkg_path,
-            'config',
-            'ackermann_drive_controller.yaml',
-        ]
-    )
+    robot_controllers = PathJoinSubstitution([pkg_path, 'config', 'ackermann_drive_controller.yaml'])
 
     joint_state_broadcaster_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['joint_state_broadcaster'],
+        package='controller_manager', executable='spawner', arguments=['joint_state_broadcaster'],
     )
-    ackermann_steering_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['ackermann_steering_controller',
-                   '--param-file',
-                   robot_controllers,
-                   ],
-    )
-
-    # wrap the existing spawner in a TimerAction to delay its execution
-    delayed_joint_state_broadcaster_spawner = TimerAction(period=20.0, actions=[joint_state_broadcaster_spawner])
     
+    ackermann_steering_controller_spawner = Node(
+        package='controller_manager', executable='spawner',
+        arguments=['ackermann_steering_controller', '--param-file', robot_controllers],
+    )
 
-    # Bridge ROS topics and Gazebo messages for establishing communication
-    # I check if I can start this node in a new gnome terminal:
-    prefix_value=''
-    if(has_desktop_environment and has_gnome_terminal):
-        prefix_value='gnome-terminal --tab --'
-        print("I will open parameter_bridge in a new terminal")
-    else:
-        print("I CANNOT open parameter_bridge in a new terminal")
+    delayed_joint_state_broadcaster_spawner = TimerAction(period=jsb_delay_val, actions=[joint_state_broadcaster_spawner])
+    
+    prefix_value = 'gnome-terminal --tab --' if (has_desktop_environment and has_gnome_terminal) else ''
 
     ros_gz_bridge = Node(
-		package='ros_gz_bridge',
-		executable='parameter_bridge',
-		parameters=[{
-			'config_file': os.path.join(pkg_path, 'config', 'ros_gz_bridge.yaml'),
-		}],
-		prefix=prefix_value, 
-		output='screen'
-	)
+        package='ros_gz_bridge', executable='parameter_bridge',
+        parameters=[{'config_file': os.path.join(pkg_path, 'config', 'ros_gz_bridge.yaml')}],
+        prefix=prefix_value, output='screen'
+    )
 
     rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        arguments=['-d', os.path.join(pkg_path, 'config', 'limo_visual.rviz')],
-        parameters=[{'use_sim_time': True}],
-        output='screen'
+        package='rviz2', executable='rviz2', name='rviz2',
+        arguments=['-d', rviz_config],
+        parameters=[{'use_sim_time': use_sim_time}],
+        output='screen',
+        condition=IfCondition(start_rviz)
     )
 
     return LaunchDescription([
+        declare_use_sim_time,
+        declare_world_path,
+        declare_spawn_x,
+        declare_spawn_y,
+        declare_spawn_z,
+        declare_spawn_yaw,
+        declare_rviz_config,
+        declare_start_rviz,
+        declare_jsb_delay,
+        declare_bridge_rviz_delay,
         mbot,
         gz_sim,
         spawn_entity,
@@ -147,10 +131,5 @@ def generate_launch_description():
                 on_exit=[ackermann_steering_controller_spawner],
             )
         ),
-        TimerAction(
-		period=10.0,  # delay in seconds
-		actions=[ros_gz_bridge, rviz_node]
-	)
-        
+        TimerAction(period=bridge_rviz_delay_val, actions=[ros_gz_bridge, rviz_node])
     ])
-

@@ -32,7 +32,7 @@ find_package(ament_cmake REQUIRED)
 
 install(
     DIRECTORY rviz param maps config_files launch
-    launch DESTINATION share/${PROJECT_NAME}/
+    DESTINATION share/${PROJECT_NAME}/
 )
 
 ament_package()
