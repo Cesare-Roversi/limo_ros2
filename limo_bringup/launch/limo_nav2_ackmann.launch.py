@@ -14,7 +14,7 @@ def generate_launch_description():
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
-    map_yaml_path = LaunchConfiguration('map', default=os.path.join(limo_bringup_dir, 'maps', 'map1021.yaml'))
+    map_yaml_path = LaunchConfiguration('map', default=os.path.join(limo_bringup_dir, 'maps/mappa_povo', 'povo.yaml'))
     nav2_param_path = LaunchConfiguration('params_file', default=os.path.join(limo_bringup_dir, 'param', 'nav2_ackermann_modificato.yaml'))
     #! ESISTEVANO un file UGUALI ma con: nav2.yaml, navigation2.yaml
     
