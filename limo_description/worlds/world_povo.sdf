@@ -67,7 +67,7 @@
       <self_collide>false</self_collide>
     </model>
     <include>
-      <uri>file:///root/shared/3d_resources/world_povo/mappa_povo</uri>
+      <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources</uri>
       <name>Povo</name>
       <pose>0 0 0 0 0 0</pose>
     </include>

@@ -15,7 +15,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
     map_yaml_path = LaunchConfiguration('map', default=os.path.join(limo_bringup_dir, 'maps/mappa_povo', 'povo.yaml'))
-    nav2_param_path = LaunchConfiguration('params_file', default=os.path.join(limo_bringup_dir, 'param', 'nav2_ackermann_modificato.yaml'))
+    nav2_param_path = LaunchConfiguration('params_file', default=os.path.join(limo_bringup_dir, 'param', 'tesi_nav2_ackermann.yaml'))
     #! ESISTEVANO un file UGUALI ma con: nav2.yaml, navigation2.yaml
     
     rviz_config_path = LaunchConfiguration('rviz_config', default=os.path.join(nav2_bringup_dir, 'rviz', 'nav2_default_view.rviz'))

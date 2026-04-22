@@ -17,6 +17,7 @@ from launch.event_handlers import OnProcessExit, OnProcessIO
 from launch_ros.actions import Node
 from launch.actions import TimerAction
 from launch.conditions import IfCondition
+from launch.actions import SetEnvironmentVariable
 
 #! è molto simile a ackermann_gazebo.launch.py, questo sarà in nostro principale
 
@@ -26,9 +27,16 @@ def generate_launch_description():
     has_desktop_environment = os.environ.get('XDG_CURRENT_DESKTOP', 'NONE') != 'NONE'
     has_gnome_terminal = shutil.which('gnome-terminal') is not None
 
+    # Get share directories of packages:
     package_name = 'limo_car'
-    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     pkg_path = os.path.join(get_package_share_directory(package_name))
+    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    pkg_limo_description = get_package_share_directory('limo_description')
+    
+    # Get default files from shared directories of packages:
+    default_world_path = os.path.join(pkg_limo_description, 'worlds', 'world_povo.sdf')
+
+
 
     # PARAMETRI:
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -43,7 +51,7 @@ def generate_launch_description():
     bridge_rviz_delay_val = LaunchConfiguration('bridge_rviz_delay')
 
     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true')
-    declare_world_path = DeclareLaunchArgument('world_path', default_value=os.path.expanduser('~/shared/tesi-limo-ros2/3d_resources/world_povo/world_povo.sdf'))
+    declare_world_path = DeclareLaunchArgument('world_path', default_value=default_world_path)
     declare_spawn_x = DeclareLaunchArgument('spawn_x', default_value='0.0')
     declare_spawn_y = DeclareLaunchArgument('spawn_y', default_value='0.0')
     declare_spawn_z = DeclareLaunchArgument('spawn_z', default_value='0.65')
@@ -55,7 +63,7 @@ def generate_launch_description():
     
 
 
-
+    # inizializza il robot simulato
     mbot = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(get_package_share_directory(package_name),'launch', 'ackermann.launch.py')]), 
         launch_arguments={'use_sim_time': use_sim_time}.items()
@@ -69,6 +77,11 @@ def generate_launch_description():
             'paused': 'False',
             'use_sim_time': use_sim_time
         }.items(),
+    )
+
+    set_gazebo_resource_path = SetEnvironmentVariable(
+        name='GAZEBO_RESOURCE_PATH',
+        value=pkg_limo_description
     )
     
     spawn_entity = Node(package='ros_gz_sim', executable='create',
@@ -117,6 +130,7 @@ def generate_launch_description():
         declare_jsb_delay,
         declare_bridge_rviz_delay,
         mbot,
+        set_gazebo_resource_path,
         gz_sim,
         spawn_entity,
         RegisterEventHandler(
