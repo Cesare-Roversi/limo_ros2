@@ -299,56 +299,73 @@
           name="gz::sim::systems::Imu"/>
   </gazebo>
 
-  <!-- IMU SENSOR -->
-  <gazebo reference="chassis">
 
+  <!-- !questi 2 sono stati modificati!!! -->
+  <!-- IMU LINK + JOINT -->
+  <link name="imu_link">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0"
+              iyy="0.0001" iyz="0"
+              izz="0.0001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="imu_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="chassis"/>
+    <child  link="imu_link"/>
+  </joint>
+
+  <gazebo reference="imu_link">
     <sensor name="imu_sensor" type="imu">
       <always_on>true</always_on>
       <update_rate>100</update_rate>
       <visualize>true</visualize>
+      <!-- gli dico espicitamente di chiamarsi imu_link NON FUNZIONA??? -->
+      <frame_id>imu_link</frame_id> 
       <topic>imu</topic>
-
-      <pose>0 0 0 0 0 0</pose>
-
       <imu>
         <angular_velocity>
-          <x>
-            <noise type="gaussian">
-              <mean>0</mean>
-              <stddev>0.001</stddev>
-            </noise>
-          </x>
-          <y>
-            <noise type="gaussian">
-              <mean>0</mean>
-              <stddev>0.001</stddev>
-            </noise>
-          </y>
-          <z>
-            <noise type="gaussian">
-              <mean>0</mean>
-              <stddev>0.001</stddev>
-            </noise>
-          </z>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.001</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.001</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.001</stddev></noise></z>
         </angular_velocity>
       </imu>
-
     </sensor>
-
   </gazebo>
 
 
-  <!-- LIDAR SENSOR -->
-  <gazebo reference="chassis">
+  <!-- LIDAR LINK + JOINT -->
+  <link name="lidar_link">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0"
+              iyy="0.0001" iyz="0"
+              izz="0.0001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><cylinder length="0.02" radius="0.025"/></geometry>
+    </visual>
+  </link>
 
+  <joint name="lidar_joint" type="fixed">
+    <origin xyz="0.1 0 0.05" rpy="0 0 0"/>
+    <parent link="chassis"/>
+    <child  link="lidar_link"/>
+  </joint>
+
+  <gazebo reference="lidar_link">
     <sensor name="lidar_sensor" type="gpu_lidar">
       <always_on>true</always_on>
       <update_rate>10</update_rate>
       <visualize>true</visualize>
+      <!-- gli dico espicitamente di chiamarsi lidar_link NON FUNZIONA??? -->
+      <frame_id>lidar_link</frame_id> 
       <topic>scan</topic>
-
-      <pose>0.1 0 0.05 0 0 0</pose>
-
       <lidar>
         <scan>
           <horizontal>
@@ -358,17 +375,16 @@
             <max_angle>3.14159</max_angle>
           </horizontal>
         </scan>
-
         <range>
           <min>0.1</min>
           <max>10.0</max>
           <resolution>0.01</resolution>
         </range>
       </lidar>
-
     </sensor>
-
   </gazebo>
+
+
 
   <gazebo>
     <plugin
@@ -389,7 +405,8 @@
 
     <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
       <odom_frame>odom</odom_frame>
-      <robot_base_frame>saye</robot_base_frame>
+      <!-- ! <robot_base_frame>saye</robot_base_frame>  cos'è saye??-->
+      <robot_base_frame>base_link</robot_base_frame>
       <odom_topic>odom</odom_topic> 
       <dimensions>3</dimensions>
     </plugin>

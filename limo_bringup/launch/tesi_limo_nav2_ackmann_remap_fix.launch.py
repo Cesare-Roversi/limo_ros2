@@ -25,12 +25,13 @@ def generate_launch_description():
     
     rviz_config_path = LaunchConfiguration('rviz_config', default=os.path.join(nav2_bringup_share_dir, 'rviz', 'nav2_default_view.rviz'))
 
-    # Relay per unire /tf_odometry in /tf — SetRemap non funziona su /tf perché è un topic speciale
+    # Relay per unire /tf_odometry in /tf
     tf_odom_relay = Node(
         package='topic_tools',
         executable='relay',
         name='tf_odom_relay',
-        arguments=['/ackermann_steering_controller/tf_odometry', '/tf'],
+        arguments=['/ackermann_steering_controller/tf_odometry', '/tf'], #! TENIAMO /tf (assumiamo namespace globale)
+        parameters=[{'use_sim_time': True}], 
         output='screen'
     )
 

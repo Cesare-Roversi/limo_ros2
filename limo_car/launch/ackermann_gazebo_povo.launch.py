@@ -56,7 +56,7 @@ def generate_launch_description():
     declare_spawn_y = DeclareLaunchArgument('spawn_y', default_value='0.0')
     declare_spawn_z = DeclareLaunchArgument('spawn_z', default_value='0.65')
     declare_spawn_yaw = DeclareLaunchArgument('spawn_yaw', default_value='0.0')
-    declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='True')
+    declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='true')
     declare_rviz_config = DeclareLaunchArgument('rviz_config', default_value=os.path.join(pkg_path, 'config', 'limo_visual.rviz'))
     declare_jsb_delay = DeclareLaunchArgument('jsb_delay', default_value='20.0')
     declare_bridge_rviz_delay = DeclareLaunchArgument('bridge_rviz_delay', default_value='10.0')
