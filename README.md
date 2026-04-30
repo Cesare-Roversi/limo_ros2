@@ -102,7 +102,7 @@ source /opt/ros/humble/setup.bash
 ```
 
 ```bash
-colcon build
+colcon build --symlink-install
 ```
 Source the workspace:
 
