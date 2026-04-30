@@ -39,6 +39,8 @@ def generate_launch_description():
 
     description_pkg_path = os.path.join(get_package_share_directory('limo_description'))
     world_path = os.path.join(description_pkg_path, world_file_name)
+    bringup_pkg_path = os.path.join(get_package_share_directory('limo_bringup'))
+
 
    
     # Position of the spawned entity
@@ -132,6 +134,13 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Launch remappings for navigation tasks
+    remapping_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            bringup_pkg_path,'launch', 'topic_remapping.launch.py'
+        )]), launch_arguments={'use_sim_time': 'true'}.items()
+    )
+
     return LaunchDescription([
         mbot,
         gz_sim,
@@ -151,7 +160,8 @@ def generate_launch_description():
         TimerAction(
 		period=10.0,  # delay in seconds
 		actions=[ros_gz_bridge, rviz_node]
-	)
+	    ), 
+        remapping_launch,
         
     ])
 
