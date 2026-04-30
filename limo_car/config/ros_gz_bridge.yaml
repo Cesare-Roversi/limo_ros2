@@ -5,20 +5,23 @@
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS
 - ros_topic_name: "/limo_camera/point_cloud"
-  gz_topic_name: "/world/default/model/ackermann_drive/link/base_link/sensor/limo_ackermann_d435depth/depth_image/points"
+  gz_topic_name: "/camera_depth/points"
   ros_type_name: "sensor_msgs/msg/PointCloud2"
   gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
+  frame_id: camera_depth_optical_frame
 - ros_topic_name: "/limo_camera/image_raw"
-  gz_topic_name: "/world/default/model/ackermann_drive/link/base_link/sensor/limo_ackermann_d435color/image"
+  gz_topic_name: "/camera_color"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
+  frame_id: camera_color_optical_frame
 - ros_topic_name: "/limo_camera/depth_image"
-  gz_topic_name: "/world/default/model/ackermann_drive/link/base_link/sensor/limo_ackermann_d435depth/depth_image"
+  gz_topic_name: "/camera_depth"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
+  frame_id: camera_depth_optical_frame
 - ros_topic_name: "/gazebo_world/object_poses"
   gz_topic_name: "/world/default_custom/pose/info"
   ros_type_name: "geometry_msgs/msg/PoseArray"
