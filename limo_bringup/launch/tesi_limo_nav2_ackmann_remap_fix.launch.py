@@ -50,7 +50,7 @@ def generate_launch_description():
                 SetRemap(src='/odom', dst='/ackermann_steering_controller/odometry'),
                 
                 # Ricollega i comandi di velocità
-                SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference'),
+                SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
                 
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource([nav2_bringup_share_dir, '/launch', '/bringup_launch.py']),

@@ -21,7 +21,10 @@ echo "Installing required ROS2 packages..."
 sudo apt install -y \
   ros-humble-joint-state-publisher-gui \
   ros-humble-rqt-robot-steering \
-  ros-humble-teleop-twist-keyboard
+  ros-humble-teleop-twist-keyboard \
+  ros-humble-navigation2 \
+  ros-humble-nav2-bringup \ 
+  ros-humble-topic-tools
 
 # Create workspace
 echo "Creating workspace..."
