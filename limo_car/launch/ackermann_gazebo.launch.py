@@ -6,6 +6,7 @@
 # Forschung arbeiten. Diese Launch-Datei dient zu Ackermann-Type.
 
 import os
+import shutil
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -25,6 +26,11 @@ from launch.actions import TimerAction
 
 def generate_launch_description():
 
+    # I check if gnome desktop environment + gnome terminal are being used:
+    has_desktop_environment = os.environ.get('XDG_CURRENT_DESKTOP', 'NONE') != 'NONE'
+    has_gnome_terminal = shutil.which('gnome-terminal') is not None
+
+
     # Define paths for model and world files
     package_name = 'limo_car'
     world_file_name = 'worlds/wall.sdf'
@@ -33,6 +39,8 @@ def generate_launch_description():
 
     description_pkg_path = os.path.join(get_package_share_directory('limo_description'))
     world_path = os.path.join(description_pkg_path, world_file_name)
+    bringup_pkg_path = os.path.join(get_package_share_directory('limo_bringup'))
+
 
    
     # Position of the spawned entity
@@ -99,13 +107,21 @@ def generate_launch_description():
     
 
     # Bridge ROS topics and Gazebo messages for establishing communication
+    # I check if I can start this node in a new gnome terminal:
+    prefix_value=''
+    if(has_desktop_environment and has_gnome_terminal):
+        prefix_value='gnome-terminal --tab --'
+        print("I will open parameter_bridge in a new terminal")
+    else:
+        print("I CANNOT open parameter_bridge in a new terminal")
+
     ros_gz_bridge = Node(
 		package='ros_gz_bridge',
 		executable='parameter_bridge',
 		parameters=[{
 			'config_file': os.path.join(pkg_path, 'config', 'ros_gz_bridge.yaml'),
 		}],
-		prefix='gnome-terminal --tab --',
+		prefix=prefix_value, 
 		output='screen'
 	)
 
@@ -116,6 +132,13 @@ def generate_launch_description():
         arguments=['-d', os.path.join(pkg_path, 'config', 'limo_visual.rviz')],
         parameters=[{'use_sim_time': True}],
         output='screen'
+    )
+
+    # Launch remappings for navigation tasks
+    remapping_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            bringup_pkg_path,'launch', 'topic_remapping.launch.py'
+        )]), launch_arguments={'use_sim_time': 'true'}.items()
     )
 
     return LaunchDescription([
@@ -137,7 +160,8 @@ def generate_launch_description():
         TimerAction(
 		period=10.0,  # delay in seconds
 		actions=[ros_gz_bridge, rviz_node]
-	)
+	    ), 
+        remapping_launch,
         
     ])
 
