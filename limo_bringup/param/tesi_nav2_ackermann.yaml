@@ -116,7 +116,7 @@ controller_server:
       lookahead_time: 1.5
       use_velocity_scaled_lookahead_dist: True
 
-      # --- Regolazioni velocità ---
+      #--- Regolazioni velocità ---
       use_regulated_linear_velocity_scaling: True
       use_cost_regulated_linear_velocity_scaling: True
       regulated_linear_scaling_min_radius: 0.9   # basato su min_turning_radius
