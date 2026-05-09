@@ -11,27 +11,28 @@ from launch.actions import GroupAction
 
 def generate_launch_description():
 
-    use_sim_time_arg = DeclareLaunchArgument(
+    # ARGOMENTI:
+    use_sim_time_dec = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true'
     )
 
-    nav2_params_file_arg = DeclareLaunchArgument(
+    nav2_params_file_dec = DeclareLaunchArgument(
         'nav2_params_file',
         default_value=PathJoinSubstitution([
             FindPackageShare('limo_bringup'), 'param', 'tesi_nav2_ackermann.yaml'
         ])
     )
 
-    slam_params_file_arg = DeclareLaunchArgument(
+    slam_params_file_dec = DeclareLaunchArgument(
         'slam_params_file',
         default_value=PathJoinSubstitution([
             FindPackageShare('limo_bringup'), 'param', 'slam_toolbox_params.yaml'
         ])
     )
 
-    rviz2_config_file_arg = DeclareLaunchArgument(
+    rviz2_config_file_dec = DeclareLaunchArgument(
         'rviz2_config_file',
         default_value=PathJoinSubstitution([
             FindPackageShare('nav2_bringup'), 'rviz', 'nav2_default_view.rviz'
@@ -43,6 +44,8 @@ def generate_launch_description():
     nav2_params_file = LaunchConfiguration('nav2_params_file')
     slam_params_file = LaunchConfiguration('slam_params_file')
     rviz2_config_file = LaunchConfiguration('rviz2_config_file')
+
+    # __ARGOMENTI
 
 
     slam_toolbox_node = Node(
@@ -96,10 +99,10 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        use_sim_time_arg,
-        nav2_params_file_arg,
-        slam_params_file_arg,
-        rviz2_config_file_arg,
+        use_sim_time_dec,
+        nav2_params_file_dec,
+        slam_params_file_dec,
+        rviz2_config_file_dec,
         tf_odom_relay,
         group_action,
     ])
