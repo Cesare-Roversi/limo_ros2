@@ -21,7 +21,8 @@ def generate_launch_description():
     nav2_params_file_dec = DeclareLaunchArgument(
         'nav2_params_file',
         default_value=PathJoinSubstitution([
-            FindPackageShare('limo_bringup'), 'param', 'tesi_nav2_ackermann.yaml'
+            # FindPackageShare('limo_bringup'), 'param', 'tesi_nav2_ackermann.yaml'
+            FindPackageShare('limo_bringup'), 'param', 'PROVA01_nav2_amcl.yaml'
         ])
     )
 
