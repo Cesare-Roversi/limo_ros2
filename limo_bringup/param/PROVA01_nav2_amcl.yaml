@@ -81,7 +81,7 @@ controller_server:
     FollowPath:
       plugin: "nav2_mppi_controller::MPPIController"
       time_steps: 56
-      model_dt: 0.01 #! DOC: The model_dt parameter generally should be set to the duration of your control frequency
+      model_dt: 0.05 #! DOC: The model_dt parameter generally should be set to the duration of your control frequency
       batch_size: 2000
       vx_std: 0.2
       vy_std: 0.0
