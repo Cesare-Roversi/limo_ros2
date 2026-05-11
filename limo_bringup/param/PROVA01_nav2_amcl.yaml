@@ -80,28 +80,28 @@ controller_server:
 
     FollowPath:
       plugin: "nav2_mppi_controller::MPPIController"
-      time_steps: 56
-      model_dt: 0.05 #! DOC: The model_dt parameter generally should be set to the duration of your control frequency
-      batch_size: 2000
-      vx_std: 0.2
+      time_steps: 56 
+      model_dt: 0.05 
+      batch_size: 2000 # default = 1000
+      vx_std: 0.2 
       vy_std: 0.0
-      wz_std: 0.4
+      wz_std: 0.2 
       vx_max: 0.5
       vx_min: -0.35
       vy_max: 0.0
-      wz_max: 1.9
+      wz_max: 1.0 #! massima velocità angolare # default 1.9
       ax_max: 3.0
       ax_min: -3.0
       ay_min: 0.0
       ay_max: 0.0
-      az_max: 0.0
+      az_max: 1.0 #! accelerazione angolare # default 3.5
       iteration_count: 1
       temperature: 0.3
       gamma: 0.015
       motion_model: "Ackermann"
       AckermannMotionModel:
         plugin: "mppi::AckermannMotionModel"
-        min_turning_r: 0.346  # wheelbase(0.2) / tan(max_steer(0.5236 rad)) = 0.346 m #! controlla il calcolo
+        min_turning_r: 2.0  # wheelbase(0.2) / tan(max_steer(0.5236 rad)) = 0.346 m #! controlla il calcolo
       visualize: false
       critic_index_to_visualize: 0
       reset_period: 1.0 # (only in Humble)
@@ -119,17 +119,17 @@ controller_server:
         enabled: true
         cost_power: 1
         cost_weight: 4.0
-      GoalCritic:
+      GoalCritic: # distanza in m dentro la quale il controller spinge x allinearsi alla posizione del goal
         enabled: true
         cost_power: 1
         cost_weight: 5.0
         threshold_to_consider: 1.4
-      GoalAngleCritic:
+      GoalAngleCritic: # distanza in m dentro la quale il controller spinge x allinearsi all'orinetamento del goal
         enabled: true
         cost_power: 1
         cost_weight: 3.0
         threshold_to_consider: 0.5
-      PreferForwardCritic:
+      PreferForwardCritic: # Distance (m) between robot and goal to stop considering preferring forward and allow goal critics to take over.
         enabled: true
         cost_power: 1
         cost_weight: 5.0
@@ -145,7 +145,7 @@ controller_server:
       #   near_goal_distance: 0.5
       #   inflation_radius: 0.55 # (only in Humble)
       #   cost_scaling_factor: 10.0 # (only in Humble)
-      CostCritic:
+      CostCritic: # distanza dagli ostacoli, usando la costmap
         enabled: true
         cost_power: 1
         cost_weight: 3.81
@@ -169,7 +169,7 @@ controller_server:
         cost_weight: 5.0
         offset_from_furthest: 5
         threshold_to_consider: 1.4
-      PathAngleCritic:
+      PathAngleCritic: # quanto angolo differisce da quello della path
         enabled: true
         cost_power: 1
         cost_weight: 2.0
@@ -214,7 +214,7 @@ planner_server:
       analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
       analytic_expansion_max_cost: 200.0  # The maximum single cost for any part of an analytic expansion to contain and be valid, except when necessary on approach to goal
       analytic_expansion_max_cost_override: false  #  Whether or not to override the maximum cost setting if within critical distance to goal (ie probably required)
-      minimum_turning_radius: 0.346  # wheelbase(0.2) / tan(max_steer(0.5236 rad)) = 0.346 m #! controlla il calcolo
+      minimum_turning_radius: 2.0  # wheelbase(0.2) / tan(max_steer(0.5236 rad)) = 0.346 m #! controlla il calcolo
       reverse_penalty: 2.0                # Penalty to apply if motion is reversing, must be => 1
       change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
       non_straight_penalty: 1.2           # Penalty to apply if motion is non-straight, must be => 1
@@ -247,16 +247,16 @@ planner_server_rclcpp_node:
 # smoother server:
 # guarda solo la global_costmap;
 # prende in input la path del planner server;
-smoother_server:
-  ros__parameters:
-    # enable_stamped_cmd_vel: true
-    use_sim_time: True
-    smoother_plugins: ["simple_smoother"]
-    simple_smoother:
-      plugin: "nav2_smoother::SimpleSmoother"
-      tolerance: 1.0e-10
-      max_its: 1000
-      do_refinement: True
+# smoother_server: #! l'ho appena commentato
+#   ros__parameters:
+#     # enable_stamped_cmd_vel: true
+#     use_sim_time: True
+#     smoother_plugins: ["simple_smoother"]
+#     simple_smoother:
+#       plugin: "nav2_smoother::SimpleSmoother"
+#       tolerance: 1.0e-10
+#       max_its: 1000
+#       do_refinement: True
 
 
 # behaviour server:
@@ -318,7 +318,7 @@ local_costmap:
       height: 5
       resolution: 0.05
       # robot_radius: 0.22
-      footprint: "[[0.15,0.10],[0.15,-0.10],[-0.15,-0.10],[-0.15,0.10]]"
+      footprint: "[[0.15,0.10],[0.15,-0.10],[-0.15,-0.10],[-0.15,0.10]]" #! troppo piccola per il robot??
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
