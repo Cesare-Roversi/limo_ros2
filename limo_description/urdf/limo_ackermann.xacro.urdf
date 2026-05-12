@@ -28,16 +28,9 @@
   <xacro:arg name="namespace" default="limo_ackermann" />
 
 
-  <!-- ! si può elimiare qui sotto, sensors/ e others/ ?? -->
-  <!-- Forward facing camera (d435)--> 
-  <!-- <xacro:include filename="$(find limo_description)/urdf/sensors/_d435.urdf.xacro" />
-  <xacro:sensor_d435 name="$(arg namespace)_d435" topics_ns="$(arg namespace)" range_max_depth="$(arg d435_range_max_depth)" parent="base_link">
-    <origin xyz="0.05 0.0 0" rpy="0 0 0"/>
-  </xacro:sensor_d435> -->
 
 
   <link name="base_link"/>
-
   
   <!-- Chassis -->
   <link name="chassis">
@@ -297,7 +290,7 @@
 
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-      <parameters>$(find gz_ros2_control_demos)/config/ackermann_drive_controller.yaml</parameters>
+      <parameters>$(find limo_car)/config/ackermann_drive_controller.yaml</parameters>
     </plugin>
   </gazebo>
 
