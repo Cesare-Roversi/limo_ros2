@@ -10,6 +10,12 @@
   <xacro:property name="base_y_size" value="0.12" />
   <xacro:property name="base_z_size" value="0.10" />
 
+  <!-- 
+  ! questo file corrisponde al robot reale
+  wheelbase = distanza asse ruote anteriori e asse route posteriori
+  track = distanza tra 2 ruote dello stesso asse
+  wheel_lenght = spessore ruota
+  -->
   <xacro:property name="wheelbase" value="0.2"/>
   <xacro:property name="track" value="0.14"/>
   <xacro:property name="wheel_vertical_offset" value="-0.100998" />
@@ -384,6 +390,7 @@
       </lidar>
     </sensor>
   </gazebo>
+
 
   <!-- CAMERA LINK + JOINT -->
   <!-- camera body, with origin at bottom screw mount -->

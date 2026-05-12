@@ -11,21 +11,22 @@ controller_manager:
 
 ackermann_steering_controller:
   ros__parameters:
-    wheelbase: 1.7 #! un po' grosso?
-    front_wheel_track: 1.0
-    rear_wheel_track: 1.0
-    front_wheels_radius: 0.3
-    rear_wheels_radius: 0.3
+    wheelbase: 0.2 # era 1.7
+    front_wheel_track: 0.14 # era 1.0
+    rear_wheel_track: 0.14 # era 1.0
+    front_wheels_radius: 0.045 # era 0.3 
+    rear_wheels_radius: 0.045 # era 0.3
     front_steering: true
-    reference_timeout: 2.0
+    reference_timeout: 2.0 # se passano > 2s dall'ultimo comando (di vel) si ferma
     rear_wheels_names: ['rear_right_wheel_joint', 'rear_left_wheel_joint']
-    front_wheels_names: ['right_wheel_steering_joint', 'left_wheel_steering_joint']
-    use_stamped_vel: false
+    front_wheels_names: ['right_wheel_steering_joint', 'left_wheel_steering_joint'] #? controlla i tipi dei joint
+    use_stamped_vel: false #! l'ho canbiato io
     open_loop: false
     velocity_rolling_window_size: 10
     base_frame_id: base_link
-    odom_frame_id: odom
-    enable_odom_tf: true
-    twist_covariance_diagonal: [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
-    pose_covariance_diagonal: [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
+    odom_frame_id: odom #? va bene se il relay è attivato altrimenti il nome del topic è diverso!
+    enable_odom_tf: true 
+    # [x, y, z, roll(x), pitch(y), yaw(z)] # https://wiki.ros.org/ackermann_steering_controller
+    twist_covariance_diagonal: [0.001, 0.001, 1e6,   1e6,   1e6,   0.01 ]  # era [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
+    pose_covariance_diagonal: [0.001, 0.001,   1e6,   1e6,   1e6,   0.01 ]  # era [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
     position_feedback: false

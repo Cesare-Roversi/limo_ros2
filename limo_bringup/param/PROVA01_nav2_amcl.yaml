@@ -71,6 +71,8 @@ bt_navigator_rclcpp_node:
     use_sim_time: True
 
 
+# https://www.yahboom.net/public/upload/upload-html/1669599741/14.2%20Kinematics%20Analysis%20of%20Ackermann%20Car.html
+
 
 #! adattato da: https://docs.nav2.org/configuration/packages/configuring-mppic.html
 controller_server:
@@ -101,7 +103,7 @@ controller_server:
       motion_model: "Ackermann"
       AckermannMotionModel:
         plugin: "mppi::AckermannMotionModel"
-        min_turning_r: 2.0  # wheelbase(0.2) / tan(max_steer(0.5236 rad)) = 0.346 m #! controlla il calcolo
+        min_turning_r: 0.346  # wheelbase(0.2) / tan(max_steer(0.5236 rad)) = 0.346 m #! controlla il calcolo
       visualize: false
       critic_index_to_visualize: 0
       reset_period: 1.0 # (only in Humble)
@@ -214,7 +216,7 @@ planner_server:
       analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
       analytic_expansion_max_cost: 200.0  # The maximum single cost for any part of an analytic expansion to contain and be valid, except when necessary on approach to goal
       analytic_expansion_max_cost_override: false  #  Whether or not to override the maximum cost setting if within critical distance to goal (ie probably required)
-      minimum_turning_radius: 2.0  # wheelbase(0.2) / tan(max_steer(0.5236 rad)) = 0.346 m #! controlla il calcolo
+      minimum_turning_radius: 0.346  # wheelbase(0.2) / tan(max_steer(0.5236 rad)) = 0.346 m #! controlla il calcolo
       reverse_penalty: 2.0                # Penalty to apply if motion is reversing, must be => 1
       change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
       non_straight_penalty: 1.2           # Penalty to apply if motion is non-straight, must be => 1
