@@ -49,12 +49,25 @@ def generate_launch_description():
     # __ARGOMENTI
 
 
-    slam_toolbox_node = Node(
-        package='slam_toolbox',
-        executable='sync_slam_toolbox_node',
-        name='slam_toolbox',
-        parameters=[slam_params_file, {'use_sim_time': use_sim_time}],
-        output='screen'
+    # slam_toolbox_node = Node(
+    #     package='slam_toolbox',
+    #     executable='sync_slam_toolbox_node',
+    #     name='slam_toolbox',
+    #     parameters=[slam_params_file, {'use_sim_time': use_sim_time}],
+    #     output='screen'
+    # )
+
+    slam_toolbox_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('limo_bringup'),
+                'launch',
+                'limo_slam_toolbox.launch.py'
+            ])
+        ]),
+        launch_arguments={
+            'use_sim_time': use_sim_time
+        }.items()
     )
 
     nav2_launch = IncludeLaunchDescription(
@@ -93,7 +106,8 @@ def generate_launch_description():
         actions=[
             SetRemap(src='/odom', dst='/ackermann_steering_controller/odometry'),
             SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
-            slam_toolbox_node,
+            # slam_toolbox_node,
+            slam_toolbox_launch,
             nav2_launch,
             rviz2_node,
         ]
