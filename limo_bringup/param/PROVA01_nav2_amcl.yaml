@@ -64,7 +64,7 @@ bt_navigator:
     global_frame: map
     robot_base_frame: base_link
     odom_topic: /odom
-    default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
+    default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml" # è la scelta standard?
 
 bt_navigator_rclcpp_node:
   ros__parameters:
@@ -244,23 +244,12 @@ planner_server_rclcpp_node:
 
 
 
-# smoother server:
-# guarda solo la global_costmap;
-# prende in input la path del planner server;
-# smoother_server: #! l'ho appena commentato
-#   ros__parameters:
-#     # enable_stamped_cmd_vel: true
-#     use_sim_time: True
-#     smoother_plugins: ["simple_smoother"]
-#     simple_smoother:
-#       plugin: "nav2_smoother::SimpleSmoother"
-#       tolerance: 1.0e-10
-#       max_its: 1000
-#       do_refinement: True
 
 
 # behaviour server:
 # decide cosa fare se il robot è bloccato;
+# ! il robot ackermann non può usare spin??
+# ! lo chiama quando è unable to do progress
 behavior_server:
   ros__parameters:
     # enable_stamped_cmd_vel: true
