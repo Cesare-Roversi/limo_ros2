@@ -368,7 +368,7 @@ local_costmap:
       global_frame: odom
       robot_base_frame: base_link
       use_sim_time: True
-      rolling_window: true
+      rolling_window: true #!sempre true
       #! pose goes off grid, aumento a 5 width e height
       width: 5
       height: 5
@@ -414,7 +414,7 @@ local_costmap:
 global_costmap:
   global_costmap:
     ros__parameters:
-      rolling_window: true #! scommenta se usi slam
+      # rolling_window: true #! scommenta se usi slam
       update_frequency: 1.0
       publish_frequency: 1.0
       global_frame: map

@@ -9,6 +9,7 @@ controller_manager:
     ackermann_steering_controller:
       type: 'ackermann_steering_controller/AckermannSteeringController'
 
+
 ackermann_steering_controller:
   ros__parameters:
     wheelbase: 0.2 # era 1.7
@@ -28,5 +29,7 @@ ackermann_steering_controller:
     enable_odom_tf: true 
     # [x, y, z, roll(x), pitch(y), yaw(z)] # https://wiki.ros.org/ackermann_steering_controller
     twist_covariance_diagonal: [0.001, 0.001, 1e6,   1e6,   1e6,   0.01 ]  # era [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
+    #? pose_covariance_diagonal NON viene pubblicato in /ackermann_steering_controller/odometry 
+    #? strano ma per noi è irrilevante
     pose_covariance_diagonal: [0.001, 0.001,   1e6,   1e6,   1e6,   0.01 ]  # era [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
     position_feedback: false

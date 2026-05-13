@@ -1,0 +1,57 @@
+#! links documentazione importante:
+# https://docs.nav2.org/setup_guides/odom/setup_robot_localization.html#configuring-robot-localization
+# https://docs.ros.org/en/melodic/api/robot_localization/html/configuring_robot_localization.html
+# Le matrici di configurazione volgiono: 
+#X,Y,Z,
+#roll,pitch,yaw
+#X˙,Y˙,Z˙
+#roll˙,pitch˙,yaw˙
+#X¨,Y¨,Z¨
+
+
+
+#! Questa va bene per robot di tipo ACKERMANN
+ekf_filter_node:
+    ros__parameters:
+# The frequency, in Hz, at which the filter will output a position estimate.
+        frequency: 30.0
+
+# two_d_mode: true assumes a planar (2d) environment
+        two_d_mode: true #! assume che si muova in 2d, è più stabile
+
+# Whether to publish the acceleration state. Defaults to false if unspecified.
+        publish_acceleration: true
+
+# Whether to broadcast the transformation over the /tf topic. Defaults to true if unspecified.
+        publish_tf: true #todo ATTENTO!!!
+
+# 1. Set the map_frame, odom_frame, and base_link frames to the appropriate frame names for your system.
+#     1a. If your system does not have a map_frame, just remove it, and make sure "world_frame" is set to the value of odom_frame.
+# 2. If you are fusing continuous position data such as wheel encoder odometry, visual odometry, or IMU data, set "world_frame"
+#    to your odom_frame value. This is the default behavior for robot_localization's state estimation nodes.
+
+        map_frame: map              # Defaults to "map" if unspecified
+        odom_frame: odom            # Defaults to "odom" if unspecified
+        base_link_frame: base_link  # Defaults to "base_link" if unspecified
+        world_frame: odom           # Defaults to the value of odom_frame if unspecified
+
+# DOC: "if the nav_msgs/Odometry message reports a 0 value for Y˙(and the Y˙covariance is NOT inflated to a large value), 
+# it’s best to feed that value to the filter."
+# sterring controller???? ci restituisce: vel lineare X, Y + vel angolare Z 
+        odom0: /ackermann_steering_controller/odometry # [nav_msgs/msg/Odometry]
+        odom0_config: [false, false, false,
+                      false, false, false,
+                      true, true, false,
+                      false, false, true,
+                      false, false, false]
+
+
+# DOC: "in many systems, including the hypothetical one we are discussing here, will not undergo instantaneous Y acceleration.
+# However, the IMU will likely report non-zero, noisy values for Y acceleration, which can cause your estimate to drift rapidly."
+# imu restituisce: acc lineare X + vel angolare Z 
+        imu0: /imu # [sensor_msgs/msg/Imu]
+        imu0_config: [false, false, false,
+                      false, false, true,
+                      false, false, false,
+                      false, false, true,
+                      true, false, false]
