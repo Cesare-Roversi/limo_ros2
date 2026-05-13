@@ -35,6 +35,7 @@ def generate_launch_description():
         default_value=PathJoinSubstitution([
             # FindPackageShare('limo_bringup'), 'param', 'tesi_nav2_ackermann.yaml'
             FindPackageShare('limo_bringup'), 'param', 'PROVA01_nav2_amcl.yaml'
+            # FindPackageShare('limo_bringup'), 'param', 'PROVA02_nav2_amcl.yaml'
         ]),
         description='Full path to nav2 param file to load'
     )
