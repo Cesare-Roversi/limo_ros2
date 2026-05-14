@@ -25,11 +25,11 @@ ackermann_steering_controller:
     open_loop: false
     velocity_rolling_window_size: 10
     base_frame_id: base_link
-    odom_frame_id: odom #? va bene se il relay è attivato altrimenti il nome del topic è diverso!
+    odom_frame_id: odom # va bene se il relay è attivato altrimenti il nome del topic è diverso!
     enable_odom_tf: true 
     # [x, y, z, roll(x), pitch(y), yaw(z)] # https://wiki.ros.org/ackermann_steering_controller
     twist_covariance_diagonal: [0.001, 0.001, 1e6,   1e6,   1e6,   0.01 ]  # era [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
-    #? pose_covariance_diagonal NON viene pubblicato in /ackermann_steering_controller/odometry 
-    #? strano ma per noi è irrilevante
+    # pose_covariance_diagonal NON viene pubblicato in /ackermann_steering_controller/odometry 
+    # strano ma per noi è irrilevante
     pose_covariance_diagonal: [0.001, 0.001,   1e6,   1e6,   1e6,   0.01 ]  # era [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
     position_feedback: false

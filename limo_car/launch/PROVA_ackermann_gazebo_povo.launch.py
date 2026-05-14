@@ -24,9 +24,6 @@ from launch.actions import SetEnvironmentVariable
 
 def generate_launch_description():
 
-    has_desktop_environment = os.environ.get('XDG_CURRENT_DESKTOP', 'NONE') != 'NONE'
-    has_gnome_terminal = shutil.which('gnome-terminal') is not None
-
     # SHARE_DIRECTORIES:
     # this_package_name = 'limo_car' #! attento!!
     share_limo_car = os.path.join(get_package_share_directory('limo_car'))
@@ -35,8 +32,6 @@ def generate_launch_description():
     
     # Get default files from shared directories of packages:
     default_world_path = os.path.join(share_limo_description, 'worlds', 'world_povo.sdf')
-    default_robot_controllers = PathJoinSubstitution([share_limo_car, 'config', 'ackermann_drive_controller.yaml'])
-
 
 
     # PARAMETRI:
@@ -50,6 +45,10 @@ def generate_launch_description():
     rviz_config = LaunchConfiguration('rviz_config')
     jsb_delay_val = LaunchConfiguration('jsb_delay')
     bridge_rviz_delay_val = LaunchConfiguration('bridge_rviz_delay')
+    robot_controller_config = LaunchConfiguration('robot_controller_config')
+    ekf_node_config = LaunchConfiguration('ekf_node_config')
+
+
 
     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true')
     declare_world_path = DeclareLaunchArgument('world_path', default_value=default_world_path)
@@ -61,6 +60,14 @@ def generate_launch_description():
     declare_rviz_config = DeclareLaunchArgument('rviz_config', default_value=os.path.join(share_limo_car, 'config', 'limo_visual.rviz'))
     declare_jsb_delay = DeclareLaunchArgument('jsb_delay', default_value='20.0')
     declare_bridge_rviz_delay = DeclareLaunchArgument('bridge_rviz_delay', default_value='10.0')
+    declare_robot_controller_config = DeclareLaunchArgument(
+        'robot_controller_config', 
+        default_value=PathJoinSubstitution([share_limo_car, 'config', 'ackermann_drive_controller.yaml'])
+    )
+    declare_ekf_node_config = DeclareLaunchArgument(
+        'ekf_node_config',
+        default_value=PathJoinSubstitution([share_limo_car, 'config', 'ekf_config_ackermann.yaml'])
+    )
     
 
 
@@ -70,6 +77,7 @@ def generate_launch_description():
         launch_arguments={'use_sim_time': use_sim_time}.items()
     )
 
+    # INIZIALIZZO SIMULAZIONE GAZEBO
     gz_sim_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(share_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
         launch_arguments={
@@ -90,24 +98,38 @@ def generate_launch_description():
                                    '-x', spawn_x, '-y', spawn_y, '-z', spawn_z, '-Y', spawn_yaw],
                         output='screen')
     
+    
+    robot_controller_spawner = Node(
+        package='controller_manager', executable='spawner',
+        arguments=['ackermann_steering_controller', '--param-file', robot_controller_config],
+    )
 
+
+    # Aspetta che la simulzione sia avviata prima di far partire il joint_state_broadcaster_spawner:
     joint_state_broadcaster_spawner = Node(
         package='controller_manager', executable='spawner', arguments=['joint_state_broadcaster'],
     )
-    
-    ackermann_steering_controller_spawner = Node(
-        package='controller_manager', executable='spawner',
-        arguments=['ackermann_steering_controller', '--param-file', default_robot_controllers],
-    )
-
     delayed_joint_state_broadcaster_spawner = TimerAction(period=jsb_delay_val, actions=[joint_state_broadcaster_spawner])
-    
-    prefix_value = 'gnome-terminal --tab --' if (has_desktop_environment and has_gnome_terminal) else ''
 
+    
+    # Se può lanciare il bridge in una nuova finestra di terminale lo fa:
+    has_desktop_environment = os.environ.get('XDG_CURRENT_DESKTOP', 'NONE') != 'NONE'
+    has_gnome_terminal = shutil.which('gnome-terminal') is not None
+    prefix_value = 'gnome-terminal --tab --' if (has_desktop_environment and has_gnome_terminal) else ''
     ros_gz_bridge = Node(
         package='ros_gz_bridge', executable='parameter_bridge',
         parameters=[{'config_file': os.path.join(share_limo_car, 'config', 'ros_gz_bridge.yaml')}],
         prefix=prefix_value, output='screen'
+    )
+
+
+    # ekf node locale
+    robot_localization_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[ekf_node_config, {'use_sim_time': use_sim_time}]
     )
 
     rviz_node = Node(
@@ -117,6 +139,7 @@ def generate_launch_description():
         output='screen',
         condition=IfCondition(start_rviz)
     )
+
 
     return LaunchDescription([
         declare_use_sim_time,
@@ -129,10 +152,13 @@ def generate_launch_description():
         declare_start_rviz,
         declare_jsb_delay,
         declare_bridge_rviz_delay,
+        declare_robot_controller_config,
+        declare_ekf_node_config,
         robot_launch,
         set_gazebo_resource_path,
         gz_sim_launch,
         spawn_entity,
+        robot_localization_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
@@ -142,8 +168,9 @@ def generate_launch_description():
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=joint_state_broadcaster_spawner,
-                on_exit=[ackermann_steering_controller_spawner],
+                on_exit=[robot_controller_spawner],
             )
         ),
+
         TimerAction(period=bridge_rviz_delay_val, actions=[ros_gz_bridge, rviz_node])
     ])

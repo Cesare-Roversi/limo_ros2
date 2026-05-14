@@ -48,7 +48,7 @@ ekf_filter_node:
 
 # DOC: "in many systems, including the hypothetical one we are discussing here, will not undergo instantaneous Y acceleration.
 # However, the IMU will likely report non-zero, noisy values for Y acceleration, which can cause your estimate to drift rapidly."
-# imu restituisce: acc lineare X + vel angolare Z 
+# imu restituisce: acc lineare X + vel angolare Z + orientamento angolo Z
         imu0: /imu # [sensor_msgs/msg/Imu]
         imu0_config: [false, false, false,
                       false, false, true,
