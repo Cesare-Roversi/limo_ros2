@@ -93,6 +93,7 @@ def generate_launch_description():
         value=share_limo_description
     )
     
+    #! mbot, come sa' cos è??
     spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=['-topic', 'robot_description', '-entity', 'mbot',
                                    '-x', spawn_x, '-y', spawn_y, '-z', spawn_z, '-Y', spawn_yaw],
