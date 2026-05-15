@@ -24,8 +24,6 @@ from launch.actions import SetEnvironmentVariable
 
 def generate_launch_description():
 
-    # SHARE_DIRECTORIES:
-    # this_package_name = 'limo_car' #! attento!!
     share_limo_car = os.path.join(get_package_share_directory('limo_car'))
     share_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     share_limo_description = get_package_share_directory('limo_description')
@@ -73,7 +71,7 @@ def generate_launch_description():
 
     # INIZIALIZZO ROBOT
     robot_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(share_limo_car,'launch', 'ackermann.launch.py')]), 
+        PythonLaunchDescriptionSource([os.path.join(share_limo_car,'launch', 'PROVA_ackermann.launch.py')]),  #!!! ho cambiato qui 
         launch_arguments={'use_sim_time': use_sim_time}.items()
     )
 
@@ -93,7 +91,7 @@ def generate_launch_description():
         value=share_limo_description
     )
     
-    #! mbot, come sa' cos è??
+    #! mbot, come sa' cos è???
     spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=['-topic', 'robot_description', '-entity', 'mbot',
                                    '-x', spawn_x, '-y', spawn_y, '-z', spawn_z, '-Y', spawn_yaw],
