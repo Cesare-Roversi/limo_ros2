@@ -21,7 +21,7 @@ ackermann_steering_controller:
     reference_timeout: 2.0 # se passano > 2s dall'ultimo comando (di vel) si ferma
     rear_wheels_names: ['rear_right_wheel_joint', 'rear_left_wheel_joint']
     front_wheels_names: ['right_wheel_steering_joint', 'left_wheel_steering_joint'] #? controlla i tipi dei joint
-    use_stamped_vel: false #! l'ho canbiato io
+    use_stamped_vel: true #! era true, l'ho canbiato io
     open_loop: false
     velocity_rolling_window_size: 10
     base_frame_id: base_link

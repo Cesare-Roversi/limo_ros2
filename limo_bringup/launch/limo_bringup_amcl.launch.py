@@ -43,7 +43,7 @@ def generate_launch_description():
         ]),
         description='Full path to nav2 param file to load'
     )
-    # ESISTEVANO un file UGUALI ma con: nav2.yaml, navigation2.yaml
+    
 
     declare_rviz2_config_file_path = DeclareLaunchArgument(
         'rviz_config_file_path',
@@ -86,13 +86,28 @@ def generate_launch_description():
         output='screen'
     )
 
+    twist_stamper_node = Node(
+        package='twist_stamper',
+        executable='twist_stamper',
+        name='twist_stamper',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'frame_id': 'base_link'}
+        ],
+        remappings=[
+            ('cmd_vel_in', '/cmd_vel'),
+            ('cmd_vel_out', '/ackermann_steering_controller/reference')
+        ],
+        output='screen'
+    )
+
 
     group_action = GroupAction( #! SetRemap(src, dst) significa: "quando un nodo dentro il GroupAction usa il topic src, usa dst al suo posto".
         actions=[
             # Ricollega l'odometria: nav2 legge /odom, il controller pubblica sul suo topic
             SetRemap(src='/odom', dst='/odometry/filtered'),
             # Ricollega i comandi di velocità
-            SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
+            # SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
             
             nav2_launch,
             rviz2_node
@@ -105,6 +120,6 @@ def generate_launch_description():
         declare_map_file_path,
         declare_nav2_params_file_path,
         declare_rviz2_config_file_path,
-        # tf_odom_relay_node,
+        twist_stamper_node,
         group_action
     ])

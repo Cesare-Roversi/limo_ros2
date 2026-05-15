@@ -92,10 +92,26 @@ def generate_launch_description():
     )
 
 
+    twist_stamper_node = Node(
+        package='twist_stamper',
+        executable='twist_stamper',
+        name='twist_stamper',
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            {'frame_id': 'base_link'}
+        ],
+        remappings=[
+            ('cmd_vel_in', '/cmd_vel'),
+            ('cmd_vel_out', '/ackermann_steering_controller/reference')
+        ],
+        output='screen'
+    )
+
+
     group_action = GroupAction(
         actions=[
             SetRemap(src='/odom', dst='/odometry/filtered'),
-            SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
+            # SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
             slam_toolbox_launch,
             nav2_launch,
             rviz2_node,
@@ -108,5 +124,6 @@ def generate_launch_description():
         declare_nav2_params_file_path,
         declare_slam_params_file_path,
         declare_rviz2_config_file_path,
+        twist_stamper_node,
         group_action,
     ])
