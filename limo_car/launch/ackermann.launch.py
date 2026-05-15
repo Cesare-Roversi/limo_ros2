@@ -19,23 +19,21 @@ from launch.event_handlers import OnProcessExit
 from launch_ros.actions import Node
 
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable
+from launch_ros.parameter_descriptions import ParameterValue
 
 import xacro
 
 
 def generate_launch_description():
+    
+    share_limo_car = os.path.join(get_package_share_directory('limo_car'))
+    share_limo_description = os.path.join(get_package_share_directory('limo_description'))
 
-    # Use the simulation time
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    default_robot_xacro_file_path = os.path.join(share_limo_description, 'urdf', 'limo_ackermann.xacro.urdf')
 
-    # Find the model path
-    pkg_path = os.path.join(get_package_share_directory('limo_car'))
-    description_path = os.path.join(get_package_share_directory('limo_description'))
-    xacro_file = os.path.join(description_path, 'urdf', 'limo_ackermann.xacro.urdf')
-    robot_description_config = xacro.process_file(xacro_file)
-
+    #! di questa roba mi devo preoccupare???
     #Find the ros control plugin path
-    ros_ctrl_plugin_dir = os.path.join(pkg_path, 'src', 'gz_ros2_control')
+    ros_ctrl_plugin_dir = os.path.join(share_limo_car, 'src', 'gz_ros2_control')
 
     # Set the GZ_SIM_SYSTEM_PLUGIN_PATH environment variable
     plugin_paths = os.pathsep.join([
@@ -48,22 +46,31 @@ def generate_launch_description():
         plugin_paths
     )
 
-    # Do: export GZ_SIM_RESOURCE_PATH=/usr/share/gz/gz-sim8/:$GZ_SIM_RESOURCE_PATH
 
-    # gz_resource_env = SetEnvironmentVariable(
-    #     'GZ_SIM_RESOURCE_PATH',
-    #     '/usr/share/gz/gz-sim8/:$GZ_SIM_RESOURCE_PATH'
-    # )
-    
-    # Start a robot state publisher node
-    params = {'robot_description': robot_description_config.toxml(),
-            'use_sim_time': use_sim_time}
-    
+    # PARAMETRI
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    robot_xacro_file_path = LaunchConfiguration('robot_xacro_file_path')
+
+    declare_use_sim_time = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use sim time if true')
+    declare_robot_xacro_file_path = DeclareLaunchArgument(
+        'robot_xacro_file_path',
+        default_value=default_robot_xacro_file_path,
+        description='robot xacro file path'
+    )
+
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
-        parameters=[params]
+        parameters=[{
+            'robot_description': ParameterValue(
+                Command(['xacro ', robot_xacro_file_path]), value_type=str
+            ),
+            'use_sim_time': use_sim_time
+        }]
     )
 
     joint_state_publisher_node = Node(
@@ -76,11 +83,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         gz_plugin_env,
-        # gz_resource_env,
-        DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='false',
-            description='Use sim time if true'),
+        declare_use_sim_time,
+        declare_robot_xacro_file_path,
         node_robot_state_publisher, 
         joint_state_publisher_node
     ])

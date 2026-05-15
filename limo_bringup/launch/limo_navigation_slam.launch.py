@@ -11,51 +11,48 @@ from launch.actions import GroupAction
 
 def generate_launch_description():
 
+    # SHARE DIRS:
+    share_limo_bringup = get_package_share_directory('limo_bringup')
+    share_nav2_bringup = get_package_share_directory('nav2_bringup')
+
+
     # ARGOMENTI:
-    use_sim_time_dec = DeclareLaunchArgument(
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    nav2_params_file_path = LaunchConfiguration('nav2_params_file_path')
+    slam_params_file_path = LaunchConfiguration('slam_params_file_path')
+    rviz2_config_file_path = LaunchConfiguration('rviz2_config_file_path')
+
+    declare_use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true'
     )
 
-    nav2_params_file_dec = DeclareLaunchArgument(
-        'nav2_params_file',
+    declare_nav2_params_file_path = DeclareLaunchArgument(
+        'nav2_params_file_path',
         default_value=PathJoinSubstitution([
             # FindPackageShare('limo_bringup'), 'param', 'tesi_nav2_ackermann.yaml'
-            FindPackageShare('limo_bringup'), 'param', 'PROVA01_nav2_amcl.yaml'
+            share_limo_bringup, 'config', 'PROVA01_nav2_amcl.yaml'
         ])
     )
 
-    slam_params_file_dec = DeclareLaunchArgument(
-        'slam_params_file',
+    declare_slam_params_file_path = DeclareLaunchArgument(
+        'slam_params_file_path',
         default_value=PathJoinSubstitution([
-            FindPackageShare('limo_bringup'), 'param', 'slam_toolbox_params.yaml'
+            share_limo_bringup, 'config', 'slam_toolbox_params.yaml'
         ])
     )
 
-    rviz2_config_file_dec = DeclareLaunchArgument(
-        'rviz2_config_file',
+    declare_rviz2_config_file_path = DeclareLaunchArgument(
+        'rviz2_config_file_path',
         default_value=PathJoinSubstitution([
-            FindPackageShare('nav2_bringup'), 'rviz', 'nav2_default_view.rviz'
+            share_nav2_bringup, 'rviz', 'nav2_default_view.rviz'
         ])
     )
-
-
-    use_sim_time = LaunchConfiguration('use_sim_time')
-    nav2_params_file = LaunchConfiguration('nav2_params_file')
-    slam_params_file = LaunchConfiguration('slam_params_file')
-    rviz2_config_file = LaunchConfiguration('rviz2_config_file')
-
     # __ARGOMENTI
 
 
-    # slam_toolbox_node = Node(
-    #     package='slam_toolbox',
-    #     executable='sync_slam_toolbox_node',
-    #     name='slam_toolbox',
-    #     parameters=[slam_params_file, {'use_sim_time': use_sim_time}],
-    #     output='screen'
-    # )
+
 
     slam_toolbox_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -66,7 +63,8 @@ def generate_launch_description():
             ])
         ]),
         launch_arguments={
-            'use_sim_time': use_sim_time
+            'use_sim_time': use_sim_time,
+            'slam_params_file_path': slam_params_file_path 
         }.items()
     )
 
@@ -80,7 +78,7 @@ def generate_launch_description():
         ]),
         launch_arguments={
             'use_sim_time': use_sim_time,
-            'params_file': nav2_params_file,
+            'params_file': nav2_params_file_path,
         }.items()
     )
 
@@ -88,36 +86,27 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', rviz2_config_file],
+        arguments=['-d', rviz2_config_file_path],
         parameters=[{'use_sim_time': use_sim_time}],
         output='screen'
     )
 
-    tf_odom_relay = Node(
-        package='topic_tools',
-        executable='relay',
-        name='tf_odom_relay',
-        arguments=['/ackermann_steering_controller/tf_odometry', '/tf'], #! TENIAMO /tf (assumiamo namespace globale)
-        parameters=[{'use_sim_time': True}], 
-        output='screen'
-    )
 
     group_action = GroupAction(
         actions=[
-            SetRemap(src='/odom', dst='/ackermann_steering_controller/odometry'),
+            SetRemap(src='/odom', dst='/odometry/filtered'),
             SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
-            # slam_toolbox_node,
             slam_toolbox_launch,
             nav2_launch,
             rviz2_node,
         ]
     )
 
+
     return LaunchDescription([
-        use_sim_time_dec,
-        nav2_params_file_dec,
-        slam_params_file_dec,
-        rviz2_config_file_dec,
-        tf_odom_relay,
+        declare_use_sim_time,
+        declare_nav2_params_file_path,
+        declare_slam_params_file_path,
+        declare_rviz2_config_file_path,
         group_action,
     ])

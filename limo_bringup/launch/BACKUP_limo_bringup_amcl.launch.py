@@ -15,6 +15,10 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
+    share_limo_description = get_package_share_directory('limo_description')
+    share_nav2_bringup = get_package_share_directory('nav2_bringup')
+    share_limo_bringup = get_package_share_directory('limo_bringup')
+
     # ARGOMENTI:
     use_sim_time_dec = DeclareLaunchArgument(
         'use_sim_time',
