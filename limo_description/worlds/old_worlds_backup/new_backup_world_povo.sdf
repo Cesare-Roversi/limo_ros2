@@ -32,7 +32,7 @@
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.7 0.7 0.7</background_color>
         <!-- Centered on Povo (109.98, 27.59), 150m up, pitch=PI/2 = straight down -->
-        <camera_pose>109.98 27.59 40 0 1.5708 0</camera_pose>
+        <camera_pose>109.98 27.59 150 0 1.5708 0</camera_pose>
         <camera_clip>
           <near>0.25</near>
           <far>25000</far>
@@ -122,7 +122,7 @@
           <property type='bool' key='showTitleBar'>false</property>
           <property type='bool' key='resizable'>false</property>
           <property type='double' key='height'>72</property>
-          <property type='double' key='width'>200</property>
+          <property type='double' key='width'>121</property>
           <property type='double' key='z'>1</property>
           <property type='string' key='state'>floating</property>
           <anchors target='3D View'>

@@ -50,9 +50,9 @@ def generate_launch_description():
 
     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true')
     declare_world_path = DeclareLaunchArgument('world_path', default_value=default_world_path)
-    declare_spawn_x = DeclareLaunchArgument('spawn_x', default_value='0.0')
-    declare_spawn_y = DeclareLaunchArgument('spawn_y', default_value='0.0')
-    declare_spawn_z = DeclareLaunchArgument('spawn_z', default_value='0.65')
+    declare_spawn_x = DeclareLaunchArgument('spawn_x', default_value='109.0')
+    declare_spawn_y = DeclareLaunchArgument('spawn_y', default_value='32.0')
+    declare_spawn_z = DeclareLaunchArgument('spawn_z', default_value='0.6')
     declare_spawn_yaw = DeclareLaunchArgument('spawn_yaw', default_value='0.0')
     declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='false')
     declare_rviz_config = DeclareLaunchArgument('rviz_config', default_value=os.path.join(share_limo_car, 'config', 'limo_visual.rviz'))
