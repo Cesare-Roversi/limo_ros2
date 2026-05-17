@@ -86,10 +86,6 @@ def generate_launch_description():
         }.items(),
     )
 
-    set_gazebo_resource_path = SetEnvironmentVariable(
-        name='GAZEBO_RESOURCE_PATH',
-        value=share_limo_description
-    )
     
     #! mbot, come sa' cos è???
     spawn_entity = Node(package='ros_gz_sim', executable='create',
@@ -154,7 +150,6 @@ def generate_launch_description():
         declare_robot_controller_config,
         declare_ekf_node_config,
         robot_launch,
-        set_gazebo_resource_path,
         gz_sim_launch,
         spawn_entity,
         robot_localization_node,
