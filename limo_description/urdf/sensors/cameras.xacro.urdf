@@ -1,0 +1,134 @@
+<robot name="lidar" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- CAMERA LINK + JOINT -->
+  <!-- camera body, with origin at bottom screw mount -->
+    <joint name="camera_joint" type="fixed">
+      <origin xyz="0.05 0.0 0" rpy="0 0 0"/>
+      <parent link="base_link"/>
+      <child link="camera_bottom_screw_frame" />
+    </joint>
+    <link name="camera_bottom_screw_frame"/>
+
+    <joint name="camera_link_joint" type="fixed">
+      <origin xyz="0 0.0175 0.0125" rpy="0 0 0"/>
+      <parent link="camera_bottom_screw_frame"/>
+      <child link="camera_link" />
+    </joint>
+
+    <link name="camera_link">
+    </link>
+  
+  <!-- camera depth joints and links -->
+    <joint name="camera_depth_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="camera_link"/>
+      <child link="camera_depth_frame" />
+    </joint>
+    <link name="camera_depth_frame"/>
+
+    <joint name="camera_depth_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-1.57 0 -1.57" />
+      <parent link="camera_depth_frame" />
+      <child link="camera_depth_optical_frame" />
+    </joint>
+    <link name="camera_depth_optical_frame"/>
+      
+    <!-- camera left IR joints and links -->
+    <joint name="camera_left_ir_joint" type="fixed">
+      <origin xyz="0 0.0 0" rpy="0 0 0" />
+      <parent link="camera_depth_frame" />
+      <child link="camera_left_ir_frame" />
+    </joint>
+    <link name="camera_left_ir_frame"/>
+
+    <joint name="camera_left_ir_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-1.57 0 -1.57" />
+      <parent link="camera_left_ir_frame" />
+      <child link="camera_left_ir_optical_frame" />
+    </joint>
+    <link name="camera_left_ir_optical_frame"/>
+
+    <!-- camera right IR joints and links -->
+    <joint name="camera_right_ir_joint" type="fixed">
+      <origin xyz="0 -0.050 0" rpy="0 0 0" />
+      <parent link="camera_depth_frame" />
+      <child link="camera_right_ir_frame" />
+    </joint>
+    <link name="camera_right_ir_frame"/>
+
+    <joint name="camera_right_ir_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-1.57 0 -1.57" />
+      <parent link="camera_right_ir_frame" />
+      <child link="camera_right_ir_optical_frame" />
+    </joint>
+    <link name="camera_right_ir_optical_frame"/>
+
+    <!-- camera color joints and links -->
+    <joint name="camera_color_joint" type="fixed">
+      <origin xyz="0 0.0 0" rpy="0 0 0" />
+      <parent link="camera_depth_frame" />
+      <child link="camera_color_frame" />
+    </joint>
+    <link name="camera_color_frame"/>
+
+    <joint name="camera_color_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-1.57 0 -1.57" />
+      <parent link="camera_color_frame" />
+      <child link="camera_color_optical_frame" />
+    </joint>
+    <link name="camera_color_optical_frame"/>
+
+  <gazebo reference="camera_link">
+    <sensor name="camera_color" type="camera">
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <visualize>true</visualize>
+      <topic>camera_color</topic>
+      <gz_frame_id>camera_color_optical_frame</gz_frame_id>
+      <camera name="camera_color">
+          <horizontal_fov>1,439897</horizontal_fov>
+          <image>
+            <width>720</width>
+            <height>540</height>
+            <format>RGB_INT8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>100</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+        <always_on>1</always_on>
+        <update_rate>50</update_rate>
+        <visualize>0</visualize>
+    </sensor>
+    <sensor name="camera_depth" type="depth">
+        <camera name="camera_depth">
+          <horizontal_fov>1,439897</horizontal_fov>
+          <image>
+            <width>120</width>
+            <height>90</height>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>10</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>00</stddev>
+          </noise>
+        </camera>
+        <always_on>1</always_on>
+        <update_rate>100</update_rate>
+        <visualize>0</visualize>
+        <gz_frame_id>camera_depth_frame</gz_frame_id>
+        <topic>camera_depth</topic>
+      </sensor>
+  </gazebo>
+
+</robot>
