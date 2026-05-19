@@ -8,6 +8,15 @@
 # trova il frame_id del sesnore che pubblica su /scan e guarda nel tf tree: base_link -> scan 
 amcl:
   ros__parameters:
+    #! temmporaneo
+    set_initial_pose: true
+    initial_pose:             #correct for Humble
+      x: 118.188
+      y: 37.345
+      z: 0.0
+      yaw: 0.0
+    #! __temmporaneo
+
     use_sim_time: True
     alpha1: 0.2
     alpha2: 0.05
