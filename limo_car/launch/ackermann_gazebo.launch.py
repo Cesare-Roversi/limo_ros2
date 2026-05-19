@@ -86,6 +86,27 @@ def generate_launch_description():
         }.items(),
     )
 
+	#aggiungo la path per il mycobot (sembra non funzionare)
+    mycobot_share_parent = os.path.abspath(os.path.join(
+        get_package_share_directory('mycobot_description'), '..', '..'
+    ))
+    gz_ros2_control_lib = os.path.expanduser('~/limows/install/gz_ros2_control/lib')
+
+    set_gz_resource_path = SetEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=mycobot_share_parent + ':' + os.environ.get('GZ_SIM_RESOURCE_PATH', '')
+    )
+
+    set_gz_plugin_path = SetEnvironmentVariable(
+        name='GZ_SIM_SYSTEM_PLUGIN_PATH',
+        value=gz_ros2_control_lib + ':' + os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', '')
+    )
+
+    set_ld_library_path = SetEnvironmentVariable(
+        name='LD_LIBRARY_PATH',
+        value=gz_ros2_control_lib + ':' + os.environ.get('LD_LIBRARY_PATH', '')
+    )
+    #
     set_gazebo_resource_path = SetEnvironmentVariable(
         name='GAZEBO_RESOURCE_PATH',
         value=share_limo_description
@@ -141,6 +162,11 @@ def generate_launch_description():
 
 
     return LaunchDescription([
+        #
+        set_gz_resource_path,
+        set_gz_plugin_path,
+        set_ld_library_path,
+        #
         declare_use_sim_time,
         declare_world_path,
         declare_spawn_x,

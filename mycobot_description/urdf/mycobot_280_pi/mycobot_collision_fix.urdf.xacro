@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Sovrascrive le collision del myCobot con geometrie semplici
+       per evitare il crash ODE sulle mesh .dae -->
+
+  <gazebo reference="g_base">
+    <collision>
+      <geometry><cylinder radius="0.03" length="0.05"/></geometry>
+    </collision>
+  </gazebo>
+  <gazebo reference="joint1">
+    <collision>
+      <geometry><cylinder radius="0.03" length="0.06"/></geometry>
+    </collision>
+  </gazebo>
+  <gazebo reference="joint2">
+    <collision>
+      <geometry><cylinder radius="0.025" length="0.1"/></geometry>
+    </collision>
+  </gazebo>
+  <gazebo reference="joint3">
+    <collision>
+      <geometry><cylinder radius="0.025" length="0.1"/></geometry>
+    </collision>
+  </gazebo>
+  <gazebo reference="joint4">
+    <collision>
+      <geometry><cylinder radius="0.02" length="0.07"/></geometry>
+    </collision>
+  </gazebo>
+  <gazebo reference="joint5">
+    <collision>
+      <geometry><cylinder radius="0.02" length="0.07"/></geometry>
+    </collision>
+  </gazebo>
+  <gazebo reference="joint6">
+    <collision>
+      <geometry><cylinder radius="0.02" length="0.04"/></geometry>
+    </collision>
+  </gazebo>
+  <gazebo reference="joint6_flange">
+    <collision>
+      <geometry><cylinder radius="0.015" length="0.02"/></geometry>
+    </collision>
+  </gazebo>
+</robot>
+
+

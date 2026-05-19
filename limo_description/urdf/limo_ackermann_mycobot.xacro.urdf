@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot_combinato">
+
+  <xacro:include filename="$(find limo_description)/urdf/limo_ackermann.xacro.urdf" />	
+  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_280_pi.urdf" />
+
+  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_collision_fix.urdf.xacro" />
+
+  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_280_pi_ros2_control.urdf.xacro" /> 
+  <xacro:mycobot_ros2_control use_gazebo="true"/>
+
+
+  <joint name="base_to_arm_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="g_base"/>
+	<origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+   <!--  <parameters>$(find gz_ros2_control_demos)/config/ackermann_drive_controller.yaml</parameters>-->
+     <parameters>$(find limo_car)/config/ackermann_drive_controller.yaml</parameters>
+      <parameters>$(find mycobot_description)/config/mycobot_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+</robot>
