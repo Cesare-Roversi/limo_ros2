@@ -11,8 +11,8 @@ amcl:
     #! temmporaneo
     set_initial_pose: true
     initial_pose:             #correct for Humble
-      x: 118.188
-      y: 37.345
+      x: 120.000
+      y: 32.000
       z: 0.0
       yaw: 0.0
     #! __temmporaneo

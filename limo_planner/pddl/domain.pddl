@@ -40,34 +40,20 @@ object
     :effect (and
         (at start (not (robot_at ?r ?wp_origin)))
         (at end (robot_at ?r ?wp_dest))
-        (at end (can_gripper_reach ?r ?wp_gripper_dest))
+        (at end (can_gripper_reach ?r ?wp_dest))
     )
 )
 
-;; !secondo me non ha senso avere move e move_with_object insieme:
-;; !hanno gli stessi effetti, cambiano solo le precondizioni move_with_object non verrà mai scelta
-;; (:durative-action move_with_object
-;;     :parameters (?r - robot ?wp1 ?wp2 - waypoint ?o - object)
-;;     :duration (= ?duration 5)
-;;     :condition (and
-;;         (at start (can_robot_reach ?wp2))
-;;         (at start (robot_at ?r ?wp1))
-;;         (at start (object_picked_by_robot ?o ?r))
-;;         )
-;;     :effect (and
-;;         (at start (not (robot_at ?r ?wp1)))
-;;         (at end (robot_at ?r ?wp2))
-;;     )
-;; )
 
 ;; !Il problema sta tutto in come settiamo can_gripper_reach
 (:durative-action gripper_move
-    :parameters (?r - robot ?wp_gripper_dest - waypoint)
+    :parameters (?r - robot ?wp_gripper_origin ?wp_gripper_dest - waypoint)
     :duration (= ?duration 5)
     :condition (and
         (at start (can_gripper_reach ?r ?wp_gripper_dest))
         )
     :effect (and
+        (at start (not (gripper_at ?wp_gripper_origin)))
         (at end (gripper_at ?r ?wp_gripper_dest))
         )
 )
@@ -80,6 +66,7 @@ object
     :condition (and
         (at start (is_gripper_free ?r))
         (at start (gripper_at ?r ?wp_obj))
+        (at start (object_at ?o ?wp_obj))
         )
     :effect (and
         (at start (not (is_gripper_free ?r)))
@@ -93,6 +80,7 @@ object
     :duration (= ?duration 5)
     :condition (and
         (at start (object_picked_by_robot ?o ?r))
+        (at start (gripper_at ?r ?wp_gripper))
         )
     :effect (and
         (at end (not (object_picked_by_robot ?o ?r)))
