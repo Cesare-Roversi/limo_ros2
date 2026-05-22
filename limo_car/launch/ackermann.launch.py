@@ -50,6 +50,7 @@ def generate_launch_description():
     # PARAMETRI
     use_sim_time = LaunchConfiguration('use_sim_time')
     robot_xacro_file_path = LaunchConfiguration('robot_xacro_file_path')
+    drive_mode = LaunchConfiguration('drive_mode')
 
     declare_use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
@@ -58,7 +59,12 @@ def generate_launch_description():
     declare_robot_xacro_file_path = DeclareLaunchArgument(
         'robot_xacro_file_path',
         default_value=default_robot_xacro_file_path,
-        description='robot xacro file path'
+        description='path to robot xacro file'
+    )
+    declare_drive_mode =  DeclareLaunchArgument(
+        'drive_mode',
+        default_value ='ackermann',
+        description ='drive_mode can be set to: ackermann OR differential'
     )
 
 
@@ -70,6 +76,18 @@ def generate_launch_description():
         parameters=[{
             'robot_description': ParameterValue(
                 Command(['xacro ', robot_xacro_file_path]), value_type=str
+            ),
+            'use_sim_time': use_sim_time
+        }]
+    )
+
+    node_robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        output='screen',
+        parameters=[{
+            'robot_description': ParameterValue(
+                Command(['xacro ', robot_xacro_file_path, ' drive_mode:=', drive_mode]), value_type=str
             ),
             'use_sim_time': use_sim_time
         }]
@@ -87,6 +105,7 @@ def generate_launch_description():
         gz_plugin_env,
         declare_use_sim_time,
         declare_robot_xacro_file_path,
+        declare_drive_mode,
         node_robot_state_publisher, 
         joint_state_publisher_node
     ])
