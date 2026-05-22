@@ -25,7 +25,7 @@ diff_drive_controller:
     odom_frame_id: odom
     position_feedback: true
     enable_odom_tf: true
-    use_stamped_vel: false
+    use_stamped_vel: true #!
 
 # ----------------------------------------------------------------------
 # Configurazione Cinematica ACKERMANN

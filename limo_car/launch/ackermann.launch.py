@@ -64,6 +64,7 @@ def generate_launch_description():
     declare_drive_mode =  DeclareLaunchArgument(
         'drive_mode',
         default_value ='ackermann',
+        # default_value ='differential',
         description ='drive_mode can be set to: ackermann OR differential'
     )
 

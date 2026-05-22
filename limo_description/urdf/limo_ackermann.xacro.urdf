@@ -334,7 +334,7 @@
       <ros>
         <xacro:if value="${'$(arg drive_mode)' == 'ackermann'}">
           <remapping>/ackermann_steering_controller/odometry:=/controller_odom</remapping>
-          <remapping>/ackermann_steering_controller/reference_stamped:=/controller_cmd_vel_stamped</remapping>
+          <remapping>/ackermann_steering_controller/reference:=/controller_cmd_vel_stamped</remapping>
         </xacro:if>
 
         <xacro:if value="${'$(arg drive_mode)' == 'differential'}">

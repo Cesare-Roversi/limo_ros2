@@ -125,13 +125,13 @@ def generate_launch_description():
 
 
     # ekf node locale
-    robot_localization_node = Node(
-        package='robot_localization',
-        executable='ekf_node',
-        name='ekf_filter_node',
-        output='screen',
-        parameters=[ekf_node_config, {'use_sim_time': use_sim_time}]
-    )
+    # robot_localization_node = Node(
+    #     package='robot_localization',
+    #     executable='ekf_node',
+    #     name='ekf_filter_node',
+    #     output='screen',
+    #     parameters=[ekf_node_config, {'use_sim_time': use_sim_time}]
+    # )
 
     rviz_node = Node(
         package='rviz2', executable='rviz2', name='rviz2',
@@ -158,7 +158,7 @@ def generate_launch_description():
         robot_launch,
         gz_sim_launch,
         spawn_entity,
-        robot_localization_node,
+        # robot_localization_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
