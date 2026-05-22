@@ -1,0 +1,176 @@
+import os
+import shutil
+
+from ament_index_python.packages import get_package_share_directory
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription
+from launch.substitutions import LaunchConfiguration
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution, PythonExpression
+from launch_ros.parameter_descriptions import ParameterValue
+from launch.substitutions import Command
+from launch.actions import RegisterEventHandler
+from launch.event_handlers import OnProcessExit, OnProcessIO
+
+from launch_ros.actions import Node
+from launch.actions import TimerAction
+from launch.conditions import IfCondition
+from launch.actions import SetEnvironmentVariable
+
+#! è molto simile a ackermann_gazebo.launch.py, questo sarà in nostro principale
+
+
+def generate_launch_description():
+
+    share_limo_car = get_package_share_directory('limo_car')
+    share_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    share_limo_description = get_package_share_directory('limo_description')
+    
+    # Get default files from shared directories of packages:
+    default_world_path = os.path.join(share_limo_description, 'worlds', 'world_povo.sdf')
+
+
+    # PARAMETRI:
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    world_path_cfg = LaunchConfiguration('world_path')
+    spawn_x = LaunchConfiguration('spawn_x')
+    spawn_y = LaunchConfiguration('spawn_y')
+    spawn_z = LaunchConfiguration('spawn_z')
+    spawn_yaw = LaunchConfiguration('spawn_yaw')
+    start_rviz = LaunchConfiguration('start_rviz')
+    rviz_config = LaunchConfiguration('rviz_config')
+    jsb_delay_val = LaunchConfiguration('jsb_delay')
+    bridge_rviz_delay_val = LaunchConfiguration('bridge_rviz_delay')
+    robot_controller_config = LaunchConfiguration('robot_controller_config')
+    ekf_node_config = LaunchConfiguration('ekf_node_config')
+
+
+
+    declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true')
+    declare_world_path = DeclareLaunchArgument('world_path', default_value=default_world_path)
+    declare_spawn_x = DeclareLaunchArgument('spawn_x', default_value='120.0')
+    declare_spawn_y = DeclareLaunchArgument('spawn_y', default_value='32.0')
+    declare_spawn_z = DeclareLaunchArgument('spawn_z', default_value='0.6')
+    declare_spawn_yaw = DeclareLaunchArgument('spawn_yaw', default_value='0.0')
+    declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='false')
+    declare_rviz_config = DeclareLaunchArgument('rviz_config', default_value=os.path.join(share_limo_car, 'config', 'limo_visual.rviz'))
+    declare_jsb_delay = DeclareLaunchArgument('jsb_delay', default_value='20.0')
+    declare_bridge_rviz_delay = DeclareLaunchArgument('bridge_rviz_delay', default_value='10.0')
+    declare_robot_controller_config = DeclareLaunchArgument(
+        'robot_controller_config', 
+        default_value=PathJoinSubstitution([share_limo_car, 'config', 'differential_drive_controller.yaml']) #! STESSO PROBLEMA
+    )
+    declare_ekf_node_config = DeclareLaunchArgument(
+        'ekf_node_config',
+        default_value=PathJoinSubstitution([share_limo_car, 'config', 'ekf_config_ackermann.yaml'])
+    )
+    
+
+
+    # INIZIALIZZO ROBOT
+    robot_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(share_limo_car,'launch', 'ackermann.launch.py')]),  #!!! ho cambiato qui 
+        launch_arguments={'use_sim_time': use_sim_time}.items()
+    )
+
+    # INIZIALIZZO SIMULAZIONE GAZEBO
+    gz_sim_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(share_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
+        launch_arguments={
+            'gz_args': [world_path_cfg, ' -r'],
+            'on_exit_shutdown': 'True',
+            'paused': 'False',
+            'use_sim_time': use_sim_time
+        }.items(),
+    )
+
+    
+    #! mbot, come sa' cos è???
+    spawn_entity = Node(package='ros_gz_sim', executable='create',
+                        arguments=['-topic', 'robot_description', '-entity', 'mbot',
+                                   '-x', spawn_x, '-y', spawn_y, '-z', spawn_z, '-Y', spawn_yaw],
+                        output='screen')
+    
+    
+    # robot_controller_spawner = Node(
+    #     package='controller_manager', executable='spawner',
+    #     arguments=['diff_drive_controller', '--param-file', robot_controller_config], #!PROBLEMA
+    # )
+
+    robot_controller_spawner = Node(
+        package='controller_manager', executable='spawner',
+        # arguments=['diff_drive_controller'],
+        arguments=['ackermann_steering_controller'], 
+    )
+    
+
+    # Aspetta che la simulzione sia avviata prima di far partire il joint_state_broadcaster_spawner:
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager', executable='spawner', arguments=['joint_state_broadcaster'],
+    )
+    delayed_joint_state_broadcaster_spawner = TimerAction(period=jsb_delay_val, actions=[joint_state_broadcaster_spawner])
+
+    
+    # Se può lanciare il bridge in una nuova finestra di terminale lo fa:
+    has_desktop_environment = os.environ.get('XDG_CURRENT_DESKTOP', 'NONE') != 'NONE'
+    has_gnome_terminal = shutil.which('gnome-terminal') is not None
+    prefix_value = 'gnome-terminal --tab --' if (has_desktop_environment and has_gnome_terminal) else ''
+    ros_gz_bridge = Node(
+        package='ros_gz_bridge', executable='parameter_bridge',
+        parameters=[{'config_file': os.path.join(share_limo_car, 'config', 'ros_gz_bridge.yaml')}],
+        prefix=prefix_value, output='screen'
+    )
+
+
+    # ekf node locale
+    robot_localization_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[ekf_node_config, {'use_sim_time': use_sim_time}]
+    )
+
+    rviz_node = Node(
+        package='rviz2', executable='rviz2', name='rviz2',
+        arguments=['-d', rviz_config],
+        parameters=[{'use_sim_time': use_sim_time}],
+        output='screen',
+        condition=IfCondition(start_rviz)
+    )
+
+
+    return LaunchDescription([
+        declare_use_sim_time,
+        declare_world_path,
+        declare_spawn_x,
+        declare_spawn_y,
+        declare_spawn_z,
+        declare_spawn_yaw,
+        declare_rviz_config,
+        declare_start_rviz,
+        declare_jsb_delay,
+        declare_bridge_rviz_delay,
+        declare_robot_controller_config,
+        declare_ekf_node_config,
+        robot_launch,
+        gz_sim_launch,
+        spawn_entity,
+        robot_localization_node,
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=spawn_entity,
+                on_exit=[delayed_joint_state_broadcaster_spawner],
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[robot_controller_spawner],
+            )
+        ),
+
+        TimerAction(period=bridge_rviz_delay_val, actions=[ros_gz_bridge, rviz_node])
+    ])
