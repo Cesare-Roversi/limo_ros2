@@ -41,10 +41,8 @@ def generate_launch_description():
     spawn_yaw = LaunchConfiguration('spawn_yaw')
     start_rviz = LaunchConfiguration('start_rviz')
     rviz_config = LaunchConfiguration('rviz_config')
-    jsb_delay_val = LaunchConfiguration('jsb_delay')
-    bridge_rviz_delay_val = LaunchConfiguration('bridge_rviz_delay')
-    robot_controller_config = LaunchConfiguration('robot_controller_config')
     ekf_node_config = LaunchConfiguration('ekf_node_config')
+    controller_type = LaunchConfiguration('controller_type')
 
 
 
@@ -56,23 +54,31 @@ def generate_launch_description():
     declare_spawn_yaw = DeclareLaunchArgument('spawn_yaw', default_value='0.0')
     declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='false')
     declare_rviz_config = DeclareLaunchArgument('rviz_config', default_value=os.path.join(share_limo_car, 'config', 'limo_visual.rviz'))
-    declare_jsb_delay = DeclareLaunchArgument('jsb_delay', default_value='20.0')
-    declare_bridge_rviz_delay = DeclareLaunchArgument('bridge_rviz_delay', default_value='10.0')
-    declare_robot_controller_config = DeclareLaunchArgument(
-        'robot_controller_config', 
-        default_value=PathJoinSubstitution([share_limo_car, 'config', 'differential_drive_controller.yaml']) #! STESSO PROBLEMA
-    )
     declare_ekf_node_config = DeclareLaunchArgument(
         'ekf_node_config',
         default_value=PathJoinSubstitution([share_limo_car, 'config', 'ekf_config_ackermann.yaml'])
     )
+    declare_controller_type =  DeclareLaunchArgument(
+        'controller_type',
+        default_value ='ackermann_steering_controller',
+        description ='controller_type can be set to: ackermann_steering_controller OR diff_drive_controller (THE NAMES IN robot_controllers.yaml)'
+    )
     
+    # _PARAMETRI
+
+
+    #! DELAY:
+    jsb_delay_val = 20.0
+    bridge_rviz_delay_val = 10.0
 
 
     # INIZIALIZZO ROBOT
     robot_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(share_limo_car,'launch', 'ackermann.launch.py')]),  #!!! ho cambiato qui 
-        launch_arguments={'use_sim_time': use_sim_time}.items()
+        PythonLaunchDescriptionSource([os.path.join(share_limo_car,'launch', 'ackermann.launch.py')]),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+            'controller_type': controller_type,
+            }.items()
     )
 
     # INIZIALIZZO SIMULAZIONE GAZEBO
@@ -94,15 +100,10 @@ def generate_launch_description():
                         output='screen')
     
     
-    # robot_controller_spawner = Node(
-    #     package='controller_manager', executable='spawner',
-    #     arguments=['diff_drive_controller', '--param-file', robot_controller_config], #!PROBLEMA
-    # )
 
     robot_controller_spawner = Node(
         package='controller_manager', executable='spawner',
-        # arguments=['diff_drive_controller'],
-        arguments=['ackermann_steering_controller'], 
+        arguments=[controller_type], 
     )
     
 
@@ -125,13 +126,13 @@ def generate_launch_description():
 
 
     # ekf node locale
-    # robot_localization_node = Node(
-    #     package='robot_localization',
-    #     executable='ekf_node',
-    #     name='ekf_filter_node',
-    #     output='screen',
-    #     parameters=[ekf_node_config, {'use_sim_time': use_sim_time}]
-    # )
+    robot_localization_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[ekf_node_config, {'use_sim_time': use_sim_time}]
+    )
 
     rviz_node = Node(
         package='rviz2', executable='rviz2', name='rviz2',
@@ -151,14 +152,12 @@ def generate_launch_description():
         declare_spawn_yaw,
         declare_rviz_config,
         declare_start_rviz,
-        declare_jsb_delay,
-        declare_bridge_rviz_delay,
-        declare_robot_controller_config,
         declare_ekf_node_config,
+        declare_controller_type,
         robot_launch,
         gz_sim_launch,
         spawn_entity,
-        # robot_localization_node,
+        robot_localization_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,

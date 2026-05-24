@@ -20,7 +20,7 @@ from launch_ros.actions import Node
 
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable
 from launch_ros.parameter_descriptions import ParameterValue
-
+from launch.actions import LogInfo
 import xacro
 
 
@@ -50,7 +50,7 @@ def generate_launch_description():
     # PARAMETRI
     use_sim_time = LaunchConfiguration('use_sim_time')
     robot_xacro_file_path = LaunchConfiguration('robot_xacro_file_path')
-    drive_mode = LaunchConfiguration('drive_mode')
+    controller_type = LaunchConfiguration('controller_type')
 
     declare_use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
@@ -61,11 +61,10 @@ def generate_launch_description():
         default_value=default_robot_xacro_file_path,
         description='path to robot xacro file'
     )
-    declare_drive_mode =  DeclareLaunchArgument(
-        'drive_mode',
-        default_value ='ackermann',
-        # default_value ='differential',
-        description ='drive_mode can be set to: ackermann OR differential'
+    declare_controller_type =  DeclareLaunchArgument(
+        'controller_type',
+        default_value ='ackermann_steering_controller',
+        description ='controller_type can be set to: ackermann_steering_controller OR diff_drive_controller (THE NAMES IN robot_controllers.yaml)'
     )
 
 
@@ -76,19 +75,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'robot_description': ParameterValue(
-                Command(['xacro ', robot_xacro_file_path]), value_type=str
-            ),
-            'use_sim_time': use_sim_time
-        }]
-    )
-
-    node_robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        output='screen',
-        parameters=[{
-            'robot_description': ParameterValue(
-                Command(['xacro ', robot_xacro_file_path, ' drive_mode:=', drive_mode]), value_type=str
+                Command(['xacro ', robot_xacro_file_path, ' controller_type:=', controller_type]), value_type=str
             ),
             'use_sim_time': use_sim_time
         }]
@@ -106,7 +93,8 @@ def generate_launch_description():
         gz_plugin_env,
         declare_use_sim_time,
         declare_robot_xacro_file_path,
-        declare_drive_mode,
+        declare_controller_type,
         node_robot_state_publisher, 
-        joint_state_publisher_node
+        joint_state_publisher_node,
+        LogInfo(msg=['[DEBUG] xacro command: xacro ', robot_xacro_file_path, ' controller_type:=', controller_type])
     ])

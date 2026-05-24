@@ -37,9 +37,9 @@ def generate_launch_description():
     declare_nav2_params_file_path = DeclareLaunchArgument(
         'nav2_params_file_path',
         default_value=PathJoinSubstitution([
-            # share_limo_bringup, 'param', 'tesi_nav2_ackermann.yaml'
-            share_limo_bringup, 'config', 'PROVA01_nav2_amcl.yaml'
-            # share_limo_bringup, 'param', 'PROVA02_nav2_amcl.yaml'
+            # share_limo_bringup, 'config', 'tesi_nav2_ackermann.yaml'
+            # share_limo_bringup, 'config', 'PROVA01_nav2_amcl.yaml'
+            share_limo_bringup, 'config', 'PROVA02_nav2_amcl.yaml'
         ]),
         description='Full path to nav2 param file to load'
     )
@@ -95,8 +95,8 @@ def generate_launch_description():
             {'frame_id': 'base_link'}
         ],
         remappings=[
-            ('cmd_vel_in', '/cmd_vel'),
-            ('cmd_vel_out', '/ackermann_steering_controller/reference')
+            ('cmd_vel_in', '/cmd_vel_unstamped'),
+            ('cmd_vel_out', '/cmd_vel')
         ],
         output='screen'
     )
@@ -106,6 +106,7 @@ def generate_launch_description():
         actions=[
             # Ricollega l'odometria: nav2 legge /odom, il controller pubblica sul suo topic
             SetRemap(src='/odom', dst='/odometry/filtered'),
+            SetRemap(src='/cmd_vel', dst='/cmd_vel_unstamped'),
             # Ricollega i comandi di velocità
             # SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
             

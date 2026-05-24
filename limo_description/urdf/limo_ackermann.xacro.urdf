@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <robot name="ackermann_drive" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <!-- controller, disabilita front wheel drive x ackermann (non supportato) e topic remappings-->
-  <xacro:arg name="drive_mode" default="ackermann" />
+  <!-- controller, disabilita front wheel drive x ackermann_steering_controller (non supportato) e topic remappings-->
+  <xacro:arg name="controller_type" default="ackermann_steering_controller" />
+  <!-- <xacro:arg name="controller_type" default="diff_drive_controller" />  -->
 
   <!-- Variables -->
   <xacro:property name="M_PI" value="3.14159"/>
@@ -265,7 +266,7 @@
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
 
-    <xacro:if value="${'$(arg drive_mode)' == 'ackermann'}">
+    <xacro:if value="${'$(arg controller_type)' == 'ackermann_steering_controller'}">
       <joint name="rear_left_wheel_joint">
         <command_interface name="velocity" />
         <state_interface name="velocity" />
@@ -294,7 +295,7 @@
       </joint>
     </xacro:if>
 
-    <xacro:if value="${'$(arg drive_mode)' == 'differential'}">
+    <xacro:if value="${'$(arg controller_type)' == 'diff_drive_controller'}">
       <joint name="rear_left_wheel_joint">
         <command_interface name="velocity" />
         <state_interface name="velocity" />
@@ -332,14 +333,14 @@
       <parameters>$(find limo_car)/config/robot_controllers.yaml</parameters>
 
       <ros>
-        <xacro:if value="${'$(arg drive_mode)' == 'ackermann'}">
+        <xacro:if value="${'$(arg controller_type)' == 'ackermann_steering_controller'}">
           <remapping>/ackermann_steering_controller/odometry:=/controller_odom</remapping>
-          <remapping>/ackermann_steering_controller/reference:=/controller_cmd_vel_stamped</remapping>
+          <remapping>/ackermann_steering_controller/reference:=/cmd_vel</remapping>
         </xacro:if>
 
-        <xacro:if value="${'$(arg drive_mode)' == 'differential'}">
+        <xacro:if value="${'$(arg controller_type)' == 'diff_drive_controller'}">
           <remapping>/diff_drive_controller/odom:=/controller_odom</remapping>
-          <remapping>/diff_drive_controller/cmd_vel_unstamped:=/controller_cmd_vel</remapping>
+          <remapping>/diff_drive_controller/cmd_vel:=/cmd_vel</remapping>
         </xacro:if>
       </ros>
     </plugin>

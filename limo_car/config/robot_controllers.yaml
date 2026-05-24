@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100  # Hz (Condiviso da tutti)
+    update_rate: 100  
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -24,8 +24,8 @@ diff_drive_controller:
     base_frame_id: base_link
     odom_frame_id: odom
     position_feedback: true
-    enable_odom_tf: true
-    use_stamped_vel: true #!
+    enable_odom_tf: false #todo: should be ok check the docs for this
+    use_stamped_vel: true
 
 # ----------------------------------------------------------------------
 # Configurazione Cinematica ACKERMANN
@@ -46,7 +46,7 @@ ackermann_steering_controller:
     velocity_rolling_window_size: 10
     base_frame_id: base_link
     odom_frame_id: odom
-    enable_odom_tf: true
+    enable_odom_tf: false
     twist_covariance_diagonal: [0.001, 0.001, 1e6, 1e6, 1e6, 0.01]
     pose_covariance_diagonal: [0.001, 0.001, 1e6, 1e6, 1e6, 0.01]
     position_feedback: false
