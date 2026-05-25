@@ -160,8 +160,9 @@
     <child link="left_wheel_steering" />
     <!-- <xacro:insert_block name="joint_pose"/> -->
     <axis xyz="0 0 1" />
-    <dynamics damping="1.0" friction="2.0"/>
-    <limit lower="-0.523598767" upper="0.523598767" effort="5" velocity="0.5" />
+    <!-- <dynamics damping="1.0" friction="2.0"/> -->
+    <dynamics damping="0.01" friction="0.01"/>  <!-- !ESPLODI -->
+    <limit lower="-0.523598767" upper="0.523598767" effort="10000" velocity="2" />
   </joint>
 
   <!-- right steer Link -->
@@ -192,8 +193,9 @@
     <child link="right_wheel_steering" />
     <!-- <xacro:insert_block name="joint_pose"/> -->
     <axis xyz="0 0 -1"/>
-    <dynamics damping="1.0" friction="2.0"/>
-    <limit lower="-0.523598767" upper="0.523598767" effort="5" velocity="0.5" />
+    <!-- <dynamics damping="1.0" friction="2.0"/> -->
+    <dynamics damping="0.01" friction="0.01"/>  <!-- !ESPLODI -->
+    <limit lower="-0.523598767" upper="0.523598767" effort="10000" velocity="2" />
   </joint>
 
   <!-- front left wheel Link -->
@@ -335,12 +337,12 @@
       <ros>
         <xacro:if value="${'$(arg controller_type)' == 'ackermann_steering_controller'}">
           <remapping>/ackermann_steering_controller/odometry:=/controller_odom</remapping>
-          <remapping>/ackermann_steering_controller/reference:=/cmd_vel</remapping>
+          <remapping>/ackermann_steering_controller/reference:=/cmd_vel_stamped</remapping>
         </xacro:if>
 
         <xacro:if value="${'$(arg controller_type)' == 'diff_drive_controller'}">
           <remapping>/diff_drive_controller/odom:=/controller_odom</remapping>
-          <remapping>/diff_drive_controller/cmd_vel:=/cmd_vel</remapping>
+          <remapping>/diff_drive_controller/cmd_vel:=/cmd_vel_stamped</remapping>
         </xacro:if>
       </ros>
     </plugin>

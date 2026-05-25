@@ -48,7 +48,7 @@ def generate_launch_description():
     declare_rviz2_config_file_path = DeclareLaunchArgument(
         'rviz_config_file_path',
         default_value=PathJoinSubstitution([
-            share_nav2_bringup, 'rviz', 'nav2_default_view.rviz' 
+            share_limo_bringup, 'rviz', 'nav2_default_view.rviz' 
         ]),
         description='Full path to rviz config file to load'
     )
@@ -86,6 +86,22 @@ def generate_launch_description():
         output='screen'
     )
 
+    #! rimappare lo stack di nav2 su /cmd_vel_unstamped da problemi perchè velocity smoother ignora il reamp.
+    # twist_stamper_node = Node(
+    #     package='twist_stamper',
+    #     executable='twist_stamper',
+    #     name='twist_stamper',
+    #     parameters=[
+    #         {'use_sim_time': use_sim_time},
+    #         {'frame_id': 'base_link'}
+    #     ],
+    #     remappings=[
+    #         ('cmd_vel_in', '/cmd_vel_unstamped'),
+    #         ('cmd_vel_out', '/cmd_vel')
+    #     ],
+    #     output='screen'
+    # )
+
     twist_stamper_node = Node(
         package='twist_stamper',
         executable='twist_stamper',
@@ -95,8 +111,8 @@ def generate_launch_description():
             {'frame_id': 'base_link'}
         ],
         remappings=[
-            ('cmd_vel_in', '/cmd_vel_unstamped'),
-            ('cmd_vel_out', '/cmd_vel')
+            ('cmd_vel_in', '/cmd_vel'),        # ← prima era /cmd_vel_unstamped
+            ('cmd_vel_out', '/cmd_vel_stamped') # ← nuovo topic dedicato
         ],
         output='screen'
     )
@@ -106,7 +122,7 @@ def generate_launch_description():
         actions=[
             # Ricollega l'odometria: nav2 legge /odom, il controller pubblica sul suo topic
             SetRemap(src='/odom', dst='/odometry/filtered'),
-            SetRemap(src='/cmd_vel', dst='/cmd_vel_unstamped'),
+            # SetRemap(src='/cmd_vel', dst='/cmd_vel_unstamped'),
             # Ricollega i comandi di velocità
             # SetRemap(src='/cmd_vel', dst='/ackermann_steering_controller/reference_unstamped'),
             
