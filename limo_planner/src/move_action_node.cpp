@@ -133,7 +133,27 @@ public:
     send_goal_options.result_callback = [this](auto) {
         finish(true, 1.0, "Move completed");
       };
+    
+    
+    /*
+    * 1. COSA VIENE SETTATO:
+      navigation_action_client_ salva:
+      - send_goal_options= feedback + result
+      - goal id (generato)
+    * 2. COSA VIENE INVIATO:
+      navigation_goal_ alla rete ros2
+    * 3. COSA VIENE RESTITUITO:
+      future_navigation_goal_handle_ che diventa un ClientGoalHandle valido.
+      ClientGoalHandle ti permette di interagire con un particolare goal che hai mandato:
+      metodi di ClientGoalHandle:
+      get_status restituisce lo stato attuale dell’azione come esecuzione successo o cancellazione
 
+      is_accepted indica se il server ha accettato o rifiutato il goal e ritorna un booleano
+
+      get_goal_id restituisce l’identificatore univoco della missione
+
+      async_get_result restituisce un future che permette di attendere il risultato finale dell’azione
+    */
     future_navigation_goal_handle_ = navigation_action_client_->async_send_goal(navigation_goal_, send_goal_options);
 
     return ActionExecutorClient::on_activate(previous_state);
@@ -166,7 +186,7 @@ private:
 
 
   /*
-  std::shared_ptr<rclcpp_action::Client<nav2_msgs::action::NavigateToPose>>
+  * std::shared_ptr<rclcpp_action::Client<nav2_msgs::action::NavigateToPose>>
   equivale a questo:
   rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SharedPtr
   !sostituisci !
