@@ -186,8 +186,8 @@ amcl:
     #* AGGIORNAMENTO
     # ogni quanto aggoirnare la posizione
     # abbassati molto x precisone piccoli movimenti
-    update_min_d: 0.05 #radinati
-    update_min_a: 0.05 #metri
+    update_min_d: 0.1 #radinati
+    update_min_a: 0.1 #metri
 
     #* RECOVERY
     # non oso toccarli
