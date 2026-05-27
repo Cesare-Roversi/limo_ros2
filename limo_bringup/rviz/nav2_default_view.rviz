@@ -159,6 +159,22 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Alpha: 1
+      Class: nav2_rviz_plugins/ParticleCloud
+      Color: 0; 180; 0
+      Enabled: false
+      Max Arrow Length: 0.30000001192092896
+      Min Arrow Length: 0.019999999552965164
+      Name: Amcl Particle Swarm
+      Shape: Arrow (Flat)
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /particle_cloud
+      Value: false
     - Class: rviz_default_plugins/TF
       Enabled: true
       Frame Timeout: 15
@@ -532,22 +548,6 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /clicked_point
       Value: true
-    - Alpha: 1
-      Class: nav2_rviz_plugins/ParticleCloud
-      Color: 0; 180; 0
-      Enabled: false
-      Max Arrow Length: 0.30000001192092896
-      Min Arrow Length: 0.019999999552965164
-      Name: Amcl Particle Swarm
-      Shape: Arrow (Flat)
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Best Effort
-        Value: /particle_cloud
-      Value: false
     - Class: rviz_common/Group
       Displays:
         - Alpha: 0.30000001192092896
@@ -892,11 +892,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 76.18228912353516
+      Scale: 30.50695037841797
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 123.85140991210938
-      Y: 29.778841018676758
+      X: 123.07776641845703
+      Y: 28.80304718017578
     Saved: ~
 Window Geometry:
   Displays:

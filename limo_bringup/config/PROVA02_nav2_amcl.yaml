@@ -134,12 +134,18 @@ amcl:
     use_sim_time: True
 
     #* QUANTA NOISE SI ASPETTA DALL'ODOMETRIA
+    # se si fida salta in giro meno.
     # deafault di tutti è 0.2
-    alpha1: 0.3
-    alpha2: 0.3
-    alpha3: 0.3
-    alpha4: 0.3
-    alpha5: 0.3
+    # alpha1: 0.3
+    # alpha2: 0.3
+    # alpha3: 0.3
+    # alpha4: 0.3
+    # alpha5: 0.3
+    alpha1: 0.1
+    alpha2: 0.1
+    alpha3: 0.1
+    alpha4: 0.1
+    alpha5: 0.1
 
     #* TRANSFORMS:
     robot_model_type: "nav2_amcl::DifferentialMotionModel"
@@ -166,11 +172,13 @@ amcl:
     laser_likelihood_max_dist: 2.5
     max_beams: 360
 
-    # non oso toccare, non vedevo gran cambiamenti, lascio i default
+    # "likelihood_field" usa solo z_hit e z_rand, 
+    # in teoria z_hit è la problabilità che un raggio sia corretto
+    # z_rand che sia sbagliato
     sigma_hit: 0.2
-    z_hit: 0.5
+    z_hit: 0.9 
     z_max: 0.05
-    z_rand: 0.5
+    z_rand: 0.1
     z_short: 0.05
     lambda_short: 0.1
 
@@ -282,14 +290,14 @@ controller_server:
       movement_time_allowance: 60.0 #60 s
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 0.25
+      xy_goal_tolerance: 0.1
+      yaw_goal_tolerance: 0.5
       stateful: True
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
 
       #* NAVIGAZIONE:
-      desired_linear_vel: 1.0
+      desired_linear_vel: 0.6
       allow_reversing: true
 
       # collisioni
@@ -310,7 +318,7 @@ controller_server:
       #* SCALING NAVIGAZIONE:
       # rallentare alle curve:
       use_regulated_linear_velocity_scaling: true
-      regulated_linear_scaling_min_radius: 0.6 #*raggio sotto il quale diminuisce la velocità
+      regulated_linear_scaling_min_radius: 0.8 #*raggio sotto il quale diminuisce la velocità
       regulated_linear_scaling_min_speed: 0.15 #*se use_regulated_linear_velocity_scaling: true
 
       # rallentare vicino a zone ad alto costo nella costmap (I muri tendenzialmente)
@@ -467,7 +475,7 @@ global_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         # ERA inflation_radius: 0.1, MA NAV2 SI LAMENTAVA
-        inflation_radius: 0.7 #! modificato
+        inflation_radius: 0.8 #! modificato
       always_send_full_costmap: True
 
 
