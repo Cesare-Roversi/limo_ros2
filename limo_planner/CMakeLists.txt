@@ -34,17 +34,18 @@ set(dependencies
 add_executable(move_action_node src/move_action_node.cpp)
 ament_target_dependencies(move_action_node ${dependencies})
 
-add_executable(move_with_object_action_node src/move_with_object_action_node.cpp)
-ament_target_dependencies(move_with_object_action_node ${dependencies})
+# LE TOLGO TEMPORANEAMENTE: 
+# add_executable(move_with_object_action_node src/move_with_object_action_node.cpp)
+# ament_target_dependencies(move_with_object_action_node ${dependencies})
 
-add_executable(arm_pick_action_node src/arm_pick_action_node.cpp)
-ament_target_dependencies(arm_pick_action_node ${dependencies})
+# add_executable(arm_pick_action_node src/arm_pick_action_node.cpp)
+# ament_target_dependencies(arm_pick_action_node ${dependencies})
 
-add_executable(arm_move_action_node src/arm_move_action_node.cpp)
-ament_target_dependencies(arm_move_action_node ${dependencies})
+# add_executable(arm_move_action_node src/arm_move_action_node.cpp)
+# ament_target_dependencies(arm_move_action_node ${dependencies})
 
-add_executable(arm_unload_action_node src/arm_unload_action_node.cpp)
-ament_target_dependencies(arm_unload_action_node ${dependencies})
+# add_executable(arm_unload_action_node src/arm_unload_action_node.cpp)
+# ament_target_dependencies(arm_unload_action_node ${dependencies})
 
 add_executable(controller src/controller.cpp)
 ament_target_dependencies(controller ${dependencies})
@@ -55,10 +56,10 @@ install(DIRECTORY launch pddl
 
 install(TARGETS
   move_action_node
-  move_with_object_action_node
-  arm_pick_action_node
-  arm_move_action_node
-  arm_unload_action_node
+  # move_with_object_action_node
+  # arm_pick_action_node
+  # arm_move_action_node
+  # arm_unload_action_node
   controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

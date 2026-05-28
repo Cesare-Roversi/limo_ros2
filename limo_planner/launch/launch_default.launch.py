@@ -8,6 +8,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+#! ATTENTO!! NODI COMMENTATI
 
 def generate_launch_description():
     share_limo_planner = get_package_share_directory('limo_planner')
@@ -16,7 +17,8 @@ def generate_launch_description():
     pddl_domain_file = os.path.join(
         share_limo_planner,
         'pddl',
-        'domain.pddl'
+        # 'domain.pddl' # ! ATTENTO
+        'simple_domain_temp.pddl'
     )
 
     plansys2_bringup_launch = IncludeLaunchDescription(
@@ -81,10 +83,10 @@ def generate_launch_description():
     return LaunchDescription([
         plansys2_bringup_launch,
         move_cmd_node,
-        move_with_object_cmd_node,
-        pick_cmd_node,
-        unload_cmd_node,
-        arm_move_cmd_node,
+        # move_with_object_cmd_node,
+        # pick_cmd_node,
+        # unload_cmd_node,
+        # arm_move_cmd_node,
         controller_node
     ])
 

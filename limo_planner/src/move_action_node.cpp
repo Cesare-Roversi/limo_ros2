@@ -20,10 +20,7 @@ using namespace std::chrono_literals;
 class MoveAction : public plansys2::ActionExecutorClient
 {
 public:
-  MoveAction()
-  : plansys2::ActionExecutorClient("move", 500ms)
-  {
-    geometry_msgs::msg::PoseStamped wp;
+  MoveAction() : plansys2::ActionExecutorClient("move", 500ms){
     wp.header.frame_id = "map";
     wp.header.stamp = now();
     wp.pose.position.x = 0.0;
@@ -37,7 +34,7 @@ public:
 
     using namespace std::placeholders;
     //subscriber a /amcl_pose, vuole una callback
-    pos_sub_ = create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>("/amcl_pose", 10, std::bind(&MoveAction::current_pos_callback, this, _1));
+    subscriber_to_amcl_position = create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>("/amcl_pose", 10, std::bind(&MoveAction::current_pos_callback, this, _1));
   }
 
   void current_pos_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg){
@@ -60,17 +57,6 @@ public:
 
     RCLCPP_INFO(get_logger(), "Navigation action server ready");
 
-
-    /*
-    ESEMPIO LOGICA -> CPP
-    (move lebron wp_control wp2)
-    Mapping the array index looks like this:
-    get_arguments()[0] -> "lebron" (The robot name)
-    get_arguments()[1] -> "wp_control" (Where the robot is starting)
-    get_arguments()[2] -> "wp2" (Where the robot needs to go)
-    */
-
-
     // auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
     // RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
 
@@ -78,8 +64,6 @@ public:
     goal_pos_ = wp;
     // nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
     navigation_goal_.pose = goal_pos_;
-    // double
-    dist_to_move = getDistance(goal_pos_.pose, current_pos_);
 
     // 2. CLIENT ROS2, STRUCT di configurazione delle opzioni di invio goal
     auto send_goal_options = rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
@@ -90,13 +74,19 @@ public:
     metodi di plansys2::ActionExecutorClient
     che pubblica su /actions_hub.
     */
+
+    send_goal_options.goal_response_callback = [this](std::shared_ptr<NavigationGoalHandle> goal_handle) {
+      RCLCPP_INFO(get_logger(), "PROVA send_goal_options.goal_response_callback");
+    };
+
     send_goal_options.feedback_callback = [this]( NavigationGoalHandle::SharedPtr, NavigationFeedback feedback) {
-        send_feedback(std::min(1.0, std::max(0.0, 1.0 - (feedback->distance_remaining / dist_to_move))), "Move running");
+        send_feedback(0.5, "Move running");
       };
 
     send_goal_options.result_callback = [this](auto) {
         finish(true, 1.0, "Move completed");
       };
+
     
     
     /*
@@ -110,65 +100,27 @@ public:
   }
 
 private:
-  double getDistance(const geometry_msgs::msg::Pose & pos1, const geometry_msgs::msg::Pose & pos2)
-  {
-    return sqrt(
-      (pos1.position.x - pos2.position.x) * (pos1.position.x - pos2.position.x) +
-      (pos1.position.y - pos2.position.y) * (pos1.position.y - pos2.position.y));
+  void do_work(){
+    RCLCPP_INFO(get_logger(), "PROVA do_work");
   }
-
-  void do_work()
-  {
-  }
-
-  std::map<std::string, geometry_msgs::msg::PoseStamped> waypoints_;
-
-  /*
-  In ROS 2, un file `.action` genera automaticamente tre strutture C++ standard
-  Queste sono sempre presenti per ogni azione:
-  NomeAzione::Goal -> input iniziale dell’azione (es. obiettivo)
-  NomeAzione::Feedback -> aggiornamenti durante l’esecuzione
-  NomeAzione::Result -> risultato finale dell’azione
-  */
 
   using NavigationGoalHandle = rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>;
   using NavigationFeedback = const std::shared_ptr<const nav2_msgs::action::NavigateToPose::Feedback>;
 
+  // VA BENE QUI CLAUDE??
+  geometry_msgs::msg::PoseStamped wp;
 
-  /*
-  * std::shared_ptr<rclcpp_action::Client<nav2_msgs::action::NavigateToPose>>
-  equivale a questo:
-  rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SharedPtr
-  !sostituisci !
-  */
-  rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SharedPtr navigation_action_client_;
 
-  /*
-  std::shared_future<std::shared_ptr<rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>>> future_navigation_goal_handle_;
-  Azioni (Actions) compiti lunghi e complessi per esempio navigazione
-
-  IN GENERALE:
-  lato client o ricevitore rclcpp_action::ClientGoalHandler
-  lato server o trasmettitore rclcpp_action::ServerGoalHandle
-
-  Servizi (Services) richieste rapide domanda risposta per esempio accendi led
-  lato client o ricevitore rclcpp::Client
-  lato server o trasmettitore rclcpp::Service
-
-  Messaggi (Topics) flusso continuo di dati unidirezionale per esempio laser odometria
-  lato client o ricevitore rclcpp::Subscription
-  lato server o trasmettitore rclcpp::Publisher
-
-  */
-  std::shared_future<NavigationGoalHandle::SharedPtr> future_navigation_goal_handle_;
-  NavigationGoalHandle::SharedPtr navigation_goal_handle_;
-
-  rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pos_sub_;
+  std::shared_ptr<rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>> subscriber_to_amcl_position;
   geometry_msgs::msg::Pose current_pos_;
   geometry_msgs::msg::PoseStamped goal_pos_;
-  nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
 
-  double dist_to_move;
+  //ACTION:
+  nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
+  std::shared_ptr<rclcpp_action::Client<nav2_msgs::action::NavigateToPose>> navigation_action_client_;
+  std::shared_future<std::shared_ptr<NavigationGoalHandle>> future_navigation_goal_handle_;
+  std::shared_ptr<NavigationGoalHandle> navigation_goal_handle_;
+
 };
 
 int main(int argc, char ** argv)
@@ -177,7 +129,8 @@ int main(int argc, char ** argv)
   auto node = std::make_shared<MoveAction>();
 
   node->set_parameter(rclcpp::Parameter("action_name", "move"));
-  node->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
+  // node->trigger_transition(lifecycle_msgs::msg::Transition::TRANSITION_CONFIGURE);
+  node->configure();   // invece di trigger_transition(TRANSITION_CONFIGURE)
 
   rclcpp::spin(node->get_node_base_interface());
 
@@ -185,3 +138,6 @@ int main(int argc, char ** argv)
 
   return 0;
 }
+
+
+//todo leggiti: https://docs.ros.org/en/humble/Tutorials/Intermediate/Writing-an-Action-Server-Client/Cpp.html

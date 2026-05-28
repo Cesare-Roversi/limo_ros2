@@ -44,15 +44,16 @@ public:
         timer_->cancel(); //? schifo
         
         cout << endl << endl << "INIT KNOWLEDGE" << endl;
-        cout << "r2 -> " << problem_expert_->addInstance(plansys2::Instance{"r2", "robot"}) << endl;
-        cout << "wp1 -> " << problem_expert_->addInstance(plansys2::Instance{"wp1", "position"}) << endl;
-        cout << "wp2 -> " << problem_expert_->addInstance(plansys2::Instance{"wp2", "position"}) << endl;
+        cout << "r1 -> " << problem_expert_->addInstance(plansys2::Instance{"r1", "robot"}) << endl;
+        cout << "wp1 -> " << problem_expert_->addInstance(plansys2::Instance{"wp1", "waypoint"}) << endl;
+        cout << "wp2 -> " << problem_expert_->addInstance(plansys2::Instance{"wp2", "waypoint"}) << endl;
 
-        cout << "(free wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(free wp2)")) << endl;
-		cout << "(robot_at r2 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r2 wp1)")) << endl;
+        cout << "(reachable wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(reachable wp1)")) << endl;
+        cout << "(reachable wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(reachable wp2)")) << endl;
+		cout << "(robot_at r1 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r1 wp1)")) << endl;
 		cout << endl;
 
-        this->dump_plansys2_state();
+        // this->dump_plansys2_state();
     }
 
     void step() {
@@ -61,7 +62,7 @@ public:
         switch (state_) {
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
             {
-                problem_expert_->setGoal(plansys2::Goal("(and (robot_at r2 wp2))"));
+                problem_expert_->setGoal(plansys2::Goal("(and (robot_at r1 wp2))"));
                 cout << "THE GOAL IS: " << parser::pddl::toString(problem_expert_->getGoal()) << endl; //lo imposta giusto
 
                 auto domain = domain_expert_->getDomain();
@@ -215,7 +216,9 @@ int main(int argc, char ** argv){
     auto node = std::make_shared<Controller>();
     node->init();
 
-    // node->dump_plansys2_state();
+    // node->dump_plansys2_state
+
+    rclcpp::sleep_for(std::chrono::seconds(2)); //!temporary
 
     rclcpp::Rate rate(0.5); 
     while (rclcpp::ok()) {
