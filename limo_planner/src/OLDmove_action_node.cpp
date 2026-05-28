@@ -33,18 +33,39 @@ public:
     wp.pose.orientation.y = 0.0;
     wp.pose.orientation.z = 0.0;
     wp.pose.orientation.w = 1.0;
+    waypoints_["wp1"] = wp;
 
+    wp.pose.position.x = 1.8;
+    wp.pose.position.y = 0.0;
+    waypoints_["wp2"] = wp;
+
+    wp.pose.position.x = 0.0;
+    wp.pose.position.y = 2.0;
+    waypoints_["wp3"] = wp;
+
+    wp.pose.position.x = -0.5;
+    wp.pose.position.y = -0.5;
+    waypoints_["wp4"] = wp;
+
+    wp.pose.position.x = -2.0;
+    wp.pose.position.y = -0.4;
+    waypoints_["wp_control"] = wp;
 
     using namespace std::placeholders;
-    //subscriber a /amcl_pose, vuole una callback
-    pos_sub_ = create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>("/amcl_pose", 10, std::bind(&MoveAction::current_pos_callback, this, _1));
+    pos_sub_ = create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+      "/amcl_pose",
+      10,
+      std::bind(&MoveAction::current_pos_callback, this, _1));
   }
 
-  void current_pos_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg){
+  void current_pos_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
+  {
     current_pos_ = msg->pose.pose;
   }
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state){
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+  on_activate(const rclcpp_lifecycle::State & previous_state)
+  {
     send_feedback(0.0, "Move starting");
 
     // 1. Creazione del client ROS2 (è una CLASSE)
@@ -55,7 +76,8 @@ public:
     do {
       RCLCPP_INFO(get_logger(), "Waiting for navigation action server...");
 
-      is_action_server_ready = navigation_action_client_->wait_for_action_server(std::chrono::seconds(5));
+      is_action_server_ready =
+        navigation_action_client_->wait_for_action_server(std::chrono::seconds(5));
     } while (!is_action_server_ready);
 
     RCLCPP_INFO(get_logger(), "Navigation action server ready");
@@ -71,11 +93,11 @@ public:
     */
 
 
-    // auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
-    // RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
+    auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
+    RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
 
     // geometry_msgs::msg::PoseStamped goal_pos_;
-    goal_pos_ = wp;
+    goal_pos_ = waypoints_[wp_to_navigate];
     // nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
     navigation_goal_.pose = goal_pos_;
     // double
@@ -91,7 +113,9 @@ public:
     che pubblica su /actions_hub.
     */
     send_goal_options.feedback_callback = [this]( NavigationGoalHandle::SharedPtr, NavigationFeedback feedback) {
-        send_feedback(std::min(1.0, std::max(0.0, 1.0 - (feedback->distance_remaining / dist_to_move))), "Move running");
+        send_feedback(
+          std::min(1.0, std::max(0.0, 1.0 - (feedback->distance_remaining / dist_to_move))),
+          "Move running");
       };
 
     send_goal_options.result_callback = [this](auto) {

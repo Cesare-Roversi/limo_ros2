@@ -12,7 +12,6 @@ waypoint
 
 (robot_at ?r - robot ?wp - waypoint)
 (reachable ?wp - waypoint)
-(patrolled ?wp - waypoint)
 
 );; end Predicates ;;;;;;;;;;;;;;;;;;;;
 ;; Functions ;;;;;;;;;;;;;;;;;;;;;;;;;
