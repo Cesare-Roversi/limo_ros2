@@ -34,10 +34,14 @@ public:
         
         // this->init_knowledge();
 
+        cout << "IN" << endl;
+
         timer_ = this->create_wall_timer(
             std::chrono::seconds(1),
             std::bind(&Controller::init_knowledge, this)
         );
+
+        cout << "IN1" << endl;
     }
 
     void init_knowledge(){
@@ -54,6 +58,7 @@ public:
 		cout << endl;
 
         // this->dump_plansys2_state();
+        cout << "IN2" << endl;
     }
 
     void step() {
@@ -217,8 +222,10 @@ int main(int argc, char ** argv){
     node->init();
 
     // node->dump_plansys2_state
-
-    rclcpp::sleep_for(std::chrono::seconds(2)); //!temporary
+    
+    cout << "PRE" << endl;
+    rclcpp::sleep_for(std::chrono::seconds(10)); //!temporary
+    cout << "POST" << endl;
 
     rclcpp::Rate rate(0.5); 
     while (rclcpp::ok()) {

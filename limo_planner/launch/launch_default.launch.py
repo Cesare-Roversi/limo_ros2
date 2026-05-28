@@ -74,7 +74,7 @@ def generate_launch_description():
     controller_node = Node(
         package='limo_planner',
         executable='controller',
-        name='controller',
+        # name='controller',
         output='screen',
         parameters=[]
     )

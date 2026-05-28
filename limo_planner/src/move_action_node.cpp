@@ -48,13 +48,30 @@ public:
     // rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SharedPtr navigation_action_client_;
     navigation_action_client_ = rclcpp_action::create_client<nav2_msgs::action::NavigateToPose>(shared_from_this(), "navigate_to_pose");
 
+    // bool is_action_server_ready = false;
+    // do {
+    //   RCLCPP_INFO(get_logger(), "Waiting for navigation action server...");
+
+    //   is_action_server_ready = navigation_action_client_->wait_for_action_server(std::chrono::seconds(5));
+    // } while (!is_action_server_ready);
+
+
     bool is_action_server_ready = false;
     do {
-      RCLCPP_INFO(get_logger(), "Waiting for navigation action server...");
+      // MODIFICA QUI: Se l'utente preme Ctrl+C, usciamo elegantemente senza loopare
+      if (!rclcpp::ok()) {
+        // Sostituisci RCLCPP_WARN con std::cout per evitare l'errore sul contesto invalido
+        std::cout << "[MoveAction] Shutdown rilevato. Chiusura in corso..." << std::endl;
+        
+        return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
+      }
 
+      RCLCPP_INFO(get_logger(), "Waiting for navigation action server...");
       is_action_server_ready = navigation_action_client_->wait_for_action_server(std::chrono::seconds(5));
+      
     } while (!is_action_server_ready);
 
+    
     RCLCPP_INFO(get_logger(), "Navigation action server ready");
 
     // auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
