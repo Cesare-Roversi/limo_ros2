@@ -32,20 +32,9 @@ public:
         problem_expert_ = std::make_shared<plansys2::ProblemExpertClient>();
         executor_client_ = std::make_shared<plansys2::ExecutorClient>();
         
-        // this->init_knowledge();
-
-        cout << "IN" << endl;
-
-        timer_ = this->create_wall_timer(
-            std::chrono::seconds(1),
-            std::bind(&Controller::init_knowledge, this)
-        );
-
-        cout << "IN1" << endl;
     }
 
     void init_knowledge(){
-        timer_->cancel(); //? schifo
         
         cout << endl << endl << "INIT KNOWLEDGE" << endl;
         cout << "r1 -> " << problem_expert_->addInstance(plansys2::Instance{"r1", "robot"}) << endl;
@@ -58,11 +47,10 @@ public:
 		cout << endl;
 
         // this->dump_plansys2_state();
-        cout << "IN2" << endl;
     }
 
     void step() {
-        cout << endl << endl << endl << "CURRENT STATE: " << state_ << endl;
+        cout << endl << "CURRENT STATE: " << state_ << endl;
 
         switch (state_) {
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
@@ -208,7 +196,7 @@ private:
     std::shared_ptr<plansys2::PlannerClient> planner_client_;
     std::shared_ptr<plansys2::ProblemExpertClient> problem_expert_;
     std::shared_ptr<plansys2::ExecutorClient> executor_client_;
-    rclcpp::TimerBase::SharedPtr timer_;
+    // rclcpp::TimerBase::SharedPtr timer_;
 };
 
 
@@ -220,14 +208,10 @@ int main(int argc, char ** argv){
 
     auto node = std::make_shared<Controller>();
     node->init();
+    rclcpp::sleep_for(std::chrono::seconds(3)); //!temporary
+    node->init_knowledge();
 
-    // node->dump_plansys2_state
-    
-    cout << "PRE" << endl;
-    rclcpp::sleep_for(std::chrono::seconds(10)); //!temporary
-    cout << "POST" << endl;
-
-    rclcpp::Rate rate(0.5); 
+    rclcpp::Rate rate(5); //! era 0.5
     while (rclcpp::ok()) {
         node->step();
         

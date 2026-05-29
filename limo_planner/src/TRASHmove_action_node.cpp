@@ -45,6 +45,19 @@ public:
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state){
     send_feedback(0.0, "Move starting");
 
+    //!!! TEST QUI:
+    // Il timer eseguirà il codice tra {} dopo 500ms, in modo asincrono NON BLOCCANTE
+    test_timer_ = this->create_wall_timer(500ms, [this]() {
+        cout << "AHHHHHH test_timer_" << endl;
+        this->finish(true, 1.0, "Move completed");
+        this->test_timer_->cancel(); // Si auto-cancella per scattare una volta sola
+    });
+
+    // Esce subito: il nodo diventa ufficialmente ACTIVE e sblocca la macchina a stati
+    cout << "RITORNA move_action_node.cpp" << endl;
+    return ActionExecutorClient::on_activate(previous_state);
+
+
     // 1. Creazione del client ROS2 (è una CLASSE)
     // rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SharedPtr navigation_action_client_;
     navigation_action_client_ = rclcpp_action::create_client<nav2_msgs::action::NavigateToPose>(shared_from_this(), "navigate_to_pose");
