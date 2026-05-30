@@ -34,7 +34,7 @@ public:
     //120; 32 -> 125.5; 34.2 => DISTANZA: 5.92
 
     initial_distance = -1; //x debug
-    initial_distance_flag = false;
+    is_initial_distance_set = false;
 
     using namespace std::placeholders;
     //subscriber a /amcl_pose, vuole una callback
@@ -98,15 +98,21 @@ public:
     };
 
     struct_callbacks_goal_options.feedback_callback = [this]( NavigationGoalHandle::SharedPtr, NavigationFeedback feedback) {
-        send_feedback(0.5, "Move running");
 
-        if(!initial_distance_flag){
-          initial_distance = feedback->distance_remaining;
-          initial_distance_flag = true;
+        float distance_remaining = feedback->distance_remaining;
+
+        if(distance_remaining > 0.3 || is_initial_distance_set){
+          if(!is_initial_distance_set){ //0.3 è precauzione perchè qualche volta restituisce valori bassi senza senso all'inizio;
+            initial_distance = feedback->distance_remaining;
+            is_initial_distance_set = true;
+          }
+          
+          float completed_distance_percent = 1.0 - (feedback->distance_remaining / initial_distance);
+          send_feedback(completed_distance_percent, "Move running");
+          // RCLCPP_INFO(get_logger(), "distance_remaining: %.3f m (%.3f /)", feedback->distance_remaining, completed_distance_percent);
+        }else{
+          RCLCPP_INFO(get_logger(), "DEBUG: feedback->distance_remaining under limit: %.3f m", distance_remaining);
         }
-        
-        float distance_remaining_percent = feedback->distance_remaining / initial_distance;
-        RCLCPP_INFO(get_logger(), "distance_remaining: %.3f m (%.3f %)", feedback->distance_remaining, initial_distance);
       };
     
     //! CHECK the docs for this:
@@ -163,7 +169,7 @@ private:
 
   //OTHER:
   float initial_distance;
-  bool initial_distance_flag;
+  bool is_initial_distance_set;
 
 };
 
