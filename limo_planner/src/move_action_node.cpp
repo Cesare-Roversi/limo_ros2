@@ -24,14 +24,17 @@ public:
   MoveAction() : plansys2::ActionExecutorClient("move", 500ms){
     wp.header.frame_id = "map";
     wp.header.stamp = now();
-    wp.pose.position.x = 0.0;
-    wp.pose.position.y = -2.0;
+    wp.pose.position.x = 125.5;
+    wp.pose.position.y = 34.2;
     wp.pose.position.z = 0.0;
     wp.pose.orientation.x = 0.0;
     wp.pose.orientation.y = 0.0;
     wp.pose.orientation.z = 0.0;
     wp.pose.orientation.w = 1.0;
+    //120; 32 -> 125.5; 34.2 => DISTANZA: 5.92
 
+    initial_distance = -1; //x debug
+    initial_distance_flag = false;
 
     using namespace std::placeholders;
     //subscriber a /amcl_pose, vuole una callback
@@ -77,7 +80,7 @@ public:
     navigation_goal_.pose = goal_pos_;
 
     // 2. CLIENT ROS2, STRUCT di configurazione delle opzioni di invio goal
-    auto send_goal_options = rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
+    auto struct_callbacks_goal_options = rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
 
     /*
     PLANSYS2:
@@ -86,26 +89,52 @@ public:
     che pubblica su /actions_hub.
     */
 
-    send_goal_options.goal_response_callback = [this](std::shared_ptr<NavigationGoalHandle> goal_handle) {
-      RCLCPP_INFO(get_logger(), "PROVA send_goal_options.goal_response_callback");
+    struct_callbacks_goal_options.goal_response_callback = [this](std::shared_ptr<NavigationGoalHandle> goal_handle){
+      if(goal_handle != NULL){
+        RCLCPP_INFO(get_logger(), "GOAL was accepted by NAV2");
+      }else{
+        RCLCPP_INFO(get_logger(), "GOAL was REFUSED by NAV2");
+      }
     };
 
-    send_goal_options.feedback_callback = [this]( NavigationGoalHandle::SharedPtr, NavigationFeedback feedback) {
+    struct_callbacks_goal_options.feedback_callback = [this]( NavigationGoalHandle::SharedPtr, NavigationFeedback feedback) {
         send_feedback(0.5, "Move running");
-      };
 
-    send_goal_options.result_callback = [this](auto) {
-        finish(true, 1.0, "Move completed");
+        if(!initial_distance_flag){
+          initial_distance = feedback->distance_remaining;
+          initial_distance_flag = true;
+        }
+        
+        float distance_remaining_percent = feedback->distance_remaining / initial_distance;
+        RCLCPP_INFO(get_logger(), "distance_remaining: %.3f m (%.3f %)", feedback->distance_remaining, initial_distance);
       };
+    
+    //! CHECK the docs for this:
+    struct_callbacks_goal_options.result_callback = [this](const NavigationGoalHandle::WrappedResult & result) {
+      switch (result.code) {
+          case rclcpp_action::ResultCode::SUCCEEDED:
+              finish(true, 1.0, "Move completed");
+              break;
+          case rclcpp_action::ResultCode::ABORTED:
+              finish(false, 0.0, "Navigation aborted");
+              break;
+          case rclcpp_action::ResultCode::CANCELED:
+              finish(false, 0.0, "Navigation cancelled");
+              break;
+      }
+      // result.result  → this is the Empty msg, useless
+      // result.code    → THIS is what tells you what happened
+      // result.goal_id → the UUID of the goal
+  };
 
     
     
     /*
     std::shared_future<NavigationGoalHandle::SharedPtr> future_navigation_goal_handle_;
     # con handle: puoi cancellare, monitorare, aspettare
-    # send_goal_options(nav2_msgs::action::Action_X::Goal navigation_goal_, GOAL OPTION STRUCT OF CALLBACKS)
+    # struct_callbacks_goal_options(nav2_msgs::action::Action_X::Goal navigation_goal_, GOAL OPTION STRUCT OF CALLBACKS)
     */
-    future_navigation_goal_handle_ = navigation_action_client_->async_send_goal(navigation_goal_, send_goal_options);
+    future_navigation_goal_handle_ = navigation_action_client_->async_send_goal(navigation_goal_, struct_callbacks_goal_options);
 
     return ActionExecutorClient::on_activate(previous_state);
   }
@@ -118,22 +147,23 @@ private:
   using NavigationGoalHandle = rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>;
   using NavigationFeedback = const std::shared_ptr<const nav2_msgs::action::NavigateToPose::Feedback>;
 
-  // VA BENE QUI CLAUDE??
+  // TEST:
   geometry_msgs::msg::PoseStamped wp;
 
-
+  //amcl_pose TOPIC:
   std::shared_ptr<rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>> subscriber_to_amcl_position;
   geometry_msgs::msg::Pose current_pos_;
-  geometry_msgs::msg::PoseStamped goal_pos_;
 
-  //ACTION:
+  //NavigateToPose ACTION:
+  geometry_msgs::msg::PoseStamped goal_pos_;
   nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
   std::shared_ptr<rclcpp_action::Client<nav2_msgs::action::NavigateToPose>> navigation_action_client_;
   std::shared_future<std::shared_ptr<NavigationGoalHandle>> future_navigation_goal_handle_;
   std::shared_ptr<NavigationGoalHandle> navigation_goal_handle_;
 
-  //TEST
-  rclcpp::TimerBase::SharedPtr test_timer_;
+  //OTHER:
+  float initial_distance;
+  bool initial_distance_flag;
 
 };
 
