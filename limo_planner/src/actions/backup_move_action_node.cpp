@@ -15,8 +15,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 
-#include "world_data_utils.hpp"
-
 using namespace std::chrono_literals;
 using namespace std;
 
@@ -24,6 +22,17 @@ class MoveAction : public plansys2::ActionExecutorClient
 {
 public:
   MoveAction() : plansys2::ActionExecutorClient("move", 500ms){
+    wp.header.frame_id = "map";
+    wp.header.stamp = now();
+    wp.pose.position.x = 125.5;
+    wp.pose.position.y = 34.2;
+    wp.pose.position.z = 0.0;
+    wp.pose.orientation.x = 0.0;
+    wp.pose.orientation.y = 0.0;
+    wp.pose.orientation.z = 0.0;
+    wp.pose.orientation.w = 1.0;
+    //120; 32 -> 125.5; 34.2 => DISTANZA: 5.92
+
     initial_distance = -1; //x debug
     is_initial_distance_set = false;
 
@@ -58,12 +67,15 @@ public:
       is_action_server_ready = navigation_action_client_->wait_for_action_server(std::chrono::seconds(5));
       
     } while (!is_action_server_ready);
+
+    
     RCLCPP_INFO(get_logger(), "Navigation action server ready");
 
-    auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
-    RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
+    // auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
+    // RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
 
-    goal_pos_ = map_waypoints[wp_to_navigate]; //! ERROR IS HERE, PASSA UN WP VUOTO PERCHé????
+    // geometry_msgs::msg::PoseStamped goal_pos_;
+    goal_pos_ = wp;
     // nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
     navigation_goal_.pose = goal_pos_;
 
