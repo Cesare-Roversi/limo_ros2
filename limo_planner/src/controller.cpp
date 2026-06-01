@@ -8,6 +8,7 @@
 #include "plansys2_problem_expert/ProblemExpertClient.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
+#include "world_data.hpp"
 
 #include <sstream>
 #include <iomanip>
@@ -15,6 +16,8 @@
 #include <vector>
 #include "plansys2_msgs/msg/tree.hpp"
 #include "plansys2_msgs/msg/node.hpp"
+
+#include "debug.hpp"
 
 using namespace std;
 
@@ -46,7 +49,7 @@ public:
 		cout << "(robot_at r1 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r1 wp1)")) << endl;
 		cout << endl;
 
-        // this->dump_plansys2_state();
+        print_world_model(this, this->domain_expert_, this->problem_expert_);
     }
 
     void step() {
@@ -101,93 +104,6 @@ public:
     }
 
 
-
-
-    std::string goal_to_string(const plansys2_msgs::msg::Tree& tree, uint32_t node_id = 0) {
-        if (tree.nodes.empty()) return "(none)";
-        const auto& node = tree.nodes[node_id];
-        
-        if (node.node_type == plansys2_msgs::msg::Node::AND || 
-            node.node_type == plansys2_msgs::msg::Node::OR) {
-            std::string out = (node.node_type == plansys2_msgs::msg::Node::AND) ? "(and" : "(or";
-            for (const auto& child_id : node.children) {
-                out += " " + goal_to_string(tree, child_id);
-            }
-            return out + ")";
-        } else if (node.node_type == plansys2_msgs::msg::Node::NOT) {
-            return "(not " + goal_to_string(tree, node.children[0]) + ")";
-        } else {
-            // It's a predicate
-            std::string out = "(" + node.name;
-            for (const auto& p : node.parameters) {
-                out += " " + p.name;
-            }
-            return out + ")";
-        }
-    }
-
-    void dump_plansys2_state() {
-        if (!domain_expert_ || !problem_expert_) {
-            RCLCPP_ERROR(this->get_logger(), "Experts not initialized!");
-            return;
-        }
-
-        std::stringstream ss;
-        ss << "\n" << std::string(50, '=') << "\n";
-        ss << "           PLANSYS2 CURRENT STATE\n";
-        ss << std::string(50, '=') << "\n";
-
-        // --- DOMAIN ---
-        ss << "[DOMAIN TYPES]\n";
-        for (const auto& type : domain_expert_->getTypes()) ss << "  - " << type << "\n";
-
-        ss << "\n[DOMAIN PREDICATES]\n";
-        for (const auto& pred : domain_expert_->getPredicates()) {
-            ss << "  - (" << pred.name;
-            for (const auto& p : pred.parameters) {
-                ss << " " << p.name << ":" << p.type;
-            }
-            ss << ")\n";
-        }
-
-        ss << "\n[DOMAIN ACTIONS]\n";
-        for (const auto& action_name : domain_expert_->getActions()) {
-            auto action = domain_expert_->getAction(action_name);
-            if (action) {
-                ss << "  - (" << action_name;
-                for (const auto& p : action->parameters) {
-                    ss << " " << p.name << ":" << p.type;
-                }
-                ss << ")\n";
-            }
-        }
-
-        // --- PROBLEM ---
-        ss << "\n" << std::string(25, '-') << "\n";
-        ss << "[PROBLEM INSTANCES]\n";
-        for (const auto& inst : problem_expert_->getInstances()) {
-            ss << "  - " << std::left << std::setw(15) << inst.name << " [" << inst.type << "]\n";
-        }
-
-        ss << "\n[PROBLEM PREDICATES (True Now)]\n";
-        for (const auto& pred : problem_expert_->getPredicates()) {
-            ss << "  - (" << pred.name;
-            for (const auto& p : pred.parameters) {
-                ss << " " << p.name; 
-            }
-            ss << ")\n";
-        }
-
-        ss << "\n[PROBLEM GOAL]\n";
-        // Using our custom helper that won't throw compiler errors
-        ss << "  " << goal_to_string(problem_expert_->getGoal()) << "\n";
-        
-        ss << std::string(50, '=');
-
-        RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
-    }
-
-
 private:
     typedef enum {PLANNING, EXECUTING, FINISHED} StateType;
     StateType state_;
@@ -206,6 +122,8 @@ private:
 int main(int argc, char ** argv){
     rclcpp::init(argc, argv);
 
+    // cout << waypoints["wp1"] << endl;
+
     auto node = std::make_shared<Controller>();
     node->init();
     rclcpp::sleep_for(std::chrono::seconds(3)); //!temporary
@@ -218,6 +136,7 @@ int main(int argc, char ** argv){
         rate.sleep();
         rclcpp::spin_some(node->get_node_base_interface());
     }
+
 
     rclcpp::shutdown();
     return 0;
