@@ -19,11 +19,32 @@
 #include <vector>
 #include "plansys2_msgs/msg/tree.hpp"
 #include "plansys2_msgs/msg/node.hpp"
+#include "world_data_structs.hpp"
 
 extern std::unordered_map<std::string, geometry_msgs::msg::PoseStamped> map_waypoints;
+extern std::unordered_map<std::string, Object> map_objects;
 
 geometry_msgs::msg::PoseStamped make_waypoint(float x, float y, float yaw);
 void add_waypoint(
     const std::string & name,
     double x, double y, double yaw,
     std::shared_ptr<plansys2::ProblemExpertClient> problem);
+void remove_waypoint(
+    const std::string & name,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem);
+void modify_waypoint(
+    const std::string & name,
+    double x, double y, double yaw);
+geometry_msgs::msg::PoseStamped get_waypoint(const std::string & name);
+
+void add_object(
+    const std::string & name,
+    float height, float max_width, float min_width, float weight,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem);
+void remove_object(
+    const std::string & name,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem);
+void modify_object(
+    const std::string & name,
+    float height, float max_width, float min_width, float weight);
+Object get_object(const std::string & name);

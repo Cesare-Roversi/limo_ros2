@@ -8,6 +8,7 @@
 #include "plansys2_problem_expert/ProblemExpertClient.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
+#include <stdexcept>
 
 #include <sstream>
 #include <iomanip>
@@ -25,16 +26,59 @@ class Controller : public rclcpp::Node
 {
 public:
     Controller()
-    : rclcpp::Node("patrolling_controller"), state_(PLANNING)
+    : rclcpp::Node("patrolling_controller"), state_(PLANNING), just_changed_state(true)
     {
     }
 
-    void init(){
+    void change_state(StateType new_state){
+        if(new_state >= PLANNING && new_state <= DEAD){
+            state_ = new_state;
+            just_changed_state = true;
+        }else{
+            throw std::runtime_error("ERROR: new_state doesn't exist");
+        }
+    }
+
+    void print_state_on_transition(){
+        switch (state_){
+            case PLANNING:
+                cout << endl << "======================== CURRENT STATE: PLANNING ========================" << endl;
+                break;
+            case EXECUTING:
+                cout << endl << "======================== CURRENT STATE: EXECUTING ========================" << endl;
+                break;
+            case FINISHED:
+                cout << endl << "======================== CURRENT STATE: FINISHED ========================" << endl;
+                break;
+            case DEAD:
+                cout << endl << "======================== CURRENT STATE: DEAD ========================" << endl;
+                break;        
+            default:
+                throw std::runtime_error("ERROR: state doesn't exist");
+        }
+    }
+
+    void start_clients(){
         domain_expert_ = std::make_shared<plansys2::DomainExpertClient>();
         planner_client_ = std::make_shared<plansys2::PlannerClient>();
         problem_expert_ = std::make_shared<plansys2::ProblemExpertClient>();
         executor_client_ = std::make_shared<plansys2::ExecutorClient>();
         
+    }
+
+    void debug_init(){
+        remove_waypoint("wp5", problem_expert_);
+        modify_waypoint("wp4", 69, 69, 0.0);
+
+        print_world_model(this, this->domain_expert_, this->problem_expert_);
+
+        add_object("pimpa", 10, 2, 1, 0.1, problem_expert_);
+        print_world_model(this, this->domain_expert_, this->problem_expert_);
+        remove_waypoint("pimpa", problem_expert_);
+
+        print_world_model(this, this->domain_expert_, this->problem_expert_);
+
+        state_ = DEAD; //!uccide il cotnroller;
     }
 
     void init_knowledge(){
@@ -58,10 +102,12 @@ public:
 		cout << endl;
 
         print_world_model(this, this->domain_expert_, this->problem_expert_);
+        debug_init();
     }
 
     void step() {
-        cout << endl << "CURRENT STATE: " << state_ << endl;
+        
+        print_state_on_transition();
 
         switch (state_) {
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
@@ -80,7 +126,8 @@ public:
 
                 if (executor_client_->start_plan_execution(plan.value())) {
                     cout << "Trovato un plan, transizione verso stato EXECUTING" << endl;
-                    state_ = EXECUTING;
+                    // state_ = EXECUTING;
+                    change_state(EXECUTING);
                 }
                 break;
             }
@@ -97,10 +144,12 @@ public:
                 if (!executor_client_->execute_and_check_plan() && executor_client_->getResult()) {
                     if (executor_client_->getResult().value().success) {
                         cout << "COMPLETATA esecuzione plan, transizione verso stato FINISHED" << endl;
-                        state_ = FINISHED; 
+                        // state_ = FINISHED; 
+                        change_state(FINISHED);
                     } else {
                         cout << "FALLITO esecuzione del plan, transizione verso stato PLANNING" << endl;
-                        state_ = PLANNING; 
+                        // state_ = PLANNING; 
+                        change_state(PLANNING);
                     }
                 }
                 break;
@@ -108,14 +157,19 @@ public:
 
             case FINISHED:
                 break;
+
+            case DEAD:
+                break; //ho aggiunto lo stato DEAD xche deve restare così!
         }
     }
 
 
-private:
-    typedef enum {PLANNING, EXECUTING, FINISHED} StateType;
+public:
+    typedef enum {PLANNING, EXECUTING, FINISHED, DEAD} StateType;
     StateType state_;
+    bool just_changed_state;
 
+private:
     std::shared_ptr<plansys2::DomainExpertClient> domain_expert_;
     std::shared_ptr<plansys2::PlannerClient> planner_client_;
     std::shared_ptr<plansys2::ProblemExpertClient> problem_expert_;
@@ -133,7 +187,7 @@ int main(int argc, char ** argv){
     // cout << waypoints["wp1"] << endl;
 
     auto node = std::make_shared<Controller>();
-    node->init();
+    node->start_clients();
     rclcpp::sleep_for(std::chrono::seconds(3)); //!temporary
     node->init_knowledge();
 
