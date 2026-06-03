@@ -1,4 +1,5 @@
 #include "world_data_utils.hpp"
+#include <cmath>
 using namespace std;
 
 // Una mappa per ogni entity type del world model
@@ -77,6 +78,26 @@ geometry_msgs::msg::PoseStamped get_waypoint(const std::string & name){
 }
 
 
+std::string get_waypoint_str(const std::string & name){
+    auto waypoint = get_waypoint(name);
+    const auto & p = waypoint.pose.position;
+    const auto & q = waypoint.pose.orientation;
+
+    double siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
+    double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+    double yaw = std::atan2(siny_cosp, cosy_cosp);
+
+    std::ostringstream ss;
+    ss << "Waypoint: " << name << "\n";
+    ss << "  frame_id: " << waypoint.header.frame_id << "\n";
+    ss << std::fixed << std::setprecision(3);
+    ss << "  x: " << p.x << "\n";
+    ss << "  y: " << p.y << "\n";
+    ss << "  z: " << p.z << "\n";
+    ss << "  yaw: " << yaw << "\n";
+    return ss.str();
+}
+
 
 //*OBJECTS:
 void add_object(
@@ -130,4 +151,17 @@ Object get_object(const std::string & name){
     }
     
     return it->second;
+}
+
+
+std::string get_object_str(const std::string & name){
+    auto object = get_object(name);
+    std::ostringstream ss;
+    ss << "Object: " << name << "\n";
+    ss << std::fixed << std::setprecision(3);
+    ss << "  height: " << object.height << "\n";
+    ss << "  max_width: " << object.max_width << "\n";
+    ss << "  min_width: " << object.min_width << "\n";
+    ss << "  weight: " << object.weight << "\n";
+    return ss.str();
 }

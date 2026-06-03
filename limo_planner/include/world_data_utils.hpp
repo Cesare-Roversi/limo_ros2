@@ -37,6 +37,8 @@ void modify_waypoint(
     double x, double y, double yaw);
 geometry_msgs::msg::PoseStamped get_waypoint(const std::string & name);
 
+std::string get_waypoint_str(const std::string & name);
+
 void add_object(
     const std::string & name,
     float height, float max_width, float min_width, float weight,
@@ -48,3 +50,5 @@ void modify_object(
     const std::string & name,
     float height, float max_width, float min_width, float weight);
 Object get_object(const std::string & name);
+
+std::string get_object_str(const std::string & name);

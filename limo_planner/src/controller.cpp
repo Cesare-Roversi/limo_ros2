@@ -22,24 +22,36 @@
 
 using namespace std;
 
-class Controller : public rclcpp::Node
-{
+class Controller : public rclcpp::Node{
+
+public:
+    typedef enum {PLANNING, EXECUTING, FINISHED, DEAD, UNREACHABLE_LAST_STATE} StateType;
+    StateType state_;
+    StateType old_state_;
+    bool just_changed_state_;
+
+private:
+    std::shared_ptr<plansys2::DomainExpertClient> domain_expert_;
+    std::shared_ptr<plansys2::PlannerClient> planner_client_;
+    std::shared_ptr<plansys2::ProblemExpertClient> problem_expert_;
+    std::shared_ptr<plansys2::ExecutorClient> executor_client_;
+    // rclcpp::TimerBase::SharedPtr timer_;
+
 public:
     Controller()
-    : rclcpp::Node("patrolling_controller"), state_(PLANNING), just_changed_state(true)
+    : rclcpp::Node("patrolling_controller"), state_(PLANNING), old_state_(UNREACHABLE_LAST_STATE)
     {
     }
 
     void change_state(StateType new_state){
-        if(new_state >= PLANNING && new_state <= DEAD){
+        if(new_state >= PLANNING && new_state <= UNREACHABLE_LAST_STATE){
             state_ = new_state;
-            just_changed_state = true;
         }else{
             throw std::runtime_error("ERROR: new_state doesn't exist");
         }
     }
 
-    void print_state_on_transition(){
+    void print_current_state(){
         switch (state_){
             case PLANNING:
                 cout << endl << "======================== CURRENT STATE: PLANNING ========================" << endl;
@@ -78,7 +90,8 @@ public:
 
         print_world_model(this, this->domain_expert_, this->problem_expert_);
 
-        state_ = DEAD; //!uccide il cotnroller;
+        // state_ = DEAD; //!uccide il cotnroller;
+        change_state(DEAD);
     }
 
     void init_knowledge(){
@@ -106,8 +119,12 @@ public:
     }
 
     void step() {
+        just_changed_state_ = !(old_state_ == state_);
+        old_state_ = state_;
         
-        print_state_on_transition();
+        if(just_changed_state_){
+            print_current_state();
+        }
 
         switch (state_) {
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
@@ -163,42 +180,58 @@ public:
         }
     }
 
-
-public:
-    typedef enum {PLANNING, EXECUTING, FINISHED, DEAD} StateType;
-    StateType state_;
-    bool just_changed_state;
-
-private:
-    std::shared_ptr<plansys2::DomainExpertClient> domain_expert_;
-    std::shared_ptr<plansys2::PlannerClient> planner_client_;
-    std::shared_ptr<plansys2::ProblemExpertClient> problem_expert_;
-    std::shared_ptr<plansys2::ExecutorClient> executor_client_;
-    // rclcpp::TimerBase::SharedPtr timer_;
 };
 
 
 
 
 
+// int main(int argc, char ** argv){
+//     rclcpp::init(argc, argv);
+
+//     // cout << waypoints["wp1"] << endl;
+
+//     auto node = std::make_shared<Controller>();
+//     node->start_clients();
+//     rclcpp::sleep_for(std::chrono::seconds(3)); //!temporary
+//     node->init_knowledge();
+
+//     rclcpp::Rate rate(5); //! era 0.5
+//     while (rclcpp::ok()) {
+//         node->step();
+        
+//         rate.sleep();
+//         rclcpp::spin_some(node->get_node_base_interface());
+//     }
+
+
+//     rclcpp::shutdown();
+//     return 0;
+// }
+
+
 int main(int argc, char ** argv){
     rclcpp::init(argc, argv);
 
-    // cout << waypoints["wp1"] << endl;
-
     auto node = std::make_shared<Controller>();
     node->start_clients();
-    rclcpp::sleep_for(std::chrono::seconds(3)); //!temporary
+    rclcpp::sleep_for(std::chrono::seconds(3));
     node->init_knowledge();
 
-    rclcpp::Rate rate(5); //! era 0.5
-    while (rclcpp::ok()) {
-        node->step();
-        
-        rate.sleep();
-        rclcpp::spin_some(node->get_node_base_interface());
-    }
+    std::thread spin_thread([&node]() {
+        rclcpp::spin(node->get_node_base_interface());
+    });
 
+    std::thread step_thread([&node]() {
+        rclcpp::Rate rate(5);
+        while (rclcpp::ok()) {
+            node->step();
+            rate.sleep();
+        }
+    });
+
+    spin_thread.join();
+    step_thread.join();
 
     rclcpp::shutdown();
     return 0;
