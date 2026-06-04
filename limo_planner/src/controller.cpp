@@ -82,39 +82,39 @@ public:
         remove_waypoint("wp5", problem_expert_);
         modify_waypoint("wp4", 69, 69, 0.0);
 
-        print_world_model(this, this->domain_expert_, this->problem_expert_);
+        // print_world_model(this, this->domain_expert_, this->problem_expert_);
 
         add_object("pimpa", 10, 2, 1, 0.1, problem_expert_);
-        print_world_model(this, this->domain_expert_, this->problem_expert_);
+        // print_world_model(this, this->domain_expert_, this->problem_expert_);
         remove_waypoint("pimpa", problem_expert_);
 
-        print_world_model(this, this->domain_expert_, this->problem_expert_);
+        print_world_model(this, this->domain_expert_, this->problem_expert_, true);
 
         // state_ = DEAD; //!uccide il cotnroller;
         change_state(DEAD);
     }
 
     void init_knowledge(){
-        
-        cout << endl << endl << "INIT KNOWLEDGE" << endl;
         // cout << "r1 -> " << problem_expert_->addInstance(plansys2::Instance{"r1", "robot"}) << endl;
         // cout << "wp1 -> " << problem_expert_->addInstance(plansys2::Instance{"wp1", "waypoint"}) << endl;
         // cout << "wp2 -> " << problem_expert_->addInstance(plansys2::Instance{"wp2", "waypoint"}) << endl;
+        // cout << "r1 -> " << problem_expert_->addInstance(plansys2::Instance{"r1", "robot"}) << endl;
+
+        cout << endl << endl << "INIT KNOWLEDGE" << endl;
 
         add_waypoint("wp1", 125.2, 33.7, 0.0, problem_expert_); //di fronte allo spawn
         add_waypoint("wp2", 103.1,  10.6, 0.0, problem_expert_); //a metà corridoio centro sx
         add_waypoint("wp3", 166.3,  47.4, 0.0, problem_expert_); //medio-alto a sx
         add_waypoint("wp4", 167.8, 16.4, 0.0,  problem_expert_); //medio-alto a dx
         add_waypoint("wp5", 18.1, 25.2, 0.0,  problem_expert_); //basoo in centro
-
-        cout << "r1 -> " << problem_expert_->addInstance(plansys2::Instance{"r1", "robot"}) << endl;
+        add_robot("r1", 1.0, 1.0, 1.0, problem_expert_);
 
         cout << "(reachable wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(reachable wp1)")) << endl;
         cout << "(reachable wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(reachable wp2)")) << endl;
 		cout << "(robot_at r1 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r1 wp1)")) << endl;
 		cout << endl;
 
-        print_world_model(this, this->domain_expert_, this->problem_expert_, true);
+        // print_world_model(this, this->domain_expert_, this->problem_expert_, true);
         debug_init();
     }
 

@@ -16,6 +16,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 
 #include "world_data_utils.hpp"
+#include "debug.hpp"
 
 using namespace std::chrono_literals;
 using namespace std;
@@ -110,6 +111,7 @@ public:
               finish(true, 1.0, "Move completed");
               break;
           case rclcpp_action::ResultCode::ABORTED:
+              // add_waypoint("fail_01", )
               finish(false, 0.0, "Navigation aborted");
               break;
           case rclcpp_action::ResultCode::CANCELED:
@@ -160,6 +162,7 @@ private:
   bool is_initial_distance_set;
 
 };
+
 
 int main(int argc, char ** argv)
 {

@@ -23,6 +23,7 @@
 
 extern std::unordered_map<std::string, geometry_msgs::msg::PoseStamped> map_waypoints;
 extern std::unordered_map<std::string, Object> map_objects;
+extern std::unordered_map<std::string, Robot> map_robots;
 
 geometry_msgs::msg::PoseStamped make_waypoint(float x, float y, float yaw);
 void add_waypoint(
@@ -52,6 +53,21 @@ void modify_object(
 Object get_object(const std::string & name);
 
 std::string get_object_str(const std::string & name);
+
+// ROBOTS:
+void add_robot(
+    const std::string & name,
+    float battery_voltage, float battery_mah, float motor_power,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem);
+void remove_robot(
+    const std::string & name,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem);
+void modify_robot(
+    const std::string & name,
+    float battery_voltage, float battery_mah, float motor_power);
+Robot get_robot(const std::string & name);
+
+std::string get_robot_str(const std::string & name);
 
 
 // RAGGRUPPAMENTO:

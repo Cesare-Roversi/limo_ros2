@@ -5,6 +5,7 @@ using namespace std;
 // Una mappa per ogni entity type del world model
 std::unordered_map<std::string, geometry_msgs::msg::PoseStamped> map_waypoints;
 std::unordered_map<std::string, Object> map_objects;
+std::unordered_map<std::string, Robot> map_robots;
 
 
 
@@ -32,6 +33,11 @@ void add_waypoint(
     map_waypoints[name] = make_waypoint(x, y, yaw);
     cout << name << " -> " << problem->addInstance(plansys2::Instance{name, "waypoint"}) << endl;
 }
+
+
+// void add_waypoint(const std::string & name, int ciao){
+
+// }
 
 
 void remove_waypoint(
@@ -166,6 +172,68 @@ std::string get_object_str(const std::string & name){
     return ss.str();
 }
 
+//*ROBOTS:
+
+void add_robot(
+    const std::string & name,
+    float battery_voltage, float battery_mah, float motor_power,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem){
+
+    map_robots[name] = Robot(battery_voltage, battery_mah, motor_power);
+    cout << "Added robot: " << name << " -> " << problem->addInstance(plansys2::Instance{name, "robot"}) << endl;
+}
+
+
+void remove_robot(
+    const std::string & name,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem){
+
+    auto it = map_robots.find(name);
+    if (it != map_robots.end()) {
+        map_robots.erase(it);
+    }
+    bool result = problem->removeInstance(plansys2::Instance{name, "robot"});
+    cout << "Removed robot: " << name << " -> " << result << endl;
+}
+
+
+void modify_robot(
+    const std::string & name,
+    float battery_voltage, float battery_mah, float motor_power){
+
+    auto it = map_robots.find(name);
+    if (it == map_robots.end()) {
+        throw std::runtime_error("ERROR: Robot '" + name + "' not found in map_robots");
+    }
+
+    map_robots[name] = Robot(battery_voltage, battery_mah, motor_power);
+    cout << "Modified robot: " << name << endl;
+}
+
+
+Robot get_robot(const std::string & name){
+    auto it = map_robots.find(name);
+    if (it == map_robots.end()) {
+        throw std::runtime_error("ERROR: Robot '" + name + "' not found in map_robots");
+    }
+    return it->second;
+}
+
+
+std::string get_robot_str(const std::string & name){
+    auto robot = get_robot(name);
+    std::ostringstream ss;
+    ss << name << ":\n";
+    ss << std::fixed << std::setprecision(3);
+    ss << "        battery_voltage: " << robot.battery_voltage << "\n";
+    ss << "        battery_mah: " << robot.battery_mah << "\n";
+    ss << "        motor_power: " << robot.motor_power << "\n";
+    ss << "        battery_joules: " << robot.battery_joules() << "\n";
+    ss << "        motor_current: " << robot.motor_current() << "\n";
+    ss << "        autonomy_seconds: " << robot.autonomy_seconds() << "\n";
+    return ss.str();
+}
+
 
 // RAGGRUPPAMENTO:
 std::string get_instance_str(const std::string& type, const std::string& name) {
@@ -174,6 +242,9 @@ std::string get_instance_str(const std::string& type, const std::string& name) {
     } 
     else if (type == "object") {
         return get_object_str(name);
+    } 
+    else if (type == "robot") {
+        return get_robot_str(name);
     } 
     else {
         return "WARNING: TYPE: [" + type + "] NOT FOUND\n";
