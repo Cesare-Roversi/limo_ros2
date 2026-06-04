@@ -52,3 +52,7 @@ void modify_object(
 Object get_object(const std::string & name);
 
 std::string get_object_str(const std::string & name);
+
+
+// RAGGRUPPAMENTO:
+std::string get_instance_str(const std::string& type, const std::string& name);

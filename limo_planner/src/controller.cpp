@@ -114,7 +114,7 @@ public:
 		cout << "(robot_at r1 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r1 wp1)")) << endl;
 		cout << endl;
 
-        print_world_model(this, this->domain_expert_, this->problem_expert_);
+        print_world_model(this, this->domain_expert_, this->problem_expert_, true);
         debug_init();
     }
 
@@ -181,33 +181,6 @@ public:
     }
 
 };
-
-
-
-
-
-// int main(int argc, char ** argv){
-//     rclcpp::init(argc, argv);
-
-//     // cout << waypoints["wp1"] << endl;
-
-//     auto node = std::make_shared<Controller>();
-//     node->start_clients();
-//     rclcpp::sleep_for(std::chrono::seconds(3)); //!temporary
-//     node->init_knowledge();
-
-//     rclcpp::Rate rate(5); //! era 0.5
-//     while (rclcpp::ok()) {
-//         node->step();
-        
-//         rate.sleep();
-//         rclcpp::spin_some(node->get_node_base_interface());
-//     }
-
-
-//     rclcpp::shutdown();
-//     return 0;
-// }
 
 
 int main(int argc, char ** argv){

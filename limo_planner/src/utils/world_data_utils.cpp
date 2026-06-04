@@ -88,13 +88,13 @@ std::string get_waypoint_str(const std::string & name){
     double yaw = std::atan2(siny_cosp, cosy_cosp);
 
     std::ostringstream ss;
-    ss << "Waypoint: " << name << "\n";
-    ss << "  frame_id: " << waypoint.header.frame_id << "\n";
+    ss << name << ":\n";
+    ss << "        frame_id: " << waypoint.header.frame_id << "\n";
     ss << std::fixed << std::setprecision(3);
-    ss << "  x: " << p.x << "\n";
-    ss << "  y: " << p.y << "\n";
-    ss << "  z: " << p.z << "\n";
-    ss << "  yaw: " << yaw << "\n";
+    ss << "        x: " << p.x << "\n";
+    ss << "        y: " << p.y << "\n";
+    ss << "        z: " << p.z << "\n";
+    ss << "        yaw: " << yaw << "\n";
     return ss.str();
 }
 
@@ -157,11 +157,25 @@ Object get_object(const std::string & name){
 std::string get_object_str(const std::string & name){
     auto object = get_object(name);
     std::ostringstream ss;
-    ss << "Object: " << name << "\n";
+    ss << name << ":\n";
     ss << std::fixed << std::setprecision(3);
-    ss << "  height: " << object.height << "\n";
-    ss << "  max_width: " << object.max_width << "\n";
-    ss << "  min_width: " << object.min_width << "\n";
-    ss << "  weight: " << object.weight << "\n";
+    ss << "        height: " << object.height << "\n";
+    ss << "        max_width: " << object.max_width << "\n";
+    ss << "        min_width: " << object.min_width << "\n";
+    ss << "        weight: " << object.weight << "\n";
     return ss.str();
+}
+
+
+// RAGGRUPPAMENTO:
+std::string get_instance_str(const std::string& type, const std::string& name) {
+    if (type == "waypoint") {
+        return get_waypoint_str(name);
+    } 
+    else if (type == "object") {
+        return get_object_str(name);
+    } 
+    else {
+        return "WARNING: TYPE: [" + type + "] NOT FOUND\n";
+    }
 }

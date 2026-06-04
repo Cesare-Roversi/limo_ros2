@@ -1,4 +1,3 @@
-#pragma once
 
 #include <plansys2_pddl_parser/Utils.h>
 #include <memory>
@@ -62,7 +61,8 @@ std::string goal_to_string(const plansys2_msgs::msg::Tree & tree, uint32_t node_
 void print_world_model(
     rclcpp::Node * node,
     std::shared_ptr<plansys2::DomainExpertClient> domain,
-    std::shared_ptr<plansys2::ProblemExpertClient> problem)
+    std::shared_ptr<plansys2::ProblemExpertClient> problem,
+    bool print_structs)
 {
     std::stringstream ss;
     ss << "\n" << std::string(50, '=') << "\n";
@@ -73,7 +73,17 @@ void print_world_model(
     std::vector<plansys2::Predicate> domain_predicates = domain->getPredicates();
     std::vector<plansys2::Instance> instances = problem->getInstances();
     std::vector<plansys2::Predicate> active_predicates = problem->getPredicates();
-    // plansys2::Goal goal_tree = problem->getPredicates(); //???
+    plansys2::Goal goal_tree = problem->getGoal();
+
+    std::map<std::string, std::vector<plansys2::Instance>> instances_by_type;
+    for (const plansys2::Instance & inst : instances){
+        instances_by_type[inst.type].push_back(inst);
+    }
+
+    std::map<std::string, std::vector<plansys2::Predicate>> predicates_by_type;
+    for (const plansys2::Predicate & pred : active_predicates){
+        predicates_by_type[pred.name].push_back(pred);
+    }
 
     ss << "[DOMAIN TYPES]\n";
     for (const std::string & t : types)
@@ -85,16 +95,28 @@ void print_world_model(
 
     ss << "\n" << std::string(25, '-') << "\n";
     ss << "[INSTANCES]\n";
-    for (const plansys2::Instance & inst : instances)
-        ss << "  - " << std::left << std::setw(15) << inst.name << " [" << inst.type << "]\n";
-
-    ss << "\n[PREDICATES TRUE]\n";
-    for (const plansys2::Predicate & pred : active_predicates) {
-        ss << "  - (" << pred.name;
-        for (const plansys2_msgs::msg::Param & p : pred.parameters)
-            ss << " " << p.name;
-        ss << ")\n";
+    for (const auto & [type, t_instances] : instances_by_type){
+        ss << " [" << type << "]\n";
+        for (const plansys2::Instance & inst : t_instances){
+            if(print_structs){
+                ss << "    - " << get_instance_str(type, inst.name);
+            }else{
+                ss << "    - " << inst.name << "\n";
+            }
+        }
     }
+
+    ss << "\n[TRUE PREDICATES]\n";
+    for (const auto & [type, t_predicates] : predicates_by_type){
+        ss << " [" << type << "]\n";
+        for (const plansys2::Predicate & pred : t_predicates){
+            ss << "  - (" << pred.name;
+            for (const plansys2_msgs::msg::Param & p : pred.parameters)
+                ss << " " << p.name;
+            ss << ")\n";
+        }
+    }
+
 
     ss << "\n[GOAL]\n";
     ss << "  " << goal_to_string(problem->getGoal()) << "\n";
