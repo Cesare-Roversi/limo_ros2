@@ -3,7 +3,7 @@
     This is a format for representing semantic information about the robot structure.
     A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
 -->
-<robot name="firefighter">
+<robot name="robot_combinato">
     <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
     <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
     <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
@@ -29,7 +29,7 @@
         <joint name="joint6output_to_joint6" value="0"/>
     </group_state>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
-    <virtual_joint name="virtual_joints" type="fixed" parent_frame="world" child_link="g_base"/>
+    <virtual_joint name="virtual_joints" type="fixed" parent_frame="world" child_link="g_base" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="g_base" link2="joint1" reason="Adjacent"/>
     <disable_collisions link1="g_base" link2="joint2" reason="Never"/>
@@ -45,4 +45,5 @@
     <disable_collisions link1="joint5" link2="joint6" reason="Adjacent"/>
     <disable_collisions link1="joint5" link2="joint6_flange" reason="Never"/>
     <disable_collisions link1="joint6" link2="joint6_flange" reason="Adjacent"/>
+
 </robot>

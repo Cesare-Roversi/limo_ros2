@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<robot name="ackermann_drive" xmlns:xacro="http://ros.org/wiki/xacro">
-  
+<robot  xmlns:xacro="http://ros.org/wiki/xacro">
+<xacro:macro name="ackermann_drive"> 
 
   <!-- Variables -->
   <xacro:property name="M_PI" value="3.14159"/>
@@ -256,37 +256,7 @@
     <!-- <dynamics damping="0.2" /> -->
   </joint>
 
-  <ros2_control name="GazeboSimSystem" type="system">
-    <hardware>
-      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
-    </hardware>
-    <joint name="rear_left_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="velocity" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="rear_right_wheel_joint">
-      <command_interface name="velocity" />
-      <state_interface name="velocity" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="left_wheel_steering_joint">
-      <command_interface name="position" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="right_wheel_steering_joint">
-      <command_interface name="position" />
-      <state_interface name="position" />
-    </joint>
-    <joint name="front_left_wheel_joint">
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-    </joint>
-    <joint name="front_right_wheel_joint">
-      <state_interface name="position" />
-      <state_interface name="velocity" />
-    </joint>
-  </ros2_control>
+
 
 
   <gazebo>
@@ -538,5 +508,5 @@
       <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
       </plugin>
     </gazebo>
-
+</xacro:macro>
 </robot>
