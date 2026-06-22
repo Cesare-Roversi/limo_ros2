@@ -2,11 +2,10 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot_combinato">
 
   <xacro:include filename="$(find limo_description)/urdf/limo_ackermann.xacro.urdf" />	
-  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_280_pi.urdf" />
+  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_280_pi_adaptive_gripper.urdf" />
 
-  <!--<xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_collision_fix.urdf.xacro" />-->
-    <xacro:ackermann_drive/>
-    <xacro:firefighter/>
+  <xacro:ackermann_drive/>
+  <xacro:firefighter/>
   <joint name="base_to_arm_joint" type="fixed">
     <parent link="base_link"/>
     <child link="g_base"/>
@@ -74,6 +73,50 @@
         </command_interface>
         <state_interface name="position">
         </state_interface>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_controller">
+        <command_interface name="position">
+            <param name="min">-0.7</param>
+            <param name="max">0.15</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_base_to_gripper_left2">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_left3_to_gripper_left1">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">-1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_base_to_gripper_right3">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">-1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_base_to_gripper_right2">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_right3_to_gripper_right1">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">1.0</param>
+        <state_interface name="position"/>
         <state_interface name="velocity"/>
     </joint>
 

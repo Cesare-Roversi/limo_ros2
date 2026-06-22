@@ -139,6 +139,12 @@ def generate_launch_description():
         arguments=["arm_group_controller", "--controller-manager", "/controller_manager"],
         output="screen",
     )
+    gripper_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_action_controller", "--controller-manager", "/controller_manager"],
+        output="screen",
+    )
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
@@ -223,6 +229,12 @@ def generate_launch_description():
             event_handler=OnProcessExit(
                 target_action=joint_state_broadcaster_spawner,
                 on_exit=[arm_controller_spawner],
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[gripper_controller_spawner],
             )
         ),
 
