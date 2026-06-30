@@ -95,11 +95,6 @@ public:
     }
 
     void init_knowledge(){
-        // cout << "r1 -> " << problem_expert_->addInstance(plansys2::Instance{"r1", "robot"}) << endl;
-        // cout << "wp1 -> " << problem_expert_->addInstance(plansys2::Instance{"wp1", "waypoint"}) << endl;
-        // cout << "wp2 -> " << problem_expert_->addInstance(plansys2::Instance{"wp2", "waypoint"}) << endl;
-        // cout << "r1 -> " << problem_expert_->addInstance(plansys2::Instance{"r1", "robot"}) << endl;
-
         cout << endl << endl << "INIT KNOWLEDGE" << endl;
 
         add_waypoint("wp1", 125.2, 33.7, 0.0, problem_expert_); //di fronte allo spawn
@@ -115,7 +110,7 @@ public:
 		cout << endl;
 
         // print_world_model(this, this->domain_expert_, this->problem_expert_, true);
-        debug_init();
+        // debug_init();
     }
 
     void step() {

@@ -64,7 +64,7 @@ public:
     auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
     RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
 
-    goal_pos_ = map_waypoints[wp_to_navigate]; //! ERROR IS HERE, PASSA UN WP VUOTO PERCHé????
+    goal_pos_ = get_waypoint(wp_to_navigate); //! ERROR IS HERE, PASSA UN WP VUOTO PERCHé????
     // nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
     navigation_goal_.pose = goal_pos_;
 
