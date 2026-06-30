@@ -6,6 +6,7 @@
 robot
 waypoint
 object
+charging_station
 );; end Types ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Predicates ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -13,11 +14,18 @@ object
 
 ;; Robot
 (robot_at ?r - robot ?wp - waypoint)
-(robot_in_range ?r - robot ?wp - waypoint)
 (reachable ?wp - waypoint)
+(nat_battery_low ?r - robot)
 
 ;; Object
 (object_at ?o - object ?wp - waypoint)
+
+;; Waypoint
+(patrolled ?wp - waypoint)
+
+;; Charging station
+(charging_station_at ?cs - charging_station ?wp - waypoint)
+
 
 );; end Predicates ;;;;;;;;;;;;;;;;;;;;
 ;; Functions ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -40,18 +48,23 @@ object
 )
 
 
-(:durative-action get_in_range
-    :parameters (?r - robot ?wp1 ?wp2 - waypoint)
-    :duration ( = ?duration 5)
-    :condition (and
-        (at start(reachable ?wp2))
-        (at start(robot_at ?r ?wp1))
+(:durative-action patrol
+  :parameters (?r - robot ?wp - waypoint)
+  :duration ( = ?duration 5)
+  :condition (at start (robot_at ?r ?wp))
+  :effect (at end (patrolled ?wp))
+)
+
+
+
+(:durative-action charge
+  :parameters (?r - robot ?cs - charging_station ?wp - waypoint)
+  :duration ( = ?duration 10)
+  :condition (and
+        (at start (robot_at ?r ?wp))
+        (at start (charging_station_at ?cs ?wp))
         )
-    :effect (and
-        (at start(not(robot_at ?r ?wp1)))
-        (at end(robot_at ?r ?wp2))
-        (at end(robot_in_range ?r ?wp2))
-    )
+  :effect (at end (nat_battery_low ?r))
 )
 
 );; end Domain ;;;;;;;;;;;;;;;;;;;;;;;;

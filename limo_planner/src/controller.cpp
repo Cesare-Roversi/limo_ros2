@@ -94,7 +94,7 @@ public:
         robots_filepath_ = pkg_share + "/config/robots.yaml";
 
 
-        clear_all();
+        clear_all(); //knowledge
 
         add_waypoint("wp1", 125.2, 33.7, 0.0, problem_expert_); //di fronte allo spawn
         add_waypoint("wp2", 103.1,  10.6, 0.0, problem_expert_); //a metà corridoio centro sx
@@ -107,8 +107,11 @@ public:
 
         add_robot("r1", 1.0, 1.0, 1.0, 1.0, problem_expert_);
 
-        cout << "(robot_at r1 wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r1 wp2)")) << endl;
+        cout << "(robot_at r1 wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r1 wp2)")) << endl; //!NON è VERO
         cout << "(reachable wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(reachable wp1)")) << endl;
+
+        cout << "cs1 instance -> " << problem_expert_->addInstance(plansys2::Instance("cs1", "charging_station")) << endl;
+        cout << "(charging_station_at cs1 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(charging_station_at cs1 wp1)")) << endl;
 
         
         print_world_model(this, this->domain_expert_, this->problem_expert_, true);
@@ -126,7 +129,10 @@ public:
         switch (state_) {
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
             {
-                problem_expert_->setGoal(plansys2::Goal("(and (robot_at r1 wp1))"));
+                print_world_model(this, this->domain_expert_, this->problem_expert_, true);
+
+                
+                problem_expert_->setGoal(plansys2::Goal("(and (nat_battery_low r1))"));
                 cout << "THE GOAL IS: " << parser::pddl::toString(problem_expert_->getGoal()) << endl; //lo imposta giusto
 
                 auto domain = domain_expert_->getDomain();

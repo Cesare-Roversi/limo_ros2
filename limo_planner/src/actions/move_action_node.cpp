@@ -34,40 +34,49 @@ public:
     subscriber_to_amcl_position = create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>("/amcl_pose", 10, std::bind(&MoveAction::current_pos_callback, this, _1));
   }
 
+
   void current_pos_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg){
     current_pos_ = msg->pose.pose;
   }
 
-  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state){
 
+  void print_pose_stamped(const geometry_msgs::msg::PoseStamped& msg){
+    std::cout << endl << "WAYPOINT:" << std::endl;
+    std::cout << "header.frame_id: " << msg.header.frame_id << std::endl;
+    std::cout << "header.stamp: " << msg.header.stamp.sec << "."
+              << msg.header.stamp.nanosec << std::endl;
+
+    std::cout << "position: (" << msg.pose.position.x << ", "
+                              << msg.pose.position.y << ", "
+                              << msg.pose.position.z << ")" << std::endl;
+
+    std::cout << "orientation: (" << msg.pose.orientation.x << ", "
+                                << msg.pose.orientation.y << ", "
+                                << msg.pose.orientation.z << ", "
+                                << msg.pose.orientation.w << ")" << endl << endl;
+  }
+
+
+  void init_knowledge(){
     std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
     waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
+    objects_filepath_ = pkg_share + "/config/objects.yaml";
+    robots_filepath_ = pkg_share + "/config/robots.yaml";
 
     clear_all_map();
     load_waypoints_from_yaml(); 
-    print_waypoints();
+    //print_waypoints();
 
-    //! elimina
-    auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
+    auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action 
     RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
+
     goal_pos_ = get_waypoint(wp_to_navigate);
-    
-    geometry_msgs::msg::PoseStamped pose_msg = goal_pos_;
+    print_pose_stamped(goal_pos_);
+  }
 
-    std::cout << "header.frame_id: " << pose_msg.header.frame_id << std::endl;
-    std::cout << "header.stamp: " << pose_msg.header.stamp.sec << "."
-              << pose_msg.header.stamp.nanosec << std::endl;
 
-    std::cout << "position.x: " << pose_msg.pose.position.x << std::endl;
-    std::cout << "position.y: " << pose_msg.pose.position.y << std::endl;
-    std::cout << "position.z: " << pose_msg.pose.position.z << std::endl;
-
-    std::cout << "orientation.x: " << pose_msg.pose.orientation.x << std::endl;
-    std::cout << "orientation.y: " << pose_msg.pose.orientation.y << std::endl;
-    std::cout << "orientation.z: " << pose_msg.pose.orientation.z << std::endl;
-    std::cout << "orientation.w: " << pose_msg.pose.orientation.w << std::endl;
-    //!
-
+  rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state){
+    init_knowledge();
     send_feedback(0.0, "Move starting");
 
     // 1. Creazione del client ROS2 (è una CLASSE)
@@ -92,27 +101,13 @@ public:
     RCLCPP_INFO(get_logger(), "Navigation action server ready");
 
 
-
-    // auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action //!attento
-    // RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
-
-    // goal_pos_ = get_waypoint(wp_to_navigate);
-
-
-
     // nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
     navigation_goal_.pose = goal_pos_;
 
     // 2. CLIENT ROS2, STRUCT di configurazione delle opzioni di invio goal
     auto struct_callbacks_goal_options = rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
 
-    /*
-    PLANSYS2:
-    result_callback() e send_feedback():
-    metodi di plansys2::ActionExecutorClient
-    che pubblica su /actions_hub.
-    */
-
+   
     struct_callbacks_goal_options.goal_response_callback = [this](std::shared_ptr<NavigationGoalHandle> goal_handle){
       if(goal_handle != NULL){
         RCLCPP_INFO(get_logger(), "GOAL was accepted by NAV2");
@@ -146,16 +141,15 @@ public:
               finish(true, 1.0, "Move completed");
               break;
           case rclcpp_action::ResultCode::ABORTED:
-              // add_waypoint("fail_01", )
               finish(false, 0.0, "Navigation aborted");
               break;
           case rclcpp_action::ResultCode::CANCELED:
               finish(false, 0.0, "Navigation cancelled");
               break;
       }
-      // result.result  → this is the Empty msg, useless
-      // result.code    → THIS is what tells you what happened
-      // result.goal_id → the UUID of the goal
+      // result.result  - this is the Empty msg, useless
+      // result.code    - THIS is what tells you what happened
+      // result.goal_id - the UUID of the goal
   };
 
     

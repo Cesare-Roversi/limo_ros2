@@ -39,34 +39,18 @@ def generate_launch_description():
         parameters=[]
     )
     
-    move_with_object_cmd_node = Node(
+    patrol_cmd_node = Node(
         package='limo_planner',
-        executable='move_with_object_action_node',
-        name='move_with_object_action_node',
+        executable='patrol_action_node',
+        name='patrol_action_node',
         output='screen',
         parameters=[]
     )
 
-    pick_cmd_node = Node(
+    charge_cmd_node = Node(
         package='limo_planner',
-        executable='arm_pick_action_node',
-        name='arm_pick_action_node',
-        output='screen',
-        parameters=[]
-    )
-
-    unload_cmd_node = Node(
-        package='limo_planner',
-        executable='arm_unload_action_node',
-        name='arm_unload_action_node',
-        output='screen',
-        parameters=[]
-    )
-
-    arm_move_cmd_node = Node(
-        package='limo_planner',
-        executable='arm_move_action_node',
-        name='arm_move_action_node',
+        executable='charge_action_node',
+        name='charge_action_node',
         output='screen',
         parameters=[]
     )
@@ -83,6 +67,8 @@ def generate_launch_description():
     return LaunchDescription([
         plansys2_bringup_launch,
         move_cmd_node,
+        patrol_cmd_node,
+        charge_cmd_node,
         # move_with_object_cmd_node,
         # pick_cmd_node,
         # unload_cmd_node,

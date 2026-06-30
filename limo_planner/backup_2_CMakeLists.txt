@@ -17,11 +17,6 @@ find_package(plansys2_planner REQUIRED)
 find_package(plansys2_problem_expert REQUIRED)
 find_package(plansys2_pddl_parser REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(ament_index_cpp REQUIRED)
-find_package(OpenCV REQUIRED)
-
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -53,24 +48,8 @@ ament_target_dependencies(move_action_node ${dependencies})
 target_link_libraries(move_action_node limo_utils)
 
 add_executable(patrol_action_node src/actions/patrol_action_node.cpp)
-ament_target_dependencies(patrol_action_node
-  rclcpp
-  plansys2_executor
-  sensor_msgs
-  cv_bridge
-  ament_index_cpp
-)
-target_link_libraries(patrol_action_node ${OpenCV_LIBRARIES})
+ament_target_dependencies(patrol_action_node ${dependencies})
 target_link_libraries(patrol_action_node limo_utils)
-
-
-add_executable(charge_action_node
-    src/actions/charge_action_node.cpp
-)
-ament_target_dependencies(charge_action_node ${dependencies})
-target_link_libraries(charge_action_node limo_utils)
-
-
 
 add_executable(controller
     src/controller.cpp
@@ -87,7 +66,6 @@ install(DIRECTORY launch pddl config
 install(TARGETS
   move_action_node
   patrol_action_node
-  charge_action_node
   controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
