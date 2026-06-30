@@ -9,12 +9,13 @@
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include "nav2_msgs/action/navigate_to_pose.hpp"
-
 #include "plansys2_executor/ActionExecutorClient.hpp"
-
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
+
+//miei
 #include "world_data_utils.hpp"
 #include "debug.hpp"
 
@@ -38,6 +39,35 @@ public:
   }
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state){
+
+    std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
+    waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
+
+    clear_all_map();
+    load_waypoints_from_yaml(); 
+    print_waypoints();
+
+    //! elimina
+    auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
+    RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
+    goal_pos_ = get_waypoint(wp_to_navigate);
+    
+    geometry_msgs::msg::PoseStamped pose_msg = goal_pos_;
+
+    std::cout << "header.frame_id: " << pose_msg.header.frame_id << std::endl;
+    std::cout << "header.stamp: " << pose_msg.header.stamp.sec << "."
+              << pose_msg.header.stamp.nanosec << std::endl;
+
+    std::cout << "position.x: " << pose_msg.pose.position.x << std::endl;
+    std::cout << "position.y: " << pose_msg.pose.position.y << std::endl;
+    std::cout << "position.z: " << pose_msg.pose.position.z << std::endl;
+
+    std::cout << "orientation.x: " << pose_msg.pose.orientation.x << std::endl;
+    std::cout << "orientation.y: " << pose_msg.pose.orientation.y << std::endl;
+    std::cout << "orientation.z: " << pose_msg.pose.orientation.z << std::endl;
+    std::cout << "orientation.w: " << pose_msg.pose.orientation.w << std::endl;
+    //!
+
     send_feedback(0.0, "Move starting");
 
     // 1. Creazione del client ROS2 (è una CLASSE)
@@ -61,10 +91,15 @@ public:
     } while (!is_action_server_ready);
     RCLCPP_INFO(get_logger(), "Navigation action server ready");
 
-    auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action
-    RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
 
-    goal_pos_ = get_waypoint(wp_to_navigate); //! ERROR IS HERE, PASSA UN WP VUOTO PERCHé????
+
+    // auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action //!attento
+    // RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
+
+    // goal_pos_ = get_waypoint(wp_to_navigate);
+
+
+
     // nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
     navigation_goal_.pose = goal_pos_;
 

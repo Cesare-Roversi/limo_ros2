@@ -16,6 +16,7 @@ find_package(plansys2_executor REQUIRED)
 find_package(plansys2_planner REQUIRED)
 find_package(plansys2_problem_expert REQUIRED)
 find_package(plansys2_pddl_parser REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -38,6 +39,7 @@ add_library(limo_utils
 )
 ament_target_dependencies(limo_utils ${dependencies})
 target_include_directories(limo_utils PUBLIC include)
+target_link_libraries(limo_utils yaml-cpp)
 
 
 # ESEGUIBILI:
@@ -53,7 +55,7 @@ target_link_libraries(controller limo_utils)
 
 
 
-install(DIRECTORY launch pddl
+install(DIRECTORY launch pddl config
   DESTINATION share/${PROJECT_NAME}
 )
 

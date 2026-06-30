@@ -9,6 +9,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include <stdexcept>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <sstream>
 #include <iomanip>
@@ -71,6 +72,7 @@ public:
     }
 
     void start_clients(){
+
         domain_expert_ = std::make_shared<plansys2::DomainExpertClient>();
         planner_client_ = std::make_shared<plansys2::PlannerClient>();
         problem_expert_ = std::make_shared<plansys2::ProblemExpertClient>();
@@ -79,38 +81,38 @@ public:
     }
 
     void debug_init(){
-        remove_waypoint("wp5", problem_expert_);
-        modify_waypoint("wp4", 69, 69, 0.0);
 
-        // print_world_model(this, this->domain_expert_, this->problem_expert_);
-
-        add_object("pimpa", 10, 2, 1, 0.1, problem_expert_);
-        // print_world_model(this, this->domain_expert_, this->problem_expert_);
-        remove_waypoint("pimpa", problem_expert_);
-
-        print_world_model(this, this->domain_expert_, this->problem_expert_, true);
-
-        // state_ = DEAD; //!uccide il cotnroller;
         change_state(DEAD);
     }
 
     void init_knowledge(){
         cout << endl << endl << "INIT KNOWLEDGE" << endl;
 
+        std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
+        waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
+        objects_filepath_ = pkg_share + "/config/objects.yaml";
+        robots_filepath_ = pkg_share + "/config/robots.yaml";
+
+
+        clear_all();
+
         add_waypoint("wp1", 125.2, 33.7, 0.0, problem_expert_); //di fronte allo spawn
         add_waypoint("wp2", 103.1,  10.6, 0.0, problem_expert_); //a metà corridoio centro sx
         add_waypoint("wp3", 166.3,  47.4, 0.0, problem_expert_); //medio-alto a sx
         add_waypoint("wp4", 167.8, 16.4, 0.0,  problem_expert_); //medio-alto a dx
-        add_waypoint("wp5", 18.1, 25.2, 0.0,  problem_expert_); //basoo in centro
-        add_robot("r1", 1.0, 1.0, 1.0, problem_expert_);
+        add_waypoint("wp5", 18.1, 25.2, 0.0,  problem_expert_); //basso in centro
 
+        add_object("la_pimpa", 2.0, 3.0, 3.0, 1.0, problem_expert_);
+        add_object("l_armando", 8.0, 3.0, 3.0, 1.0, problem_expert_);
+
+        add_robot("r1", 1.0, 1.0, 1.0, 1.0, problem_expert_);
+
+        cout << "(robot_at r1 wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r1 wp2)")) << endl;
         cout << "(reachable wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(reachable wp1)")) << endl;
-        cout << "(reachable wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(reachable wp2)")) << endl;
-		cout << "(robot_at r1 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(robot_at r1 wp1)")) << endl;
-		cout << endl;
 
-        // print_world_model(this, this->domain_expert_, this->problem_expert_, true);
-        // debug_init();
+        
+        print_world_model(this, this->domain_expert_, this->problem_expert_, true);
+        //change_state(DEAD);
     }
 
     void step() {
@@ -124,7 +126,7 @@ public:
         switch (state_) {
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
             {
-                problem_expert_->setGoal(plansys2::Goal("(and (robot_at r1 wp2))"));
+                problem_expert_->setGoal(plansys2::Goal("(and (robot_at r1 wp1))"));
                 cout << "THE GOAL IS: " << parser::pddl::toString(problem_expert_->getGoal()) << endl; //lo imposta giusto
 
                 auto domain = domain_expert_->getDomain();
@@ -179,6 +181,9 @@ public:
 
 
 int main(int argc, char ** argv){
+
+    cout << "HELLO_WORLD_1" << endl;
+
     rclcpp::init(argc, argv);
 
     auto node = std::make_shared<Controller>();

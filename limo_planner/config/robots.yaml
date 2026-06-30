@@ -1,0 +1,6 @@
+robots:
+  r1:
+    battery_voltage: 1
+    battery_mah: 1
+    motor_power: 1
+    max_robot_velocity: 1

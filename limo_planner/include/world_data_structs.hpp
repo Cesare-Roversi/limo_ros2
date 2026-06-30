@@ -19,8 +19,9 @@ public:
     float battery_voltage;   // V
     float battery_mah;       // mAh
     float motor_power;       // W
+    float max_robot_velocity; // m/s
 
-    Robot(float v = 0.0f, float mah = 0.0f, float w = 0.0f) : battery_voltage(v), battery_mah(mah), motor_power(w) {}
+    Robot(float v = 0.0f, float mah = 0.0f, float w = 0.0f, float ms = 0.0f) : battery_voltage(v), battery_mah(mah), motor_power(w), max_robot_velocity(ms) {}
 
     float battery_joules()    const { return battery_voltage * battery_mah * 3.6f; }
     float motor_current()     const { return motor_power / battery_voltage; }
