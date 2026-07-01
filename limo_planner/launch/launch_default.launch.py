@@ -17,8 +17,8 @@ def generate_launch_description():
     pddl_domain_file = os.path.join(
         share_limo_planner,
         'pddl',
-        # 'domain.pddl' # ! ATTENTO
-        'simple_domain_temp.pddl'
+        'domain.pddl' # ! ATTENTO
+        #'simple_domain_temp.pddl'
     )
 
     plansys2_bringup_launch = IncludeLaunchDescription(
@@ -31,7 +31,7 @@ def generate_launch_description():
             }.items()
         )
 
-    move_cmd_node = Node(
+    move_action_node = Node(
         package='limo_planner',
         executable='move_action_node',
         name='move_action_node',
@@ -39,7 +39,7 @@ def generate_launch_description():
         parameters=[]
     )
     
-    patrol_cmd_node = Node(
+    patrol_action_node = Node(
         package='limo_planner',
         executable='patrol_action_node',
         name='patrol_action_node',
@@ -47,10 +47,50 @@ def generate_launch_description():
         parameters=[]
     )
 
-    charge_cmd_node = Node(
+    charge_action_node = Node(
         package='limo_planner',
         executable='charge_action_node',
         name='charge_action_node',
+        output='screen',
+        parameters=[]
+    )
+
+    move_arm_action_node = Node(
+        package='limo_planner',
+        executable='move_arm_action_node',
+        name='move_arm_action_node',
+        output='screen',
+        parameters=[]
+    )
+
+    pick_up_object_action_node = Node(
+        package='limo_planner',
+        executable='pick_up_object_action_node',
+        name='pick_up_object_action_node',
+        output='screen',
+        parameters=[]
+    )
+
+    put_down_object_action_node = Node(
+        package='limo_planner',
+        executable='put_down_object_action_node',
+        name='put_down_object_action_node',
+        output='screen',
+        parameters=[]
+    )
+
+    retract_arm_action_node = Node(
+        package='limo_planner',
+        executable='retract_arm_action_node',
+        name='retract_arm_action_node',
+        output='screen',
+        parameters=[]
+    )
+
+    check_distance_action_node = Node(
+        package='limo_planner',
+        executable='check_distance_action_node',
+        name='check_distance_action_node',
         output='screen',
         parameters=[]
     )
@@ -66,9 +106,14 @@ def generate_launch_description():
 
     return LaunchDescription([
         plansys2_bringup_launch,
-        move_cmd_node,
-        patrol_cmd_node,
-        charge_cmd_node,
+        move_action_node,
+        patrol_action_node,
+        charge_action_node,
+        move_arm_action_node,
+        pick_up_object_action_node,
+        put_down_object_action_node,
+        retract_arm_action_node,
+        check_distance_action_node,
         # move_with_object_cmd_node,
         # pick_cmd_node,
         # unload_cmd_node,

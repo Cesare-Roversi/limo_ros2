@@ -1,0 +1,110 @@
+(define (domain robot_domain)
+
+  (:requirements :strips :typing)
+
+  (:types
+    robot
+    object
+    waypoint
+    charging_station
+  )
+
+  (:predicates
+    (robot_at     ?r  - robot   ?wp  - waypoint)
+    (arm_free     ?r  - robot)
+    (arm_retracted ?r - robot)
+    (picked_up_obj ?r - robot   ?o   - object)
+    (not_battery_low  ?r  - robot)
+
+    (object_at    ?o  - object  ?wp  - waypoint)
+    (connected   ?wp1 - waypoint ?wp2 - waypoint)
+    (patrolled ?wp - waypoint)
+
+    (charging_station_at ?cs - charging_station ?wp - waypoint)
+  )
+
+  (:action retract_arm
+    :parameters (?r - robot)
+    :precondition ()
+    :effect (arm_retracted ?r)
+  )
+
+  (:action check_distance
+    :parameters (?wp1 - waypoint ?wp2 - waypoint)
+    :precondition ()
+    :effect (connected ?wp1 ?wp2)
+  )
+
+  (:action move
+    :parameters (?r - robot ?wp1 - waypoint ?wp2 - waypoint)
+    :precondition (and
+      (robot_at ?r ?wp1)
+      (arm_retracted ?r)
+      (connected ?wp1 ?wp2)
+    )
+    :effect (and
+      (robot_at ?r ?wp2)
+      (not (robot_at ?r ?wp1))
+    )
+  )
+
+  (:action pickup_obj
+    :parameters (?r - robot ?o - object ?wp - waypoint)
+    :precondition (and
+      (robot_at ?r ?wp)
+      (object_at ?o ?wp)
+      (arm_free ?r)
+      (arm_retracted ?r)
+      (not_battery_low ?r)        ;; <-- aggiunto
+    )
+    :effect (and
+      (picked_up_obj ?r ?o)
+      (not (arm_free ?r))
+      (not (arm_retracted ?r))
+      (not (object_at ?o ?wp))
+    )
+  )
+
+  (:action put_down_object
+    :parameters (?r - robot ?o - object ?wp - waypoint)
+    :precondition (and
+      (robot_at ?r ?wp)
+      (picked_up_obj ?r ?o)
+      (arm_retracted ?r)
+      (not_battery_low ?r)        ;; <-- aggiunto
+    )
+    :effect (and
+      (not (picked_up_obj ?r ?o))
+      (arm_free ?r)
+      (object_at ?o ?wp)
+      (not (arm_retracted ?r))
+    )
+  )
+
+  (:action move_arm
+    :parameters (?r - robot)
+    :precondition (not_battery_low ?r)  ;; <-- aggiunto
+    :effect (not (arm_retracted ?r))
+  )
+
+  (:action charge
+    :parameters (?r - robot ?cs - charging_station ?wp - waypoint)
+    :precondition (and
+      (robot_at ?r ?wp)
+      (charging_station_at ?cs ?wp)
+    )
+    :effect (not_battery_low ?r)
+  )
+
+  (:action patrol
+    :parameters (?r - robot ?wp - waypoint)
+    :precondition (and
+      (robot_at ?r ?wp)
+      (not_battery_low ?r)        ;; <-- aggiunto
+    )
+    :effect (
+      patrolled ?wp
+    )
+  )
+
+)

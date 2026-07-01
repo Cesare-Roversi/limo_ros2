@@ -48,10 +48,12 @@ target_link_libraries(limo_utils yaml-cpp)
 
 
 # ESEGUIBILI:
+#move_action_node
 add_executable(move_action_node src/actions/move_action_node.cpp)
 ament_target_dependencies(move_action_node ${dependencies})
 target_link_libraries(move_action_node limo_utils)
 
+#patrol_action_node
 add_executable(patrol_action_node src/actions/patrol_action_node.cpp)
 ament_target_dependencies(patrol_action_node
   rclcpp
@@ -63,15 +65,49 @@ ament_target_dependencies(patrol_action_node
 target_link_libraries(patrol_action_node ${OpenCV_LIBRARIES})
 target_link_libraries(patrol_action_node limo_utils)
 
-
+#charge_action_node
 add_executable(charge_action_node
     src/actions/charge_action_node.cpp
 )
 ament_target_dependencies(charge_action_node ${dependencies})
 target_link_libraries(charge_action_node limo_utils)
 
+#move_arm_action_node
+add_executable(move_arm_action_node
+    src/actions/move_arm_action_node.cpp
+)
+ament_target_dependencies(move_arm_action_node ${dependencies})
+target_link_libraries(move_arm_action_node limo_utils)
 
+#pick_up_object_action_node
+add_executable(pick_up_object_action_node
+    src/actions/pick_up_object_action_node.cpp
+)
+ament_target_dependencies(pick_up_object_action_node ${dependencies})
+target_link_libraries(pick_up_object_action_node limo_utils)
 
+#put_down_object_action_node
+add_executable(put_down_object_action_node
+    src/actions/put_down_object_action_node.cpp
+)
+ament_target_dependencies(put_down_object_action_node ${dependencies})
+target_link_libraries(put_down_object_action_node limo_utils)
+
+#retract_arm_action_node
+add_executable(retract_arm_action_node
+    src/actions/retract_arm_action_node.cpp
+)
+ament_target_dependencies(retract_arm_action_node ${dependencies})
+target_link_libraries(retract_arm_action_node limo_utils)
+
+#check_distance_action_node
+add_executable(check_distance_action_node
+    src/actions/check_distance_action_node.cpp
+)
+ament_target_dependencies(check_distance_action_node ${dependencies})
+target_link_libraries(check_distance_action_node limo_utils)
+
+# CONTROLLER
 add_executable(controller
     src/controller.cpp
 )
@@ -88,6 +124,11 @@ install(TARGETS
   move_action_node
   patrol_action_node
   charge_action_node
+  move_arm_action_node
+  pick_up_object_action_node
+  put_down_object_action_node
+  retract_arm_action_node
+  check_distance_action_node
   controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

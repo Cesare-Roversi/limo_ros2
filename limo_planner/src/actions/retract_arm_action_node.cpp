@@ -7,20 +7,20 @@
 using namespace std::chrono_literals;
 using namespace std;
 
-class ChargeAction : public plansys2::ActionExecutorClient
+class RetractArmAction : public plansys2::ActionExecutorClient
 {
 public:
-  ChargeAction() : plansys2::ActionExecutorClient("charge", 500ms){}
+  RetractArmAction() : plansys2::ActionExecutorClient("retract_arm", 500ms){}
 
   void init_knowledge(){
     start_time_ = now();
-    RCLCPP_INFO(get_logger(), "Charge: avvio carica per %.1f secondi", CHARGE_DURATION);
+    RCLCPP_INFO(get_logger(), "RetractArm: avvio retrazione braccio per %.1f secondi", ACTION_DURATION);
   }
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state){
     init_knowledge();
-    send_feedback(0.0, "Mi sto caricando");
+    send_feedback(0.0, "Sto retraendo il braccio");
     return ActionExecutorClient::on_activate(previous_state);
   }
 
@@ -28,17 +28,17 @@ private:
   void do_work(){
     double elapsed = (now() - start_time_).seconds();
 
-    if (elapsed >= CHARGE_DURATION) {
-      finish(true, 1.0, "Charge completed");
+    if (elapsed >= ACTION_DURATION) {
+      finish(true, 1.0, "Retract arm completed");
       return;
     }
 
-    float progress = static_cast<float>(elapsed / CHARGE_DURATION);
-    std::string msg = "Mi sto caricando " + std::to_string(static_cast<int>(elapsed)) + "s";
+    float progress = static_cast<float>(elapsed / ACTION_DURATION);
+    std::string msg = "Sto retraendo il braccio " + std::to_string(static_cast<int>(elapsed)) + "s";
     send_feedback(progress, msg);
   }
 
-  static constexpr double CHARGE_DURATION = 10.0;
+  static constexpr double ACTION_DURATION = 5.0;
   rclcpp::Time start_time_;
 };
 
@@ -46,9 +46,9 @@ private:
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<ChargeAction>();
+  auto node = std::make_shared<RetractArmAction>();
 
-  node->set_parameter(rclcpp::Parameter("action_name", "charge"));
+  node->set_parameter(rclcpp::Parameter("action_name", "retract_arm"));
   node->configure();
 
   rclcpp::spin(node->get_node_base_interface());
