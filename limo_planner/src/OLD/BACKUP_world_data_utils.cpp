@@ -279,8 +279,7 @@ void load_robots_from_yaml(){
             float battery_mah = rb.second["battery_mah"].as<float>();
             float motor_power = rb.second["motor_power"].as<float>();
             float max_robot_velocity = rb.second["max_robot_velocity"].as<float>();
-            float current_battery = rb.second["current_battery"].as<float>();
-            map_robots[name] = Robot(battery_voltage, battery_mah, motor_power, max_robot_velocity, current_battery);
+            map_robots[name] = Robot(battery_voltage, battery_mah, motor_power, max_robot_velocity);
         }
     }
 }
@@ -293,8 +292,7 @@ void print_robots(){
                   << rb.battery_voltage << ", "
                   << rb.battery_mah << ", "
                   << rb.motor_power << ", "
-                  << rb.max_robot_velocity << ", "
-                  << rb.current_battery << ")\n";
+                  << rb.max_robot_velocity << ")\n";
     }
 }
 
@@ -307,7 +305,6 @@ void save_robots_to_yaml(){
             << YAML::Key << "battery_mah" << YAML::Value << rb.battery_mah
             << YAML::Key << "motor_power" << YAML::Value << rb.motor_power
             << YAML::Key << "max_robot_velocity" << YAML::Value << rb.max_robot_velocity
-            << YAML::Key << "current_battery" << YAML::Value << rb.current_battery
             << YAML::EndMap;
     }
     out << YAML::EndMap << YAML::EndMap;
@@ -339,9 +336,7 @@ void add_robot(
     float battery_voltage, float battery_mah, float motor_power, float max_robot_velocity,
     std::shared_ptr<plansys2::ProblemExpertClient> problem){
 
-    Robot rb(battery_voltage, battery_mah, motor_power, max_robot_velocity);
-    rb.current_battery = rb.battery_joules();  // nuovo robot -> batteria piena
-    map_robots[name] = rb;
+    map_robots[name] = Robot(battery_voltage, battery_mah, motor_power, max_robot_velocity);
     save_robots_to_yaml();
     cout << name << " -> " << problem->addInstance(plansys2::Instance{name, "robot"}) << endl;
 }
@@ -373,20 +368,6 @@ Robot get_robot(const std::string & name){
     return it->second;
 }
 
-// Aggiorna solo current_battery di un robot già esistente (es. dopo un move
-// che consuma energia, o dopo un charge che la ripristina) e persiste su YAML.
-void set_robot_battery(const std::string & name, float new_current_battery){
-    load_robots_from_yaml();
-
-    auto it = map_robots.find(name);
-    if (it == map_robots.end()) {
-        throw std::runtime_error("ERROR: Robot '" + name + "' not found in map_robots");
-    }
-
-    it->second.current_battery = new_current_battery;
-    save_robots_to_yaml();
-}
-
 std::string get_robot_str(const std::string & name){
     auto rb = get_robot(name);
 
@@ -397,7 +378,6 @@ std::string get_robot_str(const std::string & name){
     ss << "        battery_mah: " << rb.battery_mah << "\n";
     ss << "        motor_power: " << rb.motor_power << "\n";
     ss << "        max_robot_velocity: " << rb.max_robot_velocity << "\n";
-    ss << "        current_battery: " << rb.current_battery << "\n";
     return ss.str();
 }
 //*__ROBOTS

@@ -103,10 +103,10 @@ public:
         add_waypoint("wp4", 167.8, 16.4, 0.0,  problem_expert_); //medio-alto a dx
         add_waypoint("wp5", 18.1, 25.2, 0.0,  problem_expert_); //basso in centro
 
-        cout << "(connected wp0 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(connected wp0 wp1)")) << endl;
-        cout << "(connected wp1 wp0) -> " << problem_expert_->addPredicate(plansys2::Predicate("(connected wp1 wp0)")) << endl;
-        cout << "(connected wp1 wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(connected wp0 wp1)")) << endl;
-        cout << "(connected wp2 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(connected wp1 wp0)")) << endl;
+        // cout << "(connected wp0 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(connected wp0 wp1)")) << endl;
+        // cout << "(connected wp1 wp0) -> " << problem_expert_->addPredicate(plansys2::Predicate("(connected wp1 wp0)")) << endl;
+        // cout << "(connected wp1 wp2) -> " << problem_expert_->addPredicate(plansys2::Predicate("(connected wp0 wp1)")) << endl;
+        // cout << "(connected wp2 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(connected wp1 wp0)")) << endl;
 
         add_object("la_pimpa", 2.0, 3.0, 3.0, 1.0, problem_expert_);
         cout << "(object_at la_pimpa wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(object_at la_pimpa wp1)")) << endl;
@@ -141,9 +141,10 @@ public:
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
             {
                 //print_world_model(this, this->domain_expert_, this->problem_expert_, true);
-
                 
-                problem_expert_->setGoal(plansys2::Goal("(and (object_at la_pimpa wp2))"));
+                // problem_expert_->setGoal(plansys2::Goal("(and (object_at la_pimpa wp2))"));
+                problem_expert_->setGoal(plansys2::Goal("(and (connected wp0 wp1))"));
+
                 cout << "THE GOAL IS: " << parser::pddl::toString(problem_expert_->getGoal()) << endl; //lo imposta giusto
 
                 auto domain = domain_expert_->getDomain();

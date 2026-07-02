@@ -4,3 +4,4 @@ robots:
     battery_mah: 1
     motor_power: 1
     max_robot_velocity: 1
+    current_battery: 3.5999999

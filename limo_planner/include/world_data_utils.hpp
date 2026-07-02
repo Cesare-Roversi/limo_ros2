@@ -21,10 +21,12 @@ using namespace std;
 extern std::string waypoints_filepath_;
 extern std::string objects_filepath_;
 extern std::string robots_filepath_;
+extern std::string connections_filepath_;
 
 extern std::unordered_map<std::string, geometry_msgs::msg::PoseStamped> map_waypoints;
 extern std::unordered_map<std::string, Object> map_objects;
 extern std::unordered_map<std::string, Robot> map_robots;
+extern std::map<std::string, Connection> map_connections;
 
 
 //*WAYPOINTS
@@ -94,12 +96,37 @@ void delete_robot(
 
 Robot get_robot(const std::string & name);
 
+void set_robot_battery(const std::string & name, float new_current_battery);
+
 std::string get_robot_str(const std::string & name);
 
 //*__ROBOTS
 
 
-std::string get_robot_str(const std::string & name);
+//*CONNECTIONS
+void load_connections_from_yaml();
+void print_connections();
+void save_connections_to_yaml();
+void clear_connections_yaml();
+void clear_connections_map();
+
+void add_connection(
+    const std::string & wp1, const std::string & wp2,
+    float distance, float costmap_estimate);
+
+void delete_connection(const std::string & wp1, const std::string & wp2);
+
+Connection get_connection(const std::string & wp1, const std::string & wp2);
+
+std::string get_connection_str(const std::string & wp1, const std::string & wp2);
+
+void save_connection_to_yaml(
+    const std::string & filepath,
+    const std::string & wp1, const std::string & wp2,
+    float distance, float costmap_estimate);
+
+//*__CONNECTIONS
+
 
 
 //*RAGGRUPPAMENTO:
