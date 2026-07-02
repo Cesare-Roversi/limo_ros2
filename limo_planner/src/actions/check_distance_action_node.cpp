@@ -53,18 +53,31 @@ public:
 
 
   void init_knowledge(){
-    std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
-    waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
-    objects_filepath_ = pkg_share + "/config/objects.yaml";
-    robots_filepath_ = pkg_share + "/config/robots.yaml";
-    connections_filepath_ = pkg_share + "/config/connections.yaml";
+    // std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
+    // waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
+    // objects_filepath_ = pkg_share + "/config/objects.yaml";
+    // robots_filepath_ = pkg_share + "/config/robots.yaml";
+    // connections_filepath_ = pkg_share + "/config/connections.yaml";
+
+    waypoints_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/waypoints.yaml";
+    connections_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/connections.yaml"; //!HARDCODA DA UN ALTRA PARTE!!!!!
+
+    cout << "RIGA: 1" << endl;
+
+    cout << "connections_filepath_:  " << connections_filepath_ << endl;
 
     clear_all_map();
+    cout << "RIGA: 2" << endl;
     load_waypoints_from_yaml();
+    cout << "RIGA: 3" << endl;
+    load_connections_from_yaml();
+    cout << "RIGA: 4" << endl;
 
     // I 2 waypoint arrivano come parametri dell'azione PDDL: (?wp1 ?wp2)
     wp1_name_ = get_arguments()[0];
     wp2_name_ = get_arguments()[1];
+
+    cout << "RIGA: 5" << endl;
     RCLCPP_INFO(get_logger(), "Checking distance between [%s] and [%s]", wp1_name_.c_str(), wp2_name_.c_str());
 
     start_pos_ = get_waypoint(wp1_name_);
@@ -161,8 +174,13 @@ public:
             RCLCPP_INFO(get_logger(), "distance=%.3f m, costmap_estimate=%.3f (avg cost over %d samples)",
                         path_distance, costmap_estimate, kCostmapSamples);
 
-            save_connection_to_yaml(connections_filepath_, wp1_name_, wp2_name_,
-                                     path_distance, costmap_estimate);
+            // affect_plansys2_kb=false: l'effetto (connected ?wp1 ?wp2) viene già
+            // applicato automaticamente da PlanSys2 tramite finish(true, ...) qui
+            // sotto, dato che è l'effetto dichiarato dell'azione PDDL. Aggiungerlo
+            // anche qui a mano sarebbe ridondante (e servirebbe un
+            // problem_expert_client_ che questo nodo non ha).
+            add_connection(wp1_name_, wp2_name_, path_distance, costmap_estimate,
+                            false, nullptr);
 
             // Azione PDDL riuscita: l'effetto (connected ?wp1 ?wp2) verrà applicato da PlanSys2
             finish(true, 1.0, "Check_distance completed: waypoints are connected");
@@ -267,9 +285,6 @@ private:
   // Costmap globale, usata solo per il sampling: non persistita, solo in RAM.
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr costmap_sub_;
   nav_msgs::msg::OccupancyGrid::SharedPtr latest_costmap_;
-
-  // Path del file dove salviamo distance/costmap_estimate per ogni coppia di waypoint.
-  std::string connections_filepath_;
 };
 
 
@@ -293,7 +308,3 @@ int main(int argc, char ** argv)
 //     (NIENTE error_code/error_msg in Humble: quelli sono stati aggiunti in versioni successive di Nav2)
 //todo ACTION ROS2: https://docs.ros.org/en/humble/Tutorials/Intermediate/Writing-an-Action-Server-Client/Cpp.html
 //todo PLANSYS2 RILEGGITI: https://plansys2.github.io/tutorials/docs/simple_example.html
-//todo save_connection_to_yaml(filepath, wp1, wp2, distance, costmap_estimate) va aggiunta a
-//     world_data_utils.hpp con lo stesso pattern di load_waypoints_from_yaml/get_waypoint,
-//     scrivendo/aggiornando la entry "wp1_wp2: {distance: ..., costmap_estimate: ...}"
-//     dentro config/connections.yaml (analoga a waypoints.yaml/objects.yaml/robots.yaml).

@@ -32,7 +32,7 @@ def generate_launch_description():
         'nav2_params_file_path',
         default_value=PathJoinSubstitution([
             # FindPackageShare('limo_bringup'), 'param', 'tesi_nav2_ackermann.yaml'
-            share_limo_bringup, 'config', 'PROVA01_nav2_amcl.yaml'
+            share_limo_bringup, 'config', 'PROVA02_nav2_amcl.yaml'
         ])
     )
 

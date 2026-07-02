@@ -11,6 +11,15 @@ std::unordered_map<std::string, Robot> map_robots;
 std::map<std::string, Connection> map_connections;
 
 
+/*
+load_*_from_yaml //salva tutta la mappa nel yaml
+save_*_to_yaml   //carica tutto il yaml nella mappa
+add_*            //aggiunge * alla mappa -> salva tutta la mappa nel yaml
+delete_*         //elimina * dalla mappa -> salva tutta la mappa nel yaml
+get_*            //restituisce (in base al nome) una struct o classe C++
+*/
+
+
 //* WAYPOINTS
 geometry_msgs::msg::PoseStamped make_waypoint(float x, float y, float yaw){
     geometry_msgs::msg::PoseStamped wp;
@@ -467,16 +476,31 @@ void clear_connections(){
 
 void add_connection(
     const std::string & wp1, const std::string & wp2,
-    float distance, float costmap_estimate){
+    float distance, float costmap_estimate,
+    bool affect_plansys2_kb,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem){
 
     std::string key = connection_key(wp1, wp2);
     map_connections[key] = Connection(distance, costmap_estimate);
     save_connections_to_yaml();
     cout << key << " -> connection saved (distance=" << distance
          << ", costmap_estimate=" << costmap_estimate << ")" << endl;
+
+    if (affect_plansys2_kb) {
+        if (!problem) {
+            cout << "ERROR: affect_plansys2_kb=true but problem is nullptr, skipping predicate add" << endl;
+            return;
+        }
+        std::string pred_str = "(connected " + wp1 + " " + wp2 + ")";
+        cout << pred_str << " -> " << problem->addPredicate(plansys2::Predicate(pred_str)) << endl;
+    }
 }
 
-void delete_connection(const std::string & wp1, const std::string & wp2){
+void delete_connection(
+    const std::string & wp1, const std::string & wp2,
+    bool affect_plansys2_kb,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem){
+
     load_connections_from_yaml();
 
     std::string key = connection_key(wp1, wp2);
@@ -490,6 +514,15 @@ void delete_connection(const std::string & wp1, const std::string & wp2){
     save_connections_to_yaml();
 
     cout << key << " -> connection removed" << endl;
+
+    if (affect_plansys2_kb) {
+        if (!problem) {
+            cout << "ERROR: affect_plansys2_kb=true but problem is nullptr, skipping predicate remove" << endl;
+            return;
+        }
+        std::string pred_str = "(connected " + wp1 + " " + wp2 + ")";
+        cout << pred_str << " -> " << problem->removePredicate(plansys2::Predicate(pred_str)) << endl;
+    }
 }
 
 Connection get_connection(const std::string & wp1, const std::string & wp2){
