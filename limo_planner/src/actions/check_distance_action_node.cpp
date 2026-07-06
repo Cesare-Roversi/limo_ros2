@@ -35,49 +35,17 @@ public:
     // perché questa azione NON naviga: si limita a CALCOLARE il path tra 2 waypoint.
   }
 
-  void print_pose_stamped(const geometry_msgs::msg::PoseStamped& msg){
-    std::cout << endl << "WAYPOINT:" << std::endl;
-    std::cout << "header.frame_id: " << msg.header.frame_id << std::endl;
-    std::cout << "header.stamp: " << msg.header.stamp.sec << "."
-              << msg.header.stamp.nanosec << std::endl;
-
-    std::cout << "position: (" << msg.pose.position.x << ", "
-                              << msg.pose.position.y << ", "
-                              << msg.pose.position.z << ")" << std::endl;
-
-    std::cout << "orientation: (" << msg.pose.orientation.x << ", "
-                                << msg.pose.orientation.y << ", "
-                                << msg.pose.orientation.z << ", "
-                                << msg.pose.orientation.w << ")" << endl << endl;
-  }
-
 
   void init_knowledge(){
-    // std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
-    // waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
-    // objects_filepath_ = pkg_share + "/config/objects.yaml";
-    // robots_filepath_ = pkg_share + "/config/robots.yaml";
-    // connections_filepath_ = pkg_share + "/config/connections.yaml";
-
-    waypoints_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/waypoints.yaml";
-    connections_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/connections.yaml"; //!HARDCODA DA UN ALTRA PARTE!!!!!
-
-    cout << "RIGA: 1" << endl;
-
-    cout << "connections_filepath_:  " << connections_filepath_ << endl;
 
     clear_all_map();
-    cout << "RIGA: 2" << endl;
     load_waypoints_from_yaml();
-    cout << "RIGA: 3" << endl;
     load_connections_from_yaml();
-    cout << "RIGA: 4" << endl;
 
     // I 2 waypoint arrivano come parametri dell'azione PDDL: (?wp1 ?wp2)
     wp1_name_ = get_arguments()[0];
     wp2_name_ = get_arguments()[1];
 
-    cout << "RIGA: 5" << endl;
     RCLCPP_INFO(get_logger(), "Checking distance between [%s] and [%s]", wp1_name_.c_str(), wp2_name_.c_str());
 
     start_pos_ = get_waypoint(wp1_name_);

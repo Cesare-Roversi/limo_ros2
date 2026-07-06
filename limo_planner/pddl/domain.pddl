@@ -57,9 +57,11 @@
       (at start (not (doing_nothing ?r)))
       (at end (doing_nothing ?r))
       (at end (robot_at ?r ?wp2))
-      (at start (not (robot_at ?r ?wp1)))
+      (at end (not (robot_at ?r ?wp1)))
     )
   )
+
+  ; at end (not (robot_at ?r ?wp1)) INVECE CHE: at start
 
   (:durative-action pickup_obj
     :parameters (?r - robot ?o - object ?wp - waypoint)

@@ -113,7 +113,7 @@ public:
 
         add_object("l_armando", 8.0, 3.0, 3.0, 1.0, problem_expert_);
 
-        add_robot("r1", 1.0, 1.0, 1.0, 1.0, problem_expert_);
+        add_robot("r1", 1.0, 10.0, 1.0, 1.0, problem_expert_);
         // cout << "(arm_retracted r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(arm_retracted r1)")) << endl;
         cout << "(arm_free r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(arm_free r1)")) << endl;
         cout << "(not_battery_low r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(not_battery_low r1)")) << endl;
@@ -125,7 +125,7 @@ public:
         cout << "(charging_station_at cs1 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(charging_station_at cs1 wp1)")) << endl;
 
         
-        print_world_model(this, this->domain_expert_, this->problem_expert_, true);
+        //print_world_model(this, this->domain_expert_, this->problem_expert_, true);
         //change_state(DEAD);
     }
 
@@ -139,11 +139,13 @@ public:
 
         switch (state_) {
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
-            {
-                //print_world_model(this, this->domain_expert_, this->problem_expert_, true);
+            {   
+                cout << "(doing_nothing r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(doing_nothing r1)"));
+                print_world_model(this, this->domain_expert_, this->problem_expert_, true);
                 
                 // problem_expert_->setGoal(plansys2::Goal("(and (object_at la_pimpa wp2))"));
-                problem_expert_->setGoal(plansys2::Goal("(and (connected wp0 wp1))"));
+                // problem_expert_->setGoal(plansys2::Goal("(and (connected wp0 wp1))"));
+                problem_expert_->setGoal(plansys2::Goal("(and (robot_at r1 wp1))"));
 
                 cout << "THE GOAL IS: " << parser::pddl::toString(problem_expert_->getGoal()) << endl; //lo imposta giusto
 
