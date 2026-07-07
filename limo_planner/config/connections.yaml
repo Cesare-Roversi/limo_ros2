@@ -1,4 +1,4 @@
 connections:
   wp0_wp1:
-    distance: 6.73124361
-    costmap_estimate: 21.7999992
+    distance: 6.87456036
+    costmap_estimate: 22.7000008

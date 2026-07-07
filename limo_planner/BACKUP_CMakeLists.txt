@@ -40,7 +40,11 @@ set(dependencies
 # LIBRERIA:
 add_library(limo_utils
     src/utils/debug.cpp
-    src/utils/world_data_utils.cpp
+    src/utils/utils_connections.cpp
+    src/utils/utils_global_vars.cpp
+    src/utils/utils_objects.cpp
+    src/utils/utils_robots.cpp
+    src/utils/utils_waypoints.cpp
 )
 ament_target_dependencies(limo_utils ${dependencies})
 target_include_directories(limo_utils PUBLIC include)

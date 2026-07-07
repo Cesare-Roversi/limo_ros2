@@ -54,7 +54,9 @@ public:
     RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_dest_name_.c_str());
 
     goal_pos_ = get_waypoint(wp_dest_name_);
-    print_pose_stamped(goal_pos_);
+    //print_pose_stamped(goal_pos_);
+
+    connection = get_connection(wp_from_name_, wp_dest_name_);
   }
 
 
@@ -240,23 +242,14 @@ public:
       }
     };
 
+
     struct_callbacks_goal_options.feedback_callback = [this]( NavigationGoalHandle::SharedPtr, NavigationFeedback feedback) {
 
-        float distance_remaining = feedback->distance_remaining;
+      float distance_remaining = feedback->distance_remaining;
+      float completed_distance_percent = 1.0 - (feedback->distance_remaining / connection.distance);
+      send_feedback(completed_distance_percent, "Move running");
+    };
 
-        if(distance_remaining > 0.3 || is_initial_distance_set){
-          if(!is_initial_distance_set){ //0.3 è precauzione perchè qualche volta restituisce valori bassi senza senso all'inizio;
-            initial_distance = feedback->distance_remaining;
-            is_initial_distance_set = true;
-          }
-          
-          float completed_distance_percent = 1.0 - (feedback->distance_remaining / initial_distance);
-          send_feedback(completed_distance_percent, "Move running");
-          // RCLCPP_INFO(get_logger(), "distance_remaining: %.3f m (%.3f /)", feedback->distance_remaining, completed_distance_percent);
-        }else{
-          RCLCPP_INFO(get_logger(), "DEBUG: feedback->distance_remaining under limit: %.3f m", distance_remaining);
-        }
-      };
     
     //! CHECK the docs for this:
     struct_callbacks_goal_options.result_callback = [this](const NavigationGoalHandle::WrappedResult & result) {
@@ -321,6 +314,7 @@ private:
   std::string robot_name_;
   std::string wp_from_name_;
   std::string wp_dest_name_;
+  Connection connection;
   std::shared_ptr<plansys2::ProblemExpertClient> problem_expert_client_;
   bool battery_sufficient_;
   std::string battery_not_sufficient_error_;

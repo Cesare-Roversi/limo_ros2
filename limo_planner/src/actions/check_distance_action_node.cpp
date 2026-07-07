@@ -41,6 +41,8 @@ public:
     clear_all_map();
     load_waypoints_from_yaml();
     load_connections_from_yaml();
+    cout << "CIAO1" << endl;
+    print_connections();
 
     // I 2 waypoint arrivano come parametri dell'azione PDDL: (?wp1 ?wp2)
     wp1_name_ = get_arguments()[0];
@@ -60,8 +62,19 @@ public:
     init_knowledge();
     send_feedback(0.0, "Check_distance starting");
 
-    // Sottoscrizione alla global_costmap: ci serve per stimare la vicinanza a
-    // ostacoli statici campionando N punti lungo il path calcolato.
+    //todo controllo se la connessione è già stata calcolata:    
+    
+    try {
+      cout << "IN: CONNECTIONS:" << endl;
+      print_connections();
+
+      Connection connection = get_connection(wp1_name_, wp2_name_);
+      connection_was_already_present_ = true;
+      return ActionExecutorClient::on_activate(previous_state);
+    } catch (const std::runtime_error &) {
+      connection_was_already_present_ = false;
+    }
+
     // QoS transient_local perché costmap è tipicamente pubblicata cosi da Nav2.
     rclcpp::QoS costmap_qos(1);
     costmap_qos.transient_local();
@@ -109,8 +122,6 @@ public:
       }
     };
 
-    // ComputePathToPose non ha un feedback definito (nessun campo), quindi non serve
-    // registrare una feedback_callback qui (a differenza di MoveAction).
 
     struct_callbacks_goal_options.result_callback = [this](const ComputePathGoalHandle::WrappedResult & result) {
       switch (result.code) {
@@ -142,11 +153,7 @@ public:
             RCLCPP_INFO(get_logger(), "distance=%.3f m, costmap_estimate=%.3f (avg cost over %d samples)",
                         path_distance, costmap_estimate, kCostmapSamples);
 
-            // affect_plansys2_kb=false: l'effetto (connected ?wp1 ?wp2) viene già
-            // applicato automaticamente da PlanSys2 tramite finish(true, ...) qui
-            // sotto, dato che è l'effetto dichiarato dell'azione PDDL. Aggiungerlo
-            // anche qui a mano sarebbe ridondante (e servirebbe un
-            // problem_expert_client_ che questo nodo non ha).
+            
             add_connection(wp1_name_, wp2_name_, path_distance, costmap_estimate,
                             false, nullptr);
 
@@ -172,6 +179,9 @@ public:
 private:
   void do_work(){
     RCLCPP_INFO(get_logger(), "PROVA do_work (check_distance)");
+    if(connection_was_already_present_){
+      finish(true, 1.0, "connection was already present in yaml file");
+    }
   }
 
   // Somma delle distanze euclidee 2D tra pose consecutive del path.
@@ -253,6 +263,8 @@ private:
   // Costmap globale, usata solo per il sampling: non persistita, solo in RAM.
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr costmap_sub_;
   nav_msgs::msg::OccupancyGrid::SharedPtr latest_costmap_;
+
+  bool connection_was_already_present_;
 };
 
 

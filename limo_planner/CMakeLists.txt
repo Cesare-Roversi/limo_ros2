@@ -40,6 +40,7 @@ set(dependencies
 # LIBRERIA:
 add_library(limo_utils
     src/utils/debug.cpp
+    src/utils/controller_functions.cpp
     src/utils/utils_connections.cpp
     src/utils/utils_global_vars.cpp
     src/utils/utils_objects.cpp
