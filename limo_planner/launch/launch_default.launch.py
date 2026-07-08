@@ -118,6 +118,6 @@ def generate_launch_description():
         # pick_cmd_node,
         # unload_cmd_node,
         # arm_move_cmd_node,
-        controller_node
+        # controller_node
     ])
 

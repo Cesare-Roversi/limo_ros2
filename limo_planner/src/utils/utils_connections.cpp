@@ -31,7 +31,6 @@ void load_connections_from_yaml(){
 
 
 
-
 void print_connections(){
     cout << "PRINT_CONNECTIONS" << endl;
 
@@ -89,7 +88,7 @@ void add_connection(
 
     if (affect_plansys2_kb) {
         if (!problem) {
-            cout << "ERROR: affect_plansys2_kb=true but problem is nullptr, skipping predicate add" << endl;
+            cout << "ERROR[add_connection]: affect_plansys2_kb=true but problem is nullptr, skipping predicate add" << endl;
             return;
         }
         std::string pred_str = "(connected " + wp1 + " " + wp2 + ")";
@@ -107,7 +106,7 @@ void delete_connection(
     std::string key = connection_key(wp1, wp2);
     auto it = map_connections.find(key);
     if (it == map_connections.end()) {
-        cout << "ERROR: Connection '" << key << "' not found in map_connections" << endl;
+        cout << "ERROR[delete_connection]: Connection '" << key << "' not found in map_connections" << endl;
         return;
     }
 
@@ -118,7 +117,7 @@ void delete_connection(
 
     if (affect_plansys2_kb) {
         if (!problem) {
-            cout << "ERROR: affect_plansys2_kb=true but problem is nullptr, skipping predicate remove" << endl;
+            cout << "ERROR[delete_connection]: affect_plansys2_kb=true but problem is nullptr, skipping predicate remove" << endl;
             return;
         }
         std::string pred_str = "(connected " + wp1 + " " + wp2 + ")";
@@ -131,7 +130,7 @@ Connection get_connection(const std::string & wp1, const std::string & wp2){
     std::string key = connection_key(wp1, wp2);
     auto it = map_connections.find(key);
     if (it == map_connections.end()) {
-        throw std::runtime_error("ERROR: Connection '" + key + "' not found in map_connections");
+        throw std::runtime_error("ERROR [get_connection]: Connection '" + key + "' not found in map_connections");
     }
     return it->second;
 }

@@ -2,3 +2,30 @@ connections:
   wp0_wp1:
     distance: 6.87456036
     costmap_estimate: 22.7000008
+  wp0_wp2:
+    distance: 43.2088356
+    costmap_estimate: 6.80000019
+  wp1_wp0:
+    distance: 6.78808594
+    costmap_estimate: 20.7000008
+  wp1_wp2:
+    distance: 43.1131096
+    costmap_estimate: 5.4000001
+  wp1_wp3:
+    distance: 59.0168533
+    costmap_estimate: 5.30000019
+  wp2_wp0:
+    distance: 42.963501
+    costmap_estimate: 7.0999999
+  wp2_wp1:
+    distance: 42.8981476
+    costmap_estimate: 5.4000001
+  wp2_wp3:
+    distance: 97.2276535
+    costmap_estimate: 0
+  wp3_wp1:
+    distance: 59.446701
+    costmap_estimate: 1.70000005
+  wp3_wp2:
+    distance: 97.479126
+    costmap_estimate: 0

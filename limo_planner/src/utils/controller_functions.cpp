@@ -77,7 +77,7 @@ static std::string get_robot_current_waypoint(
 // ============================================================
 // plan_patrol
 // ------------------------------------------------------------
-// 1. Chiama check_if_connected_list sulla lista fornita.
+//
 // 2. Interroga la knowledge base per la posizione attuale del
 //    robot (robot_at).
 // 3. Calcola l'ordine di visita con un semplice algoritmo
@@ -92,21 +92,19 @@ static std::string get_robot_current_waypoint(
 // caso plan_patrol fallisce e basta, propagando l'eccezione al
 // chiamante.
 // ============================================================
-void plan_patrol(
+bool plan_patrol(
     const std::string & robot_name,
     const std::vector<std::string> & waypoints,
     std::deque<std::string> & goal_queue,
     std::shared_ptr<plansys2::ProblemExpertClient> problem_expert)
 {
-    // 1. Assicura le connessioni necessarie
-    check_if_connected_list(waypoints, goal_queue, problem_expert);
 
     // 2. Posizione attuale del robot
     std::string current_wp = get_robot_current_waypoint(robot_name, problem_expert);
 
     if (current_wp.empty()) {
-        throw std::runtime_error(
-            "plan_patrol: impossibile determinare la posizione attuale di " + robot_name);
+        cout << "ERRORE[plan_patrol]: impossibile determinare la posizione attuale di " << robot_name << " ANNULLO OPERAZIONE "<< endl;
+        return false;
     }
 
     // Lista delle waypoint ancora da visitare (escludo la posizione attuale)
@@ -126,11 +124,18 @@ void plan_patrol(
         float best_distance = -1.0f;
 
         for (size_t i = 0; i < to_visit.size(); ++i) {
-            Connection cn = get_connection(from_wp, to_visit[i]); // lancia eccezione se manca
 
-            if (best_distance < 0.0f || cn.distance < best_distance) {
-                best_distance = cn.distance;
-                best_index = i;
+            try {
+                Connection cn = get_connection(from_wp, to_visit[i]);
+
+                    if (best_distance < 0.0f || cn.distance < best_distance) {
+                    best_distance = cn.distance;
+                    best_index = i;
+                }
+
+            } catch (const std::exception & e) {
+                std::cout << "ERRORE[plan_patrol]: " << e.what() << std::endl;
+                return false;
             }
         }
 
@@ -147,6 +152,8 @@ void plan_patrol(
         goal_queue.push_back(goal_str);
         cout << "plan_patrol: aggiunto goal " << goal_str << endl;
     }
+
+    return true;
 }
 
 

@@ -1,5 +1,5 @@
-#ifndef GOAL_FUNCTIONS_HPP
-#define GOAL_FUNCTIONS_HPP
+#ifndef CONTROLLER_FUNCTIONS_HPP
+#define CONTROLLER_FUNCTIONS_HPP
 
 #include <deque>
 #include <string>
@@ -37,7 +37,7 @@ void check_if_connected_list(
 // catturata qui: plan_patrol fallisce e basta, propagandola
 // al chiamante.
 // ============================================================
-void plan_patrol(
+bool plan_patrol(
     const std::string & robot_name,
     const std::vector<std::string> & waypoints,
     std::deque<std::string> & goal_queue,
@@ -46,4 +46,4 @@ void plan_patrol(
 
 void print_goal_queue(const std::deque<std::string> & goal_queue);
 
-#endif // GOAL_FUNCTIONS_HPP
+#endif // CONTROLLER_FUNCTIONS_HPP

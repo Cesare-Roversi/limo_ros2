@@ -1,7 +1,7 @@
 robots:
   r1:
     battery_voltage: 1
-    battery_mah: 10
+    battery_mah: 1000
     motor_power: 1
     max_robot_velocity: 1
-    current_battery: 36
+    current_battery: 3600

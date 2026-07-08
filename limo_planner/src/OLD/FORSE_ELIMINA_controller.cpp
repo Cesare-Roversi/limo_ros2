@@ -16,14 +16,15 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <mutex>
 #include "plansys2_msgs/msg/tree.hpp"
 #include "plansys2_msgs/msg/node.hpp"
+#include "std_msgs/msg/string.hpp"
 
 #include "debug.hpp"
 #include "world_data_utils.hpp"
 #include "controller_functions.hpp"
 #include "parser.hpp"
-#include "get_user_input.hpp"
 
 
 
@@ -39,7 +40,7 @@ public:
     int executing_print_counter_;
     int executing_print_every_N_;
     std::deque<std::string> goal_queue_;
-    bool shutdown_requested_;
+    std::mutex goal_queue_mutex_;
 
 
 private:
@@ -47,6 +48,7 @@ private:
     std::shared_ptr<plansys2::PlannerClient> planner_client_;
     std::shared_ptr<plansys2::ProblemExpertClient> problem_expert_;
     std::shared_ptr<plansys2::ExecutorClient> executor_client_;
+    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr goal_input_sub_;
     // rclcpp::TimerBase::SharedPtr timer_;
 
 public:
@@ -55,6 +57,33 @@ public:
     {
         executing_print_counter_ = 0;
         executing_print_every_N_ = 1;
+
+        goal_input_sub_ = this->create_subscription<std_msgs::msg::String>(
+            "goal_input", 10,
+            std::bind(&Controller::goal_input_callback, this, std::placeholders::_1));
+    }
+
+    // void goal_input_callback(const std_msgs::msg::String::SharedPtr msg){
+    //     cout << "DEBUG: callback ricevuto messaggio: " << msg->data << endl;
+
+    //     std::vector<std::string> goal_groups = split_string(msg->data, '>');
+
+    //     std::lock_guard<std::mutex> lock(goal_queue_mutex_);
+    //     for (const auto & group : goal_groups) {
+    //         std::string goal_str = build_and_goal(group);
+    //         if (goal_str != "(and)") {
+    //             goal_queue_.push_back(goal_str);
+    //             cout << "Aggiunto goal alla coda (da topic): " << goal_str << endl;
+    //         }
+    //     }
+    // }
+
+    void goal_input_callback(const std_msgs::msg::String::SharedPtr msg){
+        cout << "DEBUG: callback ricevuto messaggio: " << msg->data << endl;
+
+        std::lock_guard<std::mutex> lock(goal_queue_mutex_);
+        goal_queue_.push_back(msg->data);
+        cout << "Aggiunto goal alla coda (da topic): " << msg->data << endl;
     }
 
     void change_state(StateType new_state){
@@ -105,7 +134,7 @@ public:
         robots_filepath_ = pkg_share + "/config/robots.yaml";
 
 
-        clear_all(); //knowledge //! ATTENTO ATTENO ATTENTO
+        //clear_all(); //knowledge //! ATTENTO ATTENO ATTENTO
 
         add_waypoint("wp0", 120.0, 32.0, 0.0, problem_expert_); //SPAWN
         add_waypoint("wp1", 125.2, 33.7, 0.0, problem_expert_); //di fronte allo spawn
@@ -124,7 +153,7 @@ public:
 
         add_object("l_armando", 8.0, 3.0, 3.0, 1.0, problem_expert_);
 
-        add_robot("r1", 1.0, 1000.0, 1.0, 1.0, problem_expert_);
+        add_robot("r1", 1.0, 10.0, 1.0, 1.0, problem_expert_);
         // cout << "(arm_retracted r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(arm_retracted r1)")) << endl;
         cout << "(arm_free r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(arm_free r1)")) << endl;
         cout << "(not_battery_low r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(not_battery_low r1)")) << endl;
@@ -146,16 +175,18 @@ public:
 
         switch (state_) {
             case GET_INPUT:
-            {   
-                print_world_model(this, this->domain_expert_, this->problem_expert_, true);
+            {
+                // bool has_goal;
+                // {
+                //     std::lock_guard<std::mutex> lock(goal_queue_mutex_);
+                //     has_goal = !goal_queue_.empty();
+                // }
 
-                bool valid_request = false;
-                while(!valid_request && !shutdown_requested_){
-                    valid_request = ask_user_action(goal_queue_, problem_expert_, shutdown_requested_);
-                }
+                // if (!has_goal) {
+                //     break; // resta in GET_INPUT, ricontrolla al prossimo step()
+                // }
 
-                // goal_queue_.push_back("(and (arm_retracted r1))");
-                // goal_queue_.push_back("(and (connected wp0 wp1))");
+                
 
                 change_state(PLANNING);
                 break;
@@ -164,25 +195,48 @@ public:
             case PLANNING: //? continua a riprovare finche non riesce a inizializzare
             {   
                 cout << "(doing_nothing r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(doing_nothing r1)")) << endl;
+                print_world_model(this, this->domain_expert_, this->problem_expert_, true);
                 
                 // problem_expert_->setGoal(plansys2::Goal("(and (object_at la_pimpa wp2))"));
 
                 print_goal_queue(goal_queue_);
 
-                std::string first_goal = goal_queue_.front();
-                bool goal_is_well_formed = problem_expert_->setGoal(plansys2::Goal(first_goal));
-                if(!goal_is_well_formed){
-                    cout << "Il Goal: " << first_goal << " è malformato" << endl;
-                    change_state(DEAD);
+                std::string first_goal;
+                {
+                    std::lock_guard<std::mutex> lock(goal_queue_mutex_);
+                    first_goal = goal_queue_.front();
                 }
+
+                bool goal_valid = problem_expert_->setGoal(plansys2::Goal(first_goal));
+                if(goal_valid){
+                    cout << first_goal << " e' valido" << endl;
+                }else{
+                    cout << first_goal << " NON è valido, lo rimuovo dalla coda" << endl;
+
+                    //RIMUOVO il goal malformato e controllo se la coda è vuota.
+                    bool has_more;
+                    {
+                        std::lock_guard<std::mutex> lock(goal_queue_mutex_);
+                        goal_queue_.pop_front();
+                        has_more = !goal_queue_.empty();
+                    }
+
+                    if(!has_more){
+                        change_state(GET_INPUT);
+                    }else{
+                        change_state(PLANNING);
+                    }
+                    break;
+                }
+
 
                 auto domain = domain_expert_->getDomain();
                 auto problem = problem_expert_->getProblem();
                 auto plan = planner_client_->getPlan(domain, problem);
 
                 if (!plan.has_value()) {
-                    cout << "Impossibile trovare un piano che soddsifi: " << first_goal << endl;
-                    change_state(DEAD);
+                    cout << "Impossibile trovare un piano: " << first_goal << endl;
+                    change_state(DEAD); //! devi tolgerlo se vuoi un loop su planning
                     break; //riferito allo switch (non controlla tutti i case)
                 }
 
@@ -209,8 +263,15 @@ public:
                 if (!executor_client_->execute_and_check_plan() && executor_client_->getResult()) {
                     if (executor_client_->getResult().value().success) {
                         cout << "COMPLETATA esecuzione plan" << endl;
-                        goal_queue_.pop_front();
-                        if(goal_queue_.empty()){
+
+                        bool has_more;
+                        {
+                            std::lock_guard<std::mutex> lock(goal_queue_mutex_);
+                            goal_queue_.pop_front();
+                            has_more = !goal_queue_.empty();
+                        }
+
+                        if(!has_more){
                             change_state(GET_INPUT);
                         }else{
                             change_state(PLANNING);
@@ -232,15 +293,15 @@ public:
 };
 
 
-
-
 int main(int argc, char ** argv){
+
     cout << "HELLO_WORLD_1" << endl;
 
     rclcpp::init(argc, argv);
 
     auto node = std::make_shared<Controller>();
     node->start_clients();
+    rclcpp::sleep_for(std::chrono::seconds(3));
     node->init_knowledge();
 
     std::thread spin_thread([&node]() {
@@ -249,11 +310,10 @@ int main(int argc, char ** argv){
 
     std::thread step_thread([&node]() {
         rclcpp::Rate rate(5);
-        while (rclcpp::ok() && !node->shutdown_requested_) {
+        while (rclcpp::ok()) {
             node->step();
             rate.sleep();
         }
-        rclcpp::shutdown();  // unblocks spin_thread's rclcpp::spin()
     });
 
     spin_thread.join();
@@ -261,39 +321,6 @@ int main(int argc, char ** argv){
 
     cout << "END of controller.cpp" << endl;
 
+    rclcpp::shutdown();
     return 0;
 }
-
-
-
-// int main(int argc, char ** argv){
-
-//     cout << "HELLO_WORLD_1" << endl;
-
-//     rclcpp::init(argc, argv);
-
-//     auto node = std::make_shared<Controller>();
-//     node->start_clients();
-//     //rclcpp::sleep_for(std::chrono::seconds(3));
-//     node->init_knowledge();
-
-//     std::thread spin_thread([&node]() {
-//         rclcpp::spin(node->get_node_base_interface());
-//     });
-
-//     std::thread step_thread([&node]() {
-//         rclcpp::Rate rate(5);
-//         while (rclcpp::ok()) {
-//             node->step();
-//             rate.sleep();
-//         }
-//     });
-
-//     spin_thread.join();
-//     step_thread.join();
-
-//     cout << "END of controller.cpp" << endl;
-
-//     rclcpp::shutdown();
-//     return 0;
-// }
