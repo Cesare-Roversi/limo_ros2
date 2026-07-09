@@ -21,11 +21,12 @@ using namespace std;
 // (connected wp_i wp_j) non è ancora istanziato nella problem
 // expert, viene inserito un goal corrispondente nella coda.
 // ============================================================
-void check_if_connected_list(
+bool check_if_connected_list(
     const std::vector<std::string> & waypoints,
     std::deque<std::string> & goal_queue,
     std::shared_ptr<plansys2::ProblemExpertClient> problem_expert)
 {
+    bool added_at_least_one_goal = false;
     for (size_t i = 0; i < waypoints.size(); ++i) {
         for (size_t j = 0; j < waypoints.size(); ++j) {
             if (i == j) {
@@ -37,17 +38,20 @@ void check_if_connected_list(
 
             std::string predicate_str = "(connected " + wp_a + " " + wp_b + ")";
 
-            bool already_connected =
-                problem_expert->existPredicate(plansys2::Predicate(predicate_str));
+            bool already_connected = problem_expert->existPredicate(plansys2::Predicate(predicate_str));
 
             if (!already_connected) {
                 std::string goal_str = "(and " + predicate_str + ")";
                 goal_queue.push_back(goal_str);
 
                 cout << "check_if_connected_list: aggiunto goal " << goal_str << endl;
+                added_at_least_one_goal = true;
             }
         }
     }
+
+    cout << "ERRORE[check_if_connected_list]: tutte le connessioni specificate esistono già, NON verranno ricalcolate"<< endl;
+    return added_at_least_one_goal;
 }
 
 // ============================================================
@@ -98,63 +102,71 @@ bool plan_patrol(
     std::deque<std::string> & goal_queue,
     std::shared_ptr<plansys2::ProblemExpertClient> problem_expert)
 {
+  // 2. Posizione attuale del robot
+  std::string current_wp = get_robot_current_waypoint(robot_name, problem_expert);
+  if (current_wp.empty()) {
+    cout << "ERRORE[plan_patrol]: impossibile determinare la posizione attuale di "
+         << robot_name << " ANNULLO OPERAZIONE " << endl;
+    return false;
+  }
 
-    // 2. Posizione attuale del robot
-    std::string current_wp = get_robot_current_waypoint(robot_name, problem_expert);
+  // Lista dei goal nell'ordine finale in cui verranno accodati
+  std::vector<std::string> order;
 
-    if (current_wp.empty()) {
-        cout << "ERRORE[plan_patrol]: impossibile determinare la posizione attuale di " << robot_name << " ANNULLO OPERAZIONE "<< endl;
+  // Il waypoint attuale va comunque pattugliato: lo aggiungo subito,
+  // il robot non deve spostarsi per raggiungerlo.
+  bool current_wp_in_list = false;
+  for (const auto & wp : waypoints) {
+    if (wp == current_wp) {
+      current_wp_in_list = true;
+      break;
+    }
+  }
+  if (current_wp_in_list) {
+    order.push_back(current_wp);
+  }
+
+  // Waypoint ancora da visitare (tutti tranne quello attuale, che è già gestito sopra)
+  std::vector<std::string> to_visit;
+  for (const auto & wp : waypoints) {
+    if (wp != current_wp) {
+      to_visit.push_back(wp);
+    }
+  }
+
+  // 3. Greedy nearest-neighbor sui restanti waypoint
+  std::string from_wp = current_wp;
+  while (!to_visit.empty()) {
+    size_t best_index = 0;
+    float best_distance = -1.0f;
+    for (size_t i = 0; i < to_visit.size(); ++i) {
+      try {
+        Connection cn = get_connection(from_wp, to_visit[i]);
+        if (best_distance < 0.0f || cn.distance < best_distance) {
+          best_distance = cn.distance;
+          best_index = i;
+        }
+      } catch (const std::exception & e) {
+        std::cout << "ERRORE[plan_patrol]: " << e.what() << std::endl;
         return false;
+      }
     }
+    std::string next_wp = to_visit[best_index];
+    order.push_back(next_wp);
+    to_visit.erase(to_visit.begin() + best_index);
+    from_wp = next_wp;
+  }
 
-    // Lista delle waypoint ancora da visitare (escludo la posizione attuale)
-    std::vector<std::string> to_visit;
-    for (const auto & wp : waypoints) {
-        if (wp != current_wp) {
-            to_visit.push_back(wp);
-        }
-    }
+  // 4. Inserimento dei goal (patrolled ?wp) nell'ordine trovato
+  for (const auto & wp : order) {
+    std::string goal_str = "(and (patrolled " + wp + "))";
+    goal_queue.push_back(goal_str);
+    cout << "plan_patrol: aggiunto goal " << goal_str << endl;
+  }
 
-    // 3. Greedy nearest-neighbor
-    std::string from_wp = current_wp;
-    std::vector<std::string> order;
-
-    while (!to_visit.empty()) {
-        size_t best_index = 0;
-        float best_distance = -1.0f;
-
-        for (size_t i = 0; i < to_visit.size(); ++i) {
-
-            try {
-                Connection cn = get_connection(from_wp, to_visit[i]);
-
-                    if (best_distance < 0.0f || cn.distance < best_distance) {
-                    best_distance = cn.distance;
-                    best_index = i;
-                }
-
-            } catch (const std::exception & e) {
-                std::cout << "ERRORE[plan_patrol]: " << e.what() << std::endl;
-                return false;
-            }
-        }
-
-        std::string next_wp = to_visit[best_index];
-        order.push_back(next_wp);
-
-        to_visit.erase(to_visit.begin() + best_index);
-        from_wp = next_wp;
-    }
-
-    // 4. Inserimento dei goal (patrolled ?wp) nell'ordine trovato
-    for (const auto & wp : order) {
-        std::string goal_str = "(and (patrolled " + wp + "))";
-        goal_queue.push_back(goal_str);
-        cout << "plan_patrol: aggiunto goal " << goal_str << endl;
-    }
-
-    return true;
+  return true;
 }
+
 
 
 

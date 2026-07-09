@@ -47,8 +47,8 @@ bool ask_user_action(
 				wp = trim(wp);
 			}
 
-			check_if_connected_list(waypoints, goal_queue, problem_expert);
-			return true;
+			return check_if_connected_list(waypoints, goal_queue, problem_expert);
+			
 		} else if (choice == "2") {
 			// ---- Opzione 2: plan_patrol ----
 			cout << "Nome del robot" << endl;

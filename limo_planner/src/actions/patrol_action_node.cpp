@@ -30,6 +30,9 @@ public:
     rgb_saved_ = false;
     depth_saved_ = false;
 
+    // Directory fissa di destinazione per gli snapshot
+    snapshots_dir_ = "/root/limo_ws/src/limo_ros2/limo_planner/imgs";
+
     using namespace std::placeholders;
 
     subscriber_to_rgb_image_ = create_subscription<sensor_msgs::msg::Image>(

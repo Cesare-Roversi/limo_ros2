@@ -24,7 +24,22 @@ void load_connections_from_yaml(){
             std::string key = cn.first.as<std::string>();
             float distance = cn.second["distance"].as<float>();
             float costmap_estimate = cn.second["costmap_estimate"].as<float>();
-            map_connections[key] = Connection(distance, costmap_estimate);
+
+            double x = cn.second["approach_wp"]["x"].as<double>();
+            double y = cn.second["approach_wp"]["y"].as<double>();
+            double yaw = cn.second["approach_wp"]["yaw"].as<double>();
+
+            geometry_msgs::msg::PoseStamped approach_wp;
+            approach_wp.header.frame_id = "map";
+            approach_wp.pose.position.x = x;
+            approach_wp.pose.position.y = y;
+            approach_wp.pose.position.z = 0.0;
+            approach_wp.pose.orientation.x = 0.0;
+            approach_wp.pose.orientation.y = 0.0;
+            approach_wp.pose.orientation.z = std::sin(yaw / 2.0);
+            approach_wp.pose.orientation.w = std::cos(yaw / 2.0);
+
+            map_connections[key] = Connection(distance, costmap_estimate, approach_wp);
         }
     }
 }
@@ -37,7 +52,9 @@ void print_connections(){
     for (const auto& [key, cn] : map_connections) {
         std::cout << key << " -> ("
                   << cn.distance << ", "
-                  << cn.costmap_estimate << ")\n";
+                  << cn.costmap_estimate << ", approach_wp=("
+                  << cn.approach_wp.pose.position.x << ", "
+                  << cn.approach_wp.pose.position.y << "))\n";
     }
 }
 
@@ -45,9 +62,18 @@ void save_connections_to_yaml(){
     YAML::Emitter out;
     out << YAML::BeginMap << YAML::Key << "connections" << YAML::Value << YAML::BeginMap;
     for (const auto & [key, cn] : map_connections) {
+        double yaw = std::atan2(
+            2.0 * (cn.approach_wp.pose.orientation.w * cn.approach_wp.pose.orientation.z),
+            1.0 - 2.0 * (cn.approach_wp.pose.orientation.z * cn.approach_wp.pose.orientation.z));
+
         out << YAML::Key << key << YAML::Value << YAML::BeginMap
             << YAML::Key << "distance" << YAML::Value << cn.distance
             << YAML::Key << "costmap_estimate" << YAML::Value << cn.costmap_estimate
+            << YAML::Key << "approach_wp" << YAML::Value << YAML::BeginMap
+                << YAML::Key << "x" << YAML::Value << cn.approach_wp.pose.position.x
+                << YAML::Key << "y" << YAML::Value << cn.approach_wp.pose.position.y
+                << YAML::Key << "yaw" << YAML::Value << yaw
+            << YAML::EndMap
             << YAML::EndMap;
     }
     out << YAML::EndMap << YAML::EndMap;
@@ -77,14 +103,17 @@ void clear_connections(){
 void add_connection(
     const std::string & wp1, const std::string & wp2,
     float distance, float costmap_estimate,
+    const geometry_msgs::msg::PoseStamped & approach_wp,
     bool affect_plansys2_kb,
     std::shared_ptr<plansys2::ProblemExpertClient> problem){
 
     std::string key = connection_key(wp1, wp2);
-    map_connections[key] = Connection(distance, costmap_estimate);
+    map_connections[key] = Connection(distance, costmap_estimate, approach_wp);
     save_connections_to_yaml();
     cout << key << " -> connection saved (distance=" << distance
-         << ", costmap_estimate=" << costmap_estimate << ")" << endl;
+         << ", costmap_estimate=" << costmap_estimate
+         << ", approach_wp=(" << approach_wp.pose.position.x << ", "
+         << approach_wp.pose.position.y << "))" << endl;
 
     if (affect_plansys2_kb) {
         if (!problem) {
@@ -153,11 +182,12 @@ std::string get_connection_str(const std::string & wp1, const std::string & wp2)
 void save_connection_to_yaml(
     const std::string & filepath,
     const std::string & wp1, const std::string & wp2,
-    float distance, float costmap_estimate){
+    float distance, float costmap_estimate,
+    const geometry_msgs::msg::PoseStamped & approach_wp){
 
     connections_filepath_ = filepath;
     load_connections_from_yaml();
-    add_connection(wp1, wp2, distance, costmap_estimate);
+    add_connection(wp1, wp2, distance, costmap_estimate, approach_wp);
 }
 
 //* __CONNECTIONS

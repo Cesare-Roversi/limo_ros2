@@ -16,7 +16,7 @@
 // (connected wp_i wp_j) non è ancora istanziato nella problem
 // expert, inserisce un goal corrispondente nella coda.
 // ============================================================
-void check_if_connected_list(
+bool check_if_connected_list(
     const std::vector<std::string> & waypoints,
     std::deque<std::string> & goal_queue,
     std::shared_ptr<plansys2::ProblemExpertClient> problem_expert);

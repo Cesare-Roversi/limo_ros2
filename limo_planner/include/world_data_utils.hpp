@@ -113,6 +113,7 @@ void clear_connections_map();
 void add_connection(
     const std::string & wp1, const std::string & wp2,
     float distance, float costmap_estimate,
+    const geometry_msgs::msg::PoseStamped & approach_wp,
     bool affect_plansys2_kb = false,
     std::shared_ptr<plansys2::ProblemExpertClient> problem = nullptr);
 
@@ -128,7 +129,8 @@ std::string get_connection_str(const std::string & wp1, const std::string & wp2)
 void save_connection_to_yaml(
     const std::string & filepath,
     const std::string & wp1, const std::string & wp2,
-    float distance, float costmap_estimate);
+    float distance, float costmap_estimate,
+    const geometry_msgs::msg::PoseStamped & approach_wp);
 
 //*__CONNECTIONS
 

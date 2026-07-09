@@ -27,6 +27,10 @@ using namespace std;
 // statici sulla global_costmap (arbitrario, come da richiesta).
 static constexpr int kCostmapSamples = 10;
 
+// Distanza (in metri, misurata lungo il path) a cui posizionare approach_wp
+// rispetto al waypoint di destinazione (arbitraria, come da richiesta).
+static constexpr double kApproachDistance = 0.5;
+
 class CheckDistanceAction : public plansys2::ActionExecutorClient
 {
 public:
@@ -127,9 +131,7 @@ public:
       switch (result.code) {
           case rclcpp_action::ResultCode::SUCCEEDED:
           {
-            // result.result è un ComputePathToPose::Result, che (in Humble) contiene:
-            //   nav_msgs/Path path                     -> la sequenza di pose calcolata
-            //   builtin_interfaces/Duration planning_time -> tempo impiegato dal planner
+            
             computed_path_ = result.result->path;
             planning_time_ = result.result->planning_time;
 
@@ -146,16 +148,18 @@ public:
                         planning_time_.sec,
                         planning_time_.nanosec);
 
-            // --- Calcolo distanza e stima costmap, poi salvataggio in connections.yaml ---
+            // --- Calcolo distanza, stima costmap e approach_wp, poi salvataggio in connections.yaml ---
             double path_distance = compute_path_length(computed_path_);
             double costmap_estimate = sample_costmap_along_path(computed_path_, kCostmapSamples);
+            geometry_msgs::msg::PoseStamped approach_wp = compute_approach_waypoint(computed_path_, kApproachDistance);
 
-            RCLCPP_INFO(get_logger(), "distance=%.3f m, costmap_estimate=%.3f (avg cost over %d samples)",
-                        path_distance, costmap_estimate, kCostmapSamples);
+            RCLCPP_INFO(get_logger(), "distance=%.3f m, costmap_estimate=%.3f (avg cost over %d samples), approach_wp=(%.3f, %.3f)",
+                        path_distance, costmap_estimate, kCostmapSamples,
+                        approach_wp.pose.position.x, approach_wp.pose.position.y);
 
             
             add_connection(wp1_name_, wp2_name_, path_distance, costmap_estimate,
-                            false, nullptr);
+                            approach_wp, false, nullptr);
 
             // Azione PDDL riuscita: l'effetto (connected ?wp1 ?wp2) verrà applicato da PlanSys2
             finish(true, 1.0, "Check_distance completed: waypoints are connected");
@@ -184,6 +188,9 @@ private:
     }
   }
 
+
+
+  //! SOLO FUNZIONI DI SUPPORTO QUI AVANTI:
   // Somma delle distanze euclidee 2D tra pose consecutive del path.
   double compute_path_length(const nav_msgs::msg::Path & path){
     double length = 0.0;
@@ -242,6 +249,92 @@ private:
 
     return (valid_samples > 0) ? (sum_cost / valid_samples) : -1.0;
   }
+
+  
+  // Trova il punto sul path la cui distanza IN LINEA D'ARIA dal waypoint di
+// destinazione (ultima posa del path) è pari a 'approach_distance', tale
+// punto deve inoltre giacere su un segmento del path.
+//
+// Si procede a ritroso dal goal: per ogni segmento [prev, curr] (curr più
+// vicino al goal di prev) si controlla se la circonferenza di raggio
+// approach_distance centrata sul goal interseca il segmento, cioè se curr è
+// dentro il raggio e prev è fuori (o sopra). In tal caso si risolve
+// l'intersezione segmento-cerchio e si usa quel punto. Lo yaw è la direzione
+// di marcia del segmento (prev -> curr, cioè verso il goal).
+// Se l'intero path resta dentro il raggio (mai un'intersezione), si usa la
+// prima posa del path come fallback.
+geometry_msgs::msg::PoseStamped compute_approach_waypoint(const nav_msgs::msg::Path & path, double approach_distance){
+
+  geometry_msgs::msg::PoseStamped approach_wp;
+  approach_wp.header.frame_id = "map";
+
+  if (path.poses.empty()) {
+    return approach_wp;
+  }
+  if (path.poses.size() == 1) {
+    approach_wp = path.poses[0];
+    return approach_wp;
+  }
+
+  const auto & goal = path.poses.back().pose.position;
+
+  for (size_t i = path.poses.size() - 1; i > 0; --i) {
+    const auto & curr = path.poses[i].pose.position;      // più vicino al goal
+    const auto & prev = path.poses[i - 1].pose.position;  // più lontano dal goal
+
+    double dx = curr.x - prev.x;
+    double dy = curr.y - prev.y;
+    double yaw = std::atan2(dy, dx);  // direzione di marcia prev -> curr (verso il goal)
+
+    double dist_curr = std::hypot(curr.x - goal.x, curr.y - goal.y);
+    double dist_prev = std::hypot(prev.x - goal.x, prev.y - goal.y);
+
+    // Il segmento contiene un punto a distanza 'approach_distance' dal goal
+    // solo se un estremo è dentro il raggio e l'altro fuori (o esattamente sopra).
+    if (dist_curr <= approach_distance && dist_prev >= approach_distance) {
+      // Intersezione segmento-cerchio: parametrizzo il segmento come
+      // P(t) = prev + t * (curr - prev), t in [0, 1], e risolvo
+      // |P(t) - goal| = approach_distance.
+      double fx = prev.x - goal.x;
+      double fy = prev.y - goal.y;
+
+      double a = dx * dx + dy * dy;
+      double b = 2.0 * (fx * dx + fy * dy);
+      double c = fx * fx + fy * fy - approach_distance * approach_distance;
+
+      double t = 0.0;
+      if (a > 1e-9) {
+        double discriminant = b * b - 4.0 * a * c;
+        discriminant = std::max(0.0, discriminant);  // clamp per sicurezza numerica
+        double sqrt_disc = std::sqrt(discriminant);
+        // Prendo la radice più vicina a curr (t più grande), cioè quella nel
+        // verso "andando dal prev verso il goal" più prossima alla fine del segmento.
+        double t1 = (-b + sqrt_disc) / (2.0 * a);
+        double t2 = (-b - sqrt_disc) / (2.0 * a);
+        t = std::max(t1, t2);
+        t = std::clamp(t, 0.0, 1.0);
+      }
+
+      approach_wp.pose.position.x = prev.x + t * dx;
+      approach_wp.pose.position.y = prev.y + t * dy;
+      approach_wp.pose.position.z = 0.0;
+
+      approach_wp.pose.orientation.x = 0.0;
+      approach_wp.pose.orientation.y = 0.0;
+      approach_wp.pose.orientation.z = std::sin(yaw / 2.0);
+      approach_wp.pose.orientation.w = std::cos(yaw / 2.0);
+
+      return approach_wp;
+    }
+  }
+
+  // Nessun segmento interseca il raggio (l'intero path resta entro
+  // approach_distance dal goal): fallback sulla prima posa del path.
+  approach_wp = path.poses.front();
+  return approach_wp;
+}
+
+  
 
   using ComputePathGoalHandle = rclcpp_action::ClientGoalHandle<nav2_msgs::action::ComputePathToPose>;
 

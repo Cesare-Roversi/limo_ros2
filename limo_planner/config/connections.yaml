@@ -1,31 +1,85 @@
 connections:
   wp0_wp1:
-    distance: 6.87456036
-    costmap_estimate: 22.7000008
+    distance: 6.73124361
+    costmap_estimate: 21.7999992
+    approach_wp:
+      x: 124.80159728401419
+      y: 33.422208620783429
+      yaw: 1.0724848558838598
   wp0_wp2:
     distance: 43.2088356
     costmap_estimate: 6.80000019
+    approach_wp:
+      x: 103.52856992291173
+      y: 10.809661063349536
+      yaw: -2.8396490086258406
+  wp0_wp3:
+    distance: 57.4375458
+    costmap_estimate: 8
+    approach_wp:
+      x: 165.91832759904275
+      y: 47.095387472807353
+      yaw: 1.3643829451549445
   wp1_wp0:
     distance: 6.78808594
     costmap_estimate: 20.7000008
+    approach_wp:
+      x: 120.43277207119833
+      y: 32.194767627631897
+      yaw: -2.6781159346548704
   wp1_wp2:
     distance: 43.1131096
     costmap_estimate: 5.4000001
+    approach_wp:
+      x: 103.57971158921382
+      y: 10.602657129207447
+      yaw: -3.1250854817519014
   wp1_wp3:
     distance: 59.0168533
     costmap_estimate: 5.30000019
+    approach_wp:
+      x: 166.59815841471416
+      y: 47.01168347211685
+      yaw: 1.5382249864314548
   wp2_wp0:
     distance: 42.963501
     costmap_estimate: 7.0999999
+    approach_wp:
+      x: 120.25710489902497
+      y: 32.415458131373313
+      yaw: -2.5519265923832233
   wp2_wp1:
     distance: 42.8981476
     costmap_estimate: 5.4000001
+    approach_wp:
+      x: 124.79046518819986
+      y: 33.401420548506557
+      yaw: 1.0740483966933057
   wp2_wp3:
     distance: 97.2276535
     costmap_estimate: 0
+    approach_wp:
+      x: 165.91718499534787
+      y: 47.090754388158338
+      yaw: 1.376685569274088
+  wp3_wp0:
+    distance: 57.45821
+    costmap_estimate: 3.29999995
+    approach_wp:
+      x: 120.43349580797607
+      y: 32.189456289906126
+      yaw: -2.6905871690757759
   wp3_wp1:
     distance: 59.446701
     costmap_estimate: 1.70000005
+    approach_wp:
+      x: 125.06724008345653
+      y: 33.219531493647807
+      yaw: 0.80019405972984714
   wp3_wp2:
     distance: 97.479126
     costmap_estimate: 0
+    approach_wp:
+      x: 103.58232574795848
+      y: 10.590828137707478
+      yaw: 3.1336466913088956

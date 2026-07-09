@@ -54,7 +54,7 @@ public:
     : rclcpp::Node("patrolling_controller"), state_(GET_INPUT), old_state_(UNREACHABLE_LAST_STATE)
     {
         executing_print_counter_ = 0;
-        executing_print_every_N_ = 1;
+        executing_print_every_N_ = 4;
     }
 
     void change_state(StateType new_state){
@@ -166,6 +166,12 @@ public:
                 cout << "(doing_nothing r1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(doing_nothing r1)")) << endl;
                 
                 // problem_expert_->setGoal(plansys2::Goal("(and (object_at la_pimpa wp2))"));
+                
+                if(goal_queue_.empty()){
+                    cout << "ERRORE: goal_queue_ è vuota nello stato PLANNING, NON dovrebbe succedere!" << endl;
+                    change_state(GET_INPUT);
+                    break;
+                }
 
                 print_goal_queue(goal_queue_);
 
