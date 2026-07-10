@@ -30,7 +30,8 @@ def generate_launch_description():
     share_limo_car = os.path.join(get_package_share_directory('limo_car'))
     share_limo_description = os.path.join(get_package_share_directory('limo_description'))
 
-    default_robot_xacro_file_path = os.path.join(share_limo_description, 'urdf', 'limo_ackermann.xacro.urdf')
+    # default_robot_xacro_file_path = os.path.join(share_limo_description, 'urdf', 'limo_ackermann.xacro.urdf') #!qui
+    default_robot_xacro_file_path = os.path.join(share_limo_description, 'urdf', 'limo_differential.xacro.urdf')
 
     #Find the ros control plugin path
     ros_ctrl_plugin_dir = os.path.join(share_limo_car, 'src', 'gz_ros2_control')
@@ -123,5 +124,5 @@ def generate_launch_description():
         node_robot_state_publisher, 
         rviz_node,
         joint_state_publisher_node,
-        LogInfo(msg=['[DEBUG] xacro command: xacro ', robot_xacro_file_path, ' controller_type:=', controller_type])
+        LogInfo(msg=['[DEBUG] colibri command: xacro ', robot_xacro_file_path, ' controller_type:=', controller_type])
     ])
