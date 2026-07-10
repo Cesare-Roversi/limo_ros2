@@ -19,7 +19,7 @@ from launch.actions import TimerAction
 from launch.conditions import IfCondition
 from launch.actions import SetEnvironmentVariable
 
-#! è molto simile a ackermann_gazebo.launch.py, questo sarà in nostro principale
+
 
 
 def generate_launch_description():
@@ -74,10 +74,12 @@ def generate_launch_description():
 
     # INIZIALIZZO ROBOT
     robot_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(share_limo_car,'launch', 'ackermann.launch.py')]),
+        PythonLaunchDescriptionSource([os.path.join(share_limo_car,'launch', 'robot.launch.py')]),
         launch_arguments={
             'use_sim_time': use_sim_time,
             'controller_type': controller_type,
+            'start_node_state_publisher': 'false',
+            'start_rviz': 'false'
             }.items()
     )
 
@@ -93,7 +95,6 @@ def generate_launch_description():
     )
 
     
-    #! mbot, come sa' cos è???
     spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=['-topic', 'robot_description', '-entity', 'mbot',
                                    '-x', spawn_x, '-y', spawn_y, '-z', spawn_z, '-Y', spawn_yaw],
