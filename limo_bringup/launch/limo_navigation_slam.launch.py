@@ -32,7 +32,7 @@ def generate_launch_description():
         'nav2_params_file_path',
         default_value=PathJoinSubstitution([
             # FindPackageShare('limo_bringup'), 'param', 'tesi_nav2_ackermann.yaml'
-            share_limo_bringup, 'config', 'PROVA02_nav2_amcl.yaml'
+            share_limo_bringup, 'config', 'ackermann_slam.yaml'
         ])
     )
 
@@ -102,7 +102,7 @@ def generate_launch_description():
         ],
         remappings=[
             ('cmd_vel_in', '/cmd_vel'),
-            ('cmd_vel_out', '/ackermann_steering_controller/reference')
+            ('cmd_vel_out', '/cmd_vel_stamped')
         ],
         output='screen'
     )
