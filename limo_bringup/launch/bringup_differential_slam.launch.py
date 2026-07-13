@@ -13,9 +13,11 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 
 
+
+#! differential slam lauch e yaml da finire
+
 def generate_launch_description():
 
-    share_limo_description = get_package_share_directory('limo_description')
     share_nav2_bringup = get_package_share_directory('nav2_bringup')
     share_limo_bringup = get_package_share_directory('limo_bringup')
 
@@ -25,21 +27,11 @@ def generate_launch_description():
         default_value='true',
         description='Use simulation (Gazebo) clock if true'
     )
-
-    declare_map_file_path = DeclareLaunchArgument(
-        'map_file_path',
-        default_value=PathJoinSubstitution([
-            share_limo_description, 'maps/mappa_povo', 'povo.yaml'
-        ]),
-        description='Full path to map yaml file to load'
-    )
     
     declare_nav2_params_file_path = DeclareLaunchArgument(
         'nav2_params_file_path',
         default_value=PathJoinSubstitution([
-            # share_limo_bringup, 'config', 'tesi_nav2_ackermann.yaml'
-            # share_limo_bringup, 'config', 'PROVA01_nav2_amcl.yaml'
-            share_limo_bringup, 'config', 'differential_nav2_amcl.yaml'
+            share_limo_bringup, 'config', 'differential_amcl.yaml'
         ]),
         description='Full path to nav2 param file to load'
     )
@@ -48,7 +40,7 @@ def generate_launch_description():
     declare_rviz2_config_file_path = DeclareLaunchArgument(
         'rviz_config_file_path',
         default_value=PathJoinSubstitution([
-            share_limo_bringup, 'rviz', 'nav2_default_view.rviz' 
+            share_nav2_bringup, 'rviz', 'nav2_default_view.rviz' 
         ]),
         description='Full path to rviz config file to load'
     )

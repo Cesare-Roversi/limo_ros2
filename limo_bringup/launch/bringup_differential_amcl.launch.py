@@ -37,9 +37,7 @@ def generate_launch_description():
     declare_nav2_params_file_path = DeclareLaunchArgument(
         'nav2_params_file_path',
         default_value=PathJoinSubstitution([
-            # share_limo_bringup, 'config', 'tesi_nav2_ackermann.yaml'
-            # share_limo_bringup, 'config', 'PROVA01_nav2_amcl.yaml'
-            share_limo_bringup, 'config', 'PROVA02_nav2_amcl.yaml'
+            share_limo_bringup, 'config', 'differential_amcl.yaml'
         ]),
         description='Full path to nav2 param file to load'
     )
