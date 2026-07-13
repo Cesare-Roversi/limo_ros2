@@ -1,8 +1,10 @@
 # Configurazione standard con amcl + map server (spero)
 # L'ho scelto tra i limo_ros2_onboard_ws/limo_ros2/limo_bringup/param/
-# Originariamente si chiamava nav2_ackermann.yaml, l'ho modificato e gli ho cambiato il nome in tesi_nav2_differential.yaml
+# Originariamente si chiamava nav2_ackermann.yaml, l'ho modificato e gli ho cambiato il nome in tesi_nav2_ackermann.yaml
 
 
+
+# trova il frame_id del sesnore che pubblica su /scan e guarda nel tf tree: base_link -> scan 
 amcl:
   ros__parameters:
     set_initial_pose: true
@@ -39,6 +41,10 @@ amcl:
     odom_frame_id: "odom"
 
     #* OSTACOLI DINAMICI
+    # se >= beam_skip_threshold dei beam non corrisponde alla mappa statica assume che sia colpa di un ostacolo dinamico.
+    # se >= beam_skip_error_threshold dei beam non corrisponde alla mappa statica assume che sia colpa di un ostacolo dinamico.
+    # se un beam ha un errore > beam_skip_distance amcl NON lo schippa (NON lo considera colpa di un ostacolo dinamico)
+
     # attivalo solo se metti ostacoli dinamici in simulazione
     do_beamskip: false
     beam_skip_distance: 0.5
@@ -101,8 +107,8 @@ bt_navigator:
 
 
 
+# https://www.yahboom.net/public/upload/upload-html/1669599741/14.2%20Kinematics%20Analysis%20of%20Ackermann%20Car.html
 #* https://github.com/ros-navigation/navigation2/tree/humble/nav2_smac_planner
-
 planner_server:
   ros__parameters:
     planner_plugins: ["GridBased"]
@@ -112,18 +118,18 @@ planner_server:
       plugin: "nav2_smac_planner/SmacPlannerHybrid"
       #! PRACTICAL:
       tolerance: 0.5                      # tolerance for planning if unable to reach exact pose, in meters
-      allow_unknown: false                # allow traveling in unknown space #!cambiato adesso
+      allow_unknown: false                # allow traveling in unknown space
       motion_model_for_search: "REEDS_SHEPP"    # For Hybrid Dubin, Redds-Shepp
       #! I USE HIBRID NOT 2D!! cost_travel_multiplier * global_costmap_value
       # cost_travel_multiplier: 2.0         # For 2D: Cost multiplier to apply to search to steer away from high cost areas. Larger values will place in the center of aisles more exactly (if non-`FREE` cost potential field exists) but take slightly longer to compute. To optimize for speed, a value of 1.0 is reasonable. A reasonable tradeoff value is 2.0. A value of 0.0 effective disables steering away from obstacles and acts like a naive binary search A*.
       #* tende a cercare lontano dalle zone costose della global costmap
       cost_penalty: 3.5                   # For Hybrid nodes: penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
-      minimum_turning_radius: 0.05        # For Hybrid/Lattice nodes: minimum turning radius in m of path / vehicle
+      minimum_turning_radius: 0.40        # For Hybrid/Lattice nodes: minimum turning radius in m of path / vehicle
       reverse_penalty: 1.0 #! era 2.1               # For Reeds-Shepp model: penalty to apply if motion is reversing, must be => 1
       change_penalty: 0.8 #! era 0.5                 # For Hybrid nodes: penalty to apply if motion is changing directions, must be >= 0
       non_straight_penalty: 1.2 #! era 1.2          # For Hybrid nodes: penalty to apply if motion is non-straight, must be => 1
       retrospective_penalty: 0.025        # For Hybrid/Lattice nodes: penalty to prefer later maneuvers before earlier along the path. Saves search time since earlier nodes are not expanded until it is necessary. Must be >= 0.0 and <= 1.0
-      rotation_penalty: 1.0               # For Lattice node: Penalty to apply only to pure rotate in place commands when using minimum control sets containing rotate in place primitives. This should always be set sufficiently high to weight against this action unless strictly necessary for obstacle avoidance or there may be frequent discontinuities in the plan where it requests the robot to rotate in place to short-cut an otherwise smooth path for marginal path distance savings.
+      # rotation_penalty: 5.0               # For Lattice node: Penalty to apply only to pure rotate in place commands when using minimum control sets containing rotate in place primitives. This should always be set sufficiently high to weight against this action unless strictly necessary for obstacle avoidance or there may be frequent discontinuities in the plan where it requests the robot to rotate in place to short-cut an otherwise smooth path for marginal path distance savings.
       #* smoother:
       smooth_path: True                   # For Lattice/Hybrid nodes: Whether or not to smooth the path, always true for 2D nodes.
       smoother:
@@ -146,81 +152,100 @@ planner_server:
       analytic_expansion_max_length: 3.0    # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting (in meters). This should be scaled with minimum turning radius and be no less than 4-5x the minimum radius
       lookup_table_size: 20.0               # For Hybrid nodes: Size of the dubin/reeds-sheep distance window to cache, in meters.
       cache_obstacle_heuristic: True      # For Hybrid nodes: Cache the obstacle map dynamic programming distance expansion heuristic between subsiquent replannings of the same goal location. Dramatically speeds up replanning performance (40x) if costmap is largely static.  
-      allow_reverse_expansion: False      # For Lattice nodes: Whether to expand state lattice graph in forward primitives or reverse as well, will double the branching factor at each step.   
+      # allow_reverse_expansion: False      # For Lattice nodes: Whether to expand state lattice graph in forward primitives or reverse as well, will double the branching factor at each step.   
       
+#! non trova la path da un angolo all'altro della mappa!!!!
+#! max plainning time di 40s è ridicolo!!!
 
 
-
-
+# https://docs.ros.org/en/humble/p/nav2_regulated_pure_pursuit_controller/
 controller_server:
   ros__parameters:
-    # controller server parameters (see Controller Server for more info)
+    use_sim_time: True
     controller_frequency: 20.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
-    progress_checker_plugins: ["progress_checker"] # progress_checker_plugin: "progress_checker" For Humble and older
+    odom_topic: /odom
+    failure_tolerance: 0.5
+    progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["goal_checker"]
     controller_plugins: ["FollowPath"]
+
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.05 #!era 0.5
-      movement_time_allowance: 10.0
+      required_movement_radius: 0.1 #10 cm in massimo
+      movement_time_allowance: 60.0 #60 s
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.20 #! era 0.25
-      yaw_goal_tolerance: 0.1 #!era 0.25
+      xy_goal_tolerance: 0.1
+      yaw_goal_tolerance: 1.571  # +-90 gradi di tolleranza è tanto ma non fa impazzire il controller
       stateful: True
-    # DWB controller parameters
     FollowPath:
-      plugin: "dwb_core::DWBLocalPlanner"
-      debug_trajectory_details: True
-      min_vel_x: 0.0
-      min_vel_y: 0.0
-      max_vel_x: 0.26
-      max_vel_y: 0.0
-      max_vel_theta: 1.0
-      min_speed_xy: 0.0
-      max_speed_xy: 0.26
-      min_speed_theta: 0.0
-      acc_lim_x: 2.5
-      acc_lim_y: 0.0
-      acc_lim_theta: 3.2
-      decel_lim_x: -2.5
-      decel_lim_y: 0.0
-      decel_lim_theta: -3.2
-      vx_samples: 20
-      vy_samples: 5
-      vtheta_samples: 20
-      sim_time: 1.7
-      linear_granularity: 0.05
-      angular_granularity: 0.025
-      xy_goal_tolerance: 0.15 #!era 0.25  # distanza dentro la quale parte "RotateToGoal"
-      path_length_tolerance: 1.0
-      trans_stopped_velocity: 0.25
-      short_circuit_trajectory_evaluation: True
-      limit_vel_cmd_in_traj: False
-      stateful: True
-      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"] #critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 0.02
-      PathAlign.scale: 32.0 
-      GoalAlign.scale: 1.0 #! era 24   #! era 1    #! 24 forse lo rompe
-      PathAlign.forward_point_distance: 0.1
-      GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 32.0
-      GoalDist.scale: 1.0 #!era 24   #! era 1
-      RotateToGoal.scale: 32.0
-      RotateToGoal.slowing_factor: 5.0
-      RotateToGoal.lookahead_time: -1.0
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+
+      #* NAVIGAZIONE:
+      desired_linear_vel: 0.6
+      allow_reversing: true
+
+      # collisioni
+      use_collision_detection: true
+      max_allowed_time_to_collision_up_to_carrot: 0.4 #* quanti secondi nel futuro guardare
+      # è una curva in base a velocità lineare e angolare del robot, NON segue la path del planner quindi deve essere un valore basso
+
+      # interpolazione x aggiungere punti alla path
+      use_interpolation: true
+
+      #* ROTAZIONE SUL POSTO:
+      use_rotate_to_heading: false #* rotate_to_heading == girare sul posto, ackermann non può
+      rotate_to_heading_angular_vel: 1.8
+      rotate_to_heading_min_angle: 0.785
+      max_angular_accel: 3.2 #*sempre riferito a rotazione sul posto
+      
+
+      #* SCALING NAVIGAZIONE:
+      # rallentare alle curve:
+      use_regulated_linear_velocity_scaling: true
+      regulated_linear_scaling_min_radius: 0.8 #*raggio sotto il quale diminuisce la velocità
+      regulated_linear_scaling_min_speed: 0.15 #*se use_regulated_linear_velocity_scaling: true
+
+      # rallentare vicino a zone ad alto costo nella costmap (I muri tendenzialmente)
+      use_cost_regulated_linear_velocity_scaling: true
+      cost_scaling_dist: 0.4 # distanza minima dal quale l'algoritmo diminuisce velocità
+      cost_scaling_gain: 0.5 # Velocità Scalata = Velocità Attuale * (cost_scaling_gain * (Distanza Reale / cost_scaling_dist))
+      inflation_cost_scaling_factor: 3.0 #!DEVE ESSERE UGUALE A local_costmap / inflation_layer / cost_scaling_factor
+      # il controller legge il costo dalla local costmap e vuole ricavare la distanza dall'ostacolo, quindi gli serve di sapere il fattore.
+
+      # rallentare vicino al goal:
+      min_approach_linear_velocity: 0.05
+      approach_velocity_scaling_dist: 0.3
+
+      #* ALGORITMO:
+      # quanto vecchio può essere l'ultimo messaggio tf map -> odom (se il computer è lento alzalo)
+      transform_tolerance: 0.5
+
+      # distanza carrot = punto che il robot insegue
+      lookahead_dist: 0.6
+
+      # ricerca punto planner server path più vicino a base link
+      max_robot_pose_search_dist: 10.0 # limite in m a questa ricerca
+
+      #* SCALING ALGORITMO:
+      # usa distaza carrot dinamica #!QUANTO TAGLIA LE CURVE?? CERCA!
+      use_velocity_scaled_lookahead_dist: true 
+      lookahead_time: 0.8 # quanto avanti è il carrot dinamico (minore = + vicino)
+      min_lookahead_dist: 0.2 #* se use_velocity_scaled_lookahead_dist: true
+      max_lookahead_dist: 0.8 #* se use_velocity_scaled_lookahead_dist: true
 
 
-# problema è che vuole stare allineato alla path troppo
-
+# il planner cerca la path a 1 metro (costmap globale)
+# il controller rallenta bruscamente se si avvicina a 0.4 metri dal muro (calcolato tramite costmap LOCALE)
 
 
 # behaviour server:
 # decide cosa fare se il robot è bloccato;
-# differential può ruotare sul posto, ma per ora lascio solo backup/drive_on_heading/wait
+# ! il robot ackermann non può usare spin??
+# ! lo chiama quando è unable to do progress
 behavior_server:
   ros__parameters:
     use_sim_time: true
@@ -315,7 +340,7 @@ global_costmap:
       use_sim_time: True
       footprint: "[[0.15,0.12],[0.15,-0.12],[-0.15,-0.12],[-0.15,0.12]]"
       resolution: 0.05
-      track_unknown_space: true #! cambiato adesso
+      track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -354,3 +379,4 @@ map_saver:
     free_thresh_default: 0.25
     occupied_thresh_default: 0.65
     map_subscribe_transient_local: True
+

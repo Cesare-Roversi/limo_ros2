@@ -23,6 +23,7 @@ from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, Exec
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.actions import LogInfo
 import xacro
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command, PythonExpression
 
 
 def generate_launch_description():
@@ -30,8 +31,8 @@ def generate_launch_description():
     share_limo_car = os.path.join(get_package_share_directory('limo_car'))
     share_limo_description = os.path.join(get_package_share_directory('limo_description'))
 
-    default_robot_xacro_file_path = os.path.join(share_limo_description, 'urdf', 'limo_ackermann.xacro.urdf') #!!!!!qui
-    # default_robot_xacro_file_path = os.path.join(share_limo_description, 'urdf', 'limo_differential.xacro.urdf')
+    default_ackermann_xacro_file_path = os.path.join(share_limo_description, 'urdf', 'limo_ackermann.xacro.urdf') #!!!!!qui
+    default_differential_xacro_file_path = os.path.join(share_limo_description, 'urdf', 'limo_differential.xacro.urdf')
 
     #Find the ros control plugin path
     ros_ctrl_plugin_dir = os.path.join(share_limo_car, 'src', 'gz_ros2_control')
@@ -50,7 +51,8 @@ def generate_launch_description():
 
     # PARAMETRI
     use_sim_time = LaunchConfiguration('use_sim_time')
-    robot_xacro_file_path = LaunchConfiguration('robot_xacro_file_path')
+    ackermann_xacro_file_path = LaunchConfiguration('ackermann_xacro_file_path')
+    differential_xacro_file_path = LaunchConfiguration('differential_xacro_file_path')
     controller_type = LaunchConfiguration('controller_type')
     start_node_state_publisher = LaunchConfiguration('start_node_state_publisher')
     rviz_config = LaunchConfiguration('rviz_config')
@@ -61,10 +63,15 @@ def generate_launch_description():
         'use_sim_time',
         default_value='false',
         description='Use sim time if true')
-    declare_robot_xacro_file_path = DeclareLaunchArgument(
-        'robot_xacro_file_path',
-        default_value=default_robot_xacro_file_path,
-        description='path to robot xacro file'
+    declare_ackermann_xacro_file_path = DeclareLaunchArgument(
+        'ackermann_xacro_file_path',
+        default_value=default_ackermann_xacro_file_path,
+        description='path to ackermann xacro file'
+    )
+    declare_differential_xacro_file_path = DeclareLaunchArgument(
+        'differential_xacro_file_path',
+        default_value=default_differential_xacro_file_path,
+        description='path to differential xacro file'
     )
     declare_controller_type =  DeclareLaunchArgument(
         'controller_type',
@@ -84,17 +91,20 @@ def generate_launch_description():
     declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='true')
 
 
+    xacro_path_to_use = PythonExpression(["'", differential_xacro_file_path, "' if '", controller_type, "' == 'diff_drive_controller' else '", ackermann_xacro_file_path, "'"])
+
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
         parameters=[{
             'robot_description': ParameterValue(
-                Command(['xacro ', robot_xacro_file_path, ' controller_type:=', controller_type]), value_type=str
+                Command(['xacro ', xacro_path_to_use]), value_type=str
             ),
             'use_sim_time': use_sim_time
         }]
     )
+
 
     joint_state_publisher_node = Node(
         package='joint_state_publisher_gui',
@@ -116,7 +126,8 @@ def generate_launch_description():
     return LaunchDescription([
         gz_plugin_env,
         declare_use_sim_time,
-        declare_robot_xacro_file_path,
+        declare_ackermann_xacro_file_path,
+        declare_differential_xacro_file_path,
         declare_controller_type,
         declare_start_node_state_publisher,
         declare_rviz_config,
@@ -124,5 +135,5 @@ def generate_launch_description():
         node_robot_state_publisher, 
         rviz_node,
         joint_state_publisher_node,
-        LogInfo(msg=['[DEBUG] colibri command: xacro ', robot_xacro_file_path, ' controller_type:=', controller_type])
+        LogInfo(msg=['[DEBUG] colibri command: xacro ', xacro_path_to_use, ' controller_type:=', controller_type])
     ])

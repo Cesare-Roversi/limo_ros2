@@ -297,37 +297,6 @@
       </joint>
     </xacro:if>
 
-    <xacro:if value="${'$(arg controller_type)' == 'diff_drive_controller'}">
-      <joint name="rear_left_wheel_joint">
-        <command_interface name="velocity" />
-        <state_interface name="velocity" />
-        <state_interface name="position" />
-      </joint>
-      <joint name="rear_right_wheel_joint">
-        <command_interface name="velocity" />
-        <state_interface name="velocity" />
-        <state_interface name="position" />
-      </joint>
-      <joint name="left_wheel_steering_joint">
-        <command_interface name="position" />
-        <state_interface name="position" />
-      </joint>
-      <joint name="right_wheel_steering_joint">
-        <command_interface name="position" />
-        <state_interface name="position" />
-      </joint>
-      <joint name="front_left_wheel_joint">
-        <command_interface name="velocity" />
-        <state_interface name="position" />
-        <state_interface name="velocity" />
-      </joint>
-      <joint name="front_right_wheel_joint">
-        <command_interface name="velocity" />
-        <state_interface name="position" />
-        <state_interface name="velocity" />
-      </joint>
-    </xacro:if>
-
   </ros2_control>
 
 
@@ -342,10 +311,6 @@
           <remapping>/ackermann_steering_controller/reference:=/cmd_vel_stamped</remapping>
         </xacro:if>
 
-        <xacro:if value="${'$(arg controller_type)' == 'diff_drive_controller'}">
-          <remapping>/diff_drive_controller/odom:=/controller_odom</remapping>
-          <remapping>/diff_drive_controller/cmd_vel:=/cmd_vel_stamped</remapping>
-        </xacro:if>
       </ros>
     </plugin>
 

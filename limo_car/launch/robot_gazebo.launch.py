@@ -18,7 +18,7 @@ from launch_ros.actions import Node
 from launch.actions import TimerAction
 from launch.conditions import IfCondition
 from launch.actions import SetEnvironmentVariable
-
+from launch.actions import LogInfo
 
 
 
@@ -39,7 +39,7 @@ def generate_launch_description():
     spawn_y = LaunchConfiguration('spawn_y')
     spawn_z = LaunchConfiguration('spawn_z')
     spawn_yaw = LaunchConfiguration('spawn_yaw')
-    start_rviz = LaunchConfiguration('start_rviz')
+    start_rviz_gazebo = LaunchConfiguration('start_rviz_gazebo')
     rviz_config = LaunchConfiguration('rviz_config')
     ekf_node_config = LaunchConfiguration('ekf_node_config')
     controller_type = LaunchConfiguration('controller_type')
@@ -52,7 +52,7 @@ def generate_launch_description():
     declare_spawn_y = DeclareLaunchArgument('spawn_y', default_value='32.0')
     declare_spawn_z = DeclareLaunchArgument('spawn_z', default_value='0.6')
     declare_spawn_yaw = DeclareLaunchArgument('spawn_yaw', default_value='0.0')
-    declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='false')
+    declare_start_rviz_gazebo = DeclareLaunchArgument('start_rviz_gazebo', default_value='false')
     declare_rviz_config = DeclareLaunchArgument('rviz_config', default_value=os.path.join(share_limo_car, 'config', 'limo_visual.rviz'))
     declare_ekf_node_config = DeclareLaunchArgument(
         'ekf_node_config',
@@ -140,7 +140,7 @@ def generate_launch_description():
         arguments=['-d', rviz_config],
         parameters=[{'use_sim_time': use_sim_time}],
         output='screen',
-        condition=IfCondition(start_rviz)
+        condition=IfCondition(start_rviz_gazebo)
     )
 
 
@@ -152,7 +152,7 @@ def generate_launch_description():
         declare_spawn_z,
         declare_spawn_yaw,
         declare_rviz_config,
-        declare_start_rviz,
+        declare_start_rviz_gazebo,
         declare_ekf_node_config,
         declare_controller_type,
         robot_launch,
@@ -172,5 +172,7 @@ def generate_launch_description():
             )
         ),
 
-        TimerAction(period=bridge_rviz_delay_val, actions=[ros_gz_bridge, rviz_node])
+        TimerAction(period=bridge_rviz_delay_val, actions=[ros_gz_bridge, rviz_node]),
+
+        LogInfo(msg=['[DEBUG] start_rviz_gazebo value: ', start_rviz_gazebo])
     ])
