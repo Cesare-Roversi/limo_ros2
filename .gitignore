@@ -298,3 +298,4 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 /gz_ros2_control
+/warehouse_ros_mongo
