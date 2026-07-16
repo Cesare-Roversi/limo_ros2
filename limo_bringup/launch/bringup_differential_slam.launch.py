@@ -1,72 +1,84 @@
 import os
-
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.actions import IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution 
+from launch_ros.actions import Node, SetRemap                                
+from launch_ros.substitutions import FindPackageShare                        
 from launch.actions import GroupAction
-from launch_ros.actions import SetRemap
-from launch.substitutions import PathJoinSubstitution
-from launch_ros.substitutions import FindPackageShare
 
-
-
-#! differential slam lauch e yaml da finire
 
 def generate_launch_description():
 
-    share_nav2_bringup = get_package_share_directory('nav2_bringup')
+    # SHARE DIRS:
     share_limo_bringup = get_package_share_directory('limo_bringup')
+    share_nav2_bringup = get_package_share_directory('nav2_bringup')
+
 
     # ARGOMENTI:
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    nav2_params_file_path = LaunchConfiguration('nav2_params_file_path')
+    slam_params_file_path = LaunchConfiguration('slam_params_file_path')
+    rviz2_config_file_path = LaunchConfiguration('rviz2_config_file_path')
+
     declare_use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true'
     )
-    
+
     declare_nav2_params_file_path = DeclareLaunchArgument(
         'nav2_params_file_path',
         default_value=PathJoinSubstitution([
-            share_limo_bringup, 'config', 'differential_amcl.yaml'
-        ]),
-        description='Full path to nav2 param file to load'
+            share_limo_bringup, 'config', 'differential_slam.yaml'
+        ])
     )
-    
+
+    declare_slam_params_file_path = DeclareLaunchArgument(
+        'slam_params_file_path',
+        default_value=PathJoinSubstitution([
+            share_limo_bringup, 'config', 'slam_toolbox_params.yaml'
+        ])
+    )
 
     declare_rviz2_config_file_path = DeclareLaunchArgument(
-        'rviz_config_file_path',
+        'rviz2_config_file_path',
         default_value=PathJoinSubstitution([
-            share_nav2_bringup, 'rviz', 'nav2_default_view.rviz' 
-        ]),
-        description='Full path to rviz config file to load'
+            share_nav2_bringup, 'rviz', 'nav2_default_view.rviz'
+        ])
     )
-
-
-    use_sim_time = LaunchConfiguration('use_sim_time')
-    map_file_path = LaunchConfiguration('map_file_path')
-    nav2_params_file_path = LaunchConfiguration('nav2_params_file_path')
-    rviz2_config_file_path = LaunchConfiguration('rviz_config_file_path')
     # __ARGOMENTI
 
 
 
-    nav2_launch = IncludeLaunchDescription(
+
+    slam_toolbox_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
-                share_nav2_bringup,
+                FindPackageShare('limo_bringup'),
                 'launch',
-                'bringup_launch.py'
+                'limo_slam_toolbox.launch.py'
             ])
         ]),
         launch_arguments={
-            'map':          map_file_path,
             'use_sim_time': use_sim_time,
-            'params_file':  nav2_params_file_path,
-        }.items(),
+            'slam_params_file_path': slam_params_file_path 
+        }.items()
+    )
+
+    nav2_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('nav2_bringup'),
+                'launch',
+                'navigation_launch.py'
+            ])
+        ]),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+            'params_file': nav2_params_file_path,
+        }.items()
     )
 
     rviz2_node = Node(
@@ -88,29 +100,28 @@ def generate_launch_description():
             {'frame_id': 'base_link'}
         ],
         remappings=[
-            ('cmd_vel_in', '/cmd_vel'),        # prima era /cmd_vel_unstamped
-            ('cmd_vel_out', '/cmd_vel_stamped') # nuovo topic dedicato
+            ('cmd_vel_in', '/cmd_vel'),
+            ('cmd_vel_out', '/cmd_vel_stamped')
         ],
         output='screen'
     )
 
 
-    group_action = GroupAction( #! SetRemap(src, dst) significa: "quando un nodo dentro il GroupAction usa il topic src, usa dst al suo posto".
+    group_action = GroupAction(
         actions=[
-            # Ricollega l'odometria: nav2 legge /odom, il controller pubblica sul suo topic
             SetRemap(src='/odom', dst='/odometry/filtered'),
-            
+            slam_toolbox_launch,
             nav2_launch,
-            rviz2_node
+            rviz2_node,
         ]
     )
 
 
     return LaunchDescription([
         declare_use_sim_time,
-        declare_map_file_path,
         declare_nav2_params_file_path,
+        declare_slam_params_file_path,
         declare_rviz2_config_file_path,
         twist_stamper_node,
-        group_action
+        group_action,
     ])
