@@ -7,33 +7,30 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from moveit_configs_utils import MoveItConfigsBuilder
 
-#--verify
-from launch_ros.parameter_descriptions import ParameterValue
-from launch.substitutions import Command
-#---#
 
 #! ATTENTO!! NODI COMMENTATI
 
 def generate_launch_description():
     share_limo_planner = get_package_share_directory('limo_planner')
     share_plansys2_bringup = get_package_share_directory('plansys2_bringup')
-
-    #---verify
-    # Percorsi
     share_limo_description = get_package_share_directory('limo_description')
-    share_mycobot_280_moveit2 = get_package_share_directory('mycobot_280_moveit2')
-    urdf_path = os.path.join(share_limo_description,
-        "urdf", "limo_ackermann_mycobot.xacro.urdf"
-    )
-    srdf_path = os.path.join(share_mycobot_280_moveit2,
-        "config", "firefighter.srdf"
-    )
 
-    robot_description = ParameterValue(Command(["xacro ", urdf_path]), value_type=str)
-    with open(srdf_path, "r") as f:
-        robot_description_semantic = f.read()
-    #---#
+    #Materiale per moveit2
+    urdf_absolute_path = os.path.join(
+        share_limo_description, "urdf", "limo_ackermann_mycobot.xacro.urdf"
+    )
+    moveit_config = (
+        MoveItConfigsBuilder("custom_robot", package_name="mycobot_280_moveit2")
+        .robot_description(file_path=urdf_absolute_path)
+        .robot_description_semantic(file_path="config/firefighter.srdf")
+        .trajectory_execution(file_path="config/moveit_controllers.yaml")
+        .planning_pipelines(
+            pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"]
+        )
+        .to_moveit_configs()
+    )
 
     pddl_domain_file = os.path.join(
         share_limo_planner,
@@ -81,10 +78,7 @@ def generate_launch_description():
         executable='move_arm_action_node',
         name='move_arm_action_node',
         output='screen',
-        parameters=[{
-            "robot_description": robot_description,
-            "robot_description_semantic": robot_description_semantic,
-        }]
+        parameters=[moveit_config.to_dict()]
     )
 
     pick_up_object_action_node = Node(
@@ -92,10 +86,7 @@ def generate_launch_description():
         executable='pick_up_object_action_node',
         name='pick_up_object_action_node',
         output='screen',
-        parameters=[{
-            "robot_description": robot_description,
-            "robot_description_semantic": robot_description_semantic,
-        }]
+        parameters=[moveit_config.to_dict()]
     )
 
     put_down_object_action_node = Node(
@@ -103,10 +94,7 @@ def generate_launch_description():
         executable='put_down_object_action_node',
         name='put_down_object_action_node',
         output='screen',
-        parameters=[{
-            "robot_description": robot_description,
-            "robot_description_semantic": robot_description_semantic,
-        }]
+        parameters=[moveit_config.to_dict()]
     )
 
     retract_arm_action_node = Node(
@@ -114,10 +102,7 @@ def generate_launch_description():
         executable='retract_arm_action_node',
         name='retract_arm_action_node',
         output='screen',
-        parameters=[{
-            "robot_description": robot_description,
-            "robot_description_semantic": robot_description_semantic,
-        }]
+        parameters=[moveit_config.to_dict()]
     )
 
     check_distance_action_node = Node(

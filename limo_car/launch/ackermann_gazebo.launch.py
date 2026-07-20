@@ -145,19 +145,6 @@ def generate_launch_description():
         arguments=["gripper_action_controller", "--controller-manager", "/controller_manager"],
         output="screen",
     )
-    move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
-        output="screen",
-        parameters=[moveit_config.to_dict(), {'use_sim_time': use_sim_time}],
-        arguments=["--ros-args", "--log-level", "info"],
-    )
-    rviz_config_path = os.path.join(
-        get_package_share_directory("mycobot_280_moveit2"),
-        "config",
-        "moveit.rviz",
-    )
-    
 
     
     # Se può lanciare il bridge in una nuova finestra di terminale lo fa:
@@ -182,16 +169,18 @@ def generate_launch_description():
 
     rviz_node = Node(
         package='rviz2', executable='rviz2', name='rviz2',
-        arguments=['-d', rviz_config_path],
-        parameters=[{'use_sim_time': use_sim_time},
-            moveit_config.robot_description,
-            moveit_config.robot_description_semantic,
-            moveit_config.planning_pipelines,
-            moveit_config.robot_description_kinematics,],
+        arguments=['-d', rviz_config],
+        parameters=[{'use_sim_time': use_sim_time}],
         output='screen',
         condition=IfCondition(start_rviz)
     )
-
+    move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[moveit_config.to_dict(), {'use_sim_time': use_sim_time}],
+        arguments=['--ros-args', '--disable-stdout-logs'],
+    )
 
     return LaunchDescription([
         set_gz_resource_path,
