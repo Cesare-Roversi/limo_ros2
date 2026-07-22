@@ -1,5 +1,5 @@
 image: povo.pgm
-resolution: 0.0234208
+resolution: 0.02104208398
 # L'origine è [x, y, yaw]. [0,0,0] significa che il pixel in basso a sinistra è l'origine 0,0
 origin: [0.0, 0.0, 0.0]
 negate: 0

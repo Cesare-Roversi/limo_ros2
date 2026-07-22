@@ -4,3 +4,13 @@ objects:
     max_width: 0.300000012
     min_width: 0.300000012
     weight: 0.100000001
+  l_armando:
+    height: 8
+    max_width: 3
+    min_width: 3
+    weight: 1
+  la_pimpa:
+    height: 2
+    max_width: 3
+    min_width: 3
+    weight: 1

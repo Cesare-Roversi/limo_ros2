@@ -24,16 +24,7 @@
 using namespace std::chrono_literals;
 using namespace std;
 
-// ============================================================================
-// CONFIG stima energia (usata dal controllo batteria pre-navigazione):
-// energy(tratto) = motor_power * (distance / max_robot_velocity) * costmap_factor
-// costmap_factor = 1.0 + (costmap_estimate / 100.0)  -> range [1.0, 2.0]
-// (costmap_estimate è 0-100 come da Nav2 costmap costs; più vicino a ostacoli
-// => rallentamenti/correzioni => più energia. Fattore lineare, arbitrario ma
-// esplicito e facile da ritarare in un solo punto.)
-// ============================================================================
-static constexpr float kCostmapFactorMin = 1.0f;
-static constexpr float kCostmapFactorScale = 1.0f / 100.0f;
+
 
 class MoveAction : public plansys2::ActionExecutorClient
 {
@@ -53,189 +44,34 @@ public:
   }
 
 
-  void print_pose_stamped(const geometry_msgs::msg::PoseStamped& msg){
-    std::cout << endl << "WAYPOINT:" << std::endl;
-    std::cout << "header.frame_id: " << msg.header.frame_id << std::endl;
-    std::cout << "header.stamp: " << msg.header.stamp.sec << "."
-              << msg.header.stamp.nanosec << std::endl;
-
-    std::cout << "position: (" << msg.pose.position.x << ", "
-                              << msg.pose.position.y << ", "
-                              << msg.pose.position.z << ")" << std::endl;
-
-    std::cout << "orientation: (" << msg.pose.orientation.x << ", "
-                                << msg.pose.orientation.y << ", "
-                                << msg.pose.orientation.z << ", "
-                                << msg.pose.orientation.w << ")" << endl << endl;
-  }
-
-
   void init_knowledge(){
-    std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
-    waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
-    objects_filepath_ = pkg_share + "/config/objects.yaml";
-    robots_filepath_ = pkg_share + "/config/robots.yaml";
-    connections_filepath_ = pkg_share + "/config/connections.yaml";
-
     clear_all_map();
     load_waypoints_from_yaml(); 
-    //print_waypoints();
-
-    // Parametri PDDL dell'azione move: assumiamo (?r ?wp_from ?wp_to), il goal
-    // era già letto da arguments[2] nel codice originale -> lo riusiamo cosi'
-    // com'è, aggiungendo solo la lettura di robot e wp_from per il check batteria.
+    
     robot_name_ = get_arguments()[0];
     wp_from_name_ = get_arguments()[1];
-    auto wp_to_navigate = get_arguments()[2];  // The goal is in the 3rd argument of the action 
-    RCLCPP_INFO(get_logger(), "Start navigation to [%s]", wp_to_navigate.c_str());
+    wp_dest_name_ = get_arguments()[2];  // The goal is in the 3rd argument of the action 
+    RCLCPP_INFO(get_logger(), "Inizio navigazione verso [%s]", wp_dest_name_.c_str());
 
-    goal_pos_ = get_waypoint(wp_to_navigate);
-    print_pose_stamped(goal_pos_);
+    goal_pos_ = get_waypoint(wp_dest_name_);
+    //print_pose_stamped(goal_pos_);
+
+    connection = get_connection(wp_from_name_, wp_dest_name_);
   }
 
 
-  // ==========================================================================
-  // CONTROLLO BATTERIA (nuovo, eseguito prima di inviare il goal a Nav2)
-  // ==========================================================================
-
-  // Energia stimata (Joule) per percorrere una connessione già nota in KB.
-  // Ritorna std::nullopt se la connessione non è presente: NON si inventa
-  // un valore di fallback, chi chiama deve trattarlo come fallimento.
-  std::optional<float> estimate_segment_energy(const Robot & rb, const std::string & from_wp, const std::string & to_wp){
-    Connection cn;
-    try {
-      cn = get_connection(from_wp, to_wp);
-    } catch (const std::runtime_error & e) {
-      RCLCPP_WARN(get_logger(), "Connection [%s -> %s] NOT found in knowledge base: %s",
-                  from_wp.c_str(), to_wp.c_str(), e.what());
-      return std::nullopt;
-    }
-
-    if (rb.max_robot_velocity <= 0.0f) {
-      RCLCPP_WARN(get_logger(), "Robot [%s] has max_robot_velocity <= 0, cannot estimate energy", robot_name_.c_str());
-      return std::nullopt;
-    }
-
-    float costmap_factor = kCostmapFactorMin + (cn.costmap_estimate * kCostmapFactorScale);
-    float travel_time = cn.distance / rb.max_robot_velocity;
-    // float energy = rb.motor_power * travel_time * costmap_factor;
-    float energy = rb.motor_power * travel_time; //!FIX THIS
-
-    RCLCPP_INFO(get_logger(), "  segment [%s -> %s]: distance=%.3f m, costmap_estimate=%.3f, "
-                "costmap_factor=%.3f, energy=%.3f J",
-                from_wp.c_str(), to_wp.c_str(), cn.distance, cn.costmap_estimate, costmap_factor, energy);
-
-    return energy;
-  }
-
-  // Cerca in knowledge base una charging_station tramite il predicato
-  // (charging_station_at ?cs - charging_station ?wp - waypoint).
-  // Ritorna il nome del waypoint della stazione, o std::nullopt se non trovata.
-  std::optional<std::string> find_charging_station_waypoint(){
-    auto predicates = problem_expert_client_->getPredicates();
-
-    for (const auto & pred : predicates) {
-      if (pred.name != "charging_station_at") {
-        continue;
-      }
-      // parameters[0] = ?cs (charging_station), parameters[1] = ?wp (waypoint)
-      if (pred.parameters.size() < 2) {
-        continue;
-      }
-      std::string cs_waypoint = pred.parameters[1].name;
-      RCLCPP_INFO(get_logger(), "Found charging_station_at(%s, %s) in knowledge base",
-                  pred.parameters[0].name.c_str(), cs_waypoint.c_str());
-      return cs_waypoint;
-    }
-
-    RCLCPP_WARN(get_logger(), "No charging_station_at predicate found in knowledge base");
-    return std::nullopt;
-  }
-
-  // Rimuove il predicato (not_battery_low ?r) dalla knowledge base: segnala
-  // al planner che il prossimo piano deve passare per la stazione di ricarica.
-  void remove_not_battery_low_predicate(){
-    plansys2_msgs::msg::Node predicate;
-    predicate.node_type = plansys2_msgs::msg::Node::PREDICATE;
-    predicate.name = "not_battery_low";
-
-    plansys2_msgs::msg::Param param_r;
-    param_r.name = robot_name_;
-    predicate.parameters.push_back(param_r);
-
-    bool removed = problem_expert_client_->removePredicate(predicate);
-    if (removed) {
-      RCLCPP_WARN(get_logger(), "Removed predicate (not_battery_low %s): battery too low for planned segments",
-                  robot_name_.c_str());
-    } else {
-      RCLCPP_ERROR(get_logger(), "FAILED to remove predicate (not_battery_low %s)", robot_name_.c_str());
-    }
-  }
-
-  // Esegue il controllo batteria completo: wp_from -> wp_to -> charging_station.
-  // Ritorna true se la batteria è sufficiente (si può procedere con move),
-  // false altrimenti (chi chiama deve fare finish(false, ...) e fermarsi).
-  // In ogni caso di dato mancante in KB: FAIL (nessuna stima di fallback).
-  bool check_battery_sufficient(){
-    Robot rb;
-    try {
-      rb = get_robot(robot_name_);
-    } catch (const std::runtime_error & e) {
-      RCLCPP_ERROR(get_logger(), "Robot [%s] not found: %s", robot_name_.c_str(), e.what());
-      return false;
-    }
-    RCLCPP_INFO(get_logger(), "Robot [%s]: current_battery=%.3f J", robot_name_.c_str(), rb.current_battery);
-
-    auto cs_waypoint_opt = find_charging_station_waypoint();
-    if (!cs_waypoint_opt.has_value()) {
-      finish(false, 0.0, "No charging_station_at predicate found");
-      return false;
-    }
-    std::string cs_waypoint = cs_waypoint_opt.value();
-
-    // Tratto wp_from -> wp_to (quello che move sta per eseguire)
-    auto energy_leg1_opt = estimate_segment_energy(rb, wp_from_name_, get_arguments()[2]);
-    if (!energy_leg1_opt.has_value()) {
-      finish(false, 0.0, "Missing connection data for wp_from -> wp_to, cannot check battery");
-      return false;
-    }
-
-    // Tratto wp_to -> charging_station (per garantire che dopo move il robot
-    // possa ancora raggiungere una stazione di ricarica)
-    auto energy_leg2_opt = estimate_segment_energy(rb, get_arguments()[2], cs_waypoint);
-    if (!energy_leg2_opt.has_value()) {
-      finish(false, 0.0, "Missing connection data for wp_to -> charging_station, cannot check battery");
-      return false;
-    }
-
-    float total_energy_needed = energy_leg1_opt.value() + energy_leg2_opt.value();
-    RCLCPP_INFO(get_logger(), "Total energy needed: %.3f J (available: %.3f J)",
-                total_energy_needed, rb.current_battery);
-
-    if (rb.current_battery < total_energy_needed) {
-      // Batteria insufficiente: segnala al planner rimuovendo (not_battery_low r).
-      // Il prossimo piano generato dovrà passare per la stazione di ricarica.
-      remove_not_battery_low_predicate();
-      finish(false, 0.0, "Battery too low for wp_from -> wp_to -> charging_station");
-      return false;
-    }
-
-    return true;
-  }
-
-
+  //! on_activate
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state){
     init_knowledge();
     send_feedback(0.0, "Move starting");
 
-    // ProblemExpertClient creato qui (non nel costruttore): serve il nodo
-    // lifecycle già attivo.
     problem_expert_client_ = std::make_shared<plansys2::ProblemExpertClient>();
 
     // --- CONTROLLO BATTERIA: se insufficiente, move fallisce subito e NON
     // viene nemmeno contattato Nav2. finish() è già stato chiamato dentro
     // check_battery_sufficient() nei casi di fallimento. ---
-    if (!check_battery_sufficient()) {
+    battery_sufficient_ = check_battery_sufficient();
+    if (!battery_sufficient_) {
       return ActionExecutorClient::on_activate(previous_state);
     }
 
@@ -248,7 +84,6 @@ public:
 
     bool is_action_server_ready = false;
     do {
-      // MODIFICA QUI: Se l'utente preme Ctrl+C, usciamo elegantemente senza loopare
       if (!rclcpp::ok()) {
         // Sostituisci RCLCPP_WARN con std::cout per evitare l'errore sul contesto invalido
         std::cout << "[MoveAction] Shutdown rilevato. Chiusura in corso..." << std::endl;
@@ -256,15 +91,17 @@ public:
         return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
       }
 
-      RCLCPP_INFO(get_logger(), "Waiting for navigation action server...");
+      RCLCPP_INFO(get_logger(), "In attesa del navigation action server...");
       is_action_server_ready = navigation_action_client_->wait_for_action_server(std::chrono::seconds(5));
       
     } while (!is_action_server_ready);
-    RCLCPP_INFO(get_logger(), "Navigation action server ready");
+    RCLCPP_INFO(get_logger(), "Navigation action server pronto");
 
 
     // nav2_msgs::action::NavigateToPose::Goal navigation_goal_;
-    navigation_goal_.pose = goal_pos_;
+    // Il target di navigazione è approach_wp (punto sul path a ridosso del
+    // waypoint di destinazione), NON il waypoint di destinazione grezzo.
+    navigation_goal_.pose = connection.approach_wp;
 
     // 2. CLIENT ROS2, STRUCT di configurazione delle opzioni di invio goal
     auto struct_callbacks_goal_options = rclcpp_action::Client<nav2_msgs::action::NavigateToPose>::SendGoalOptions();
@@ -272,41 +109,32 @@ public:
    
     struct_callbacks_goal_options.goal_response_callback = [this](std::shared_ptr<NavigationGoalHandle> goal_handle){
       if(goal_handle != NULL){
-        RCLCPP_INFO(get_logger(), "GOAL was accepted by NAV2");
+        RCLCPP_INFO(get_logger(), "GOAL accettato da NAV2");
       }else{
-        RCLCPP_INFO(get_logger(), "GOAL was REFUSED by NAV2");
+        RCLCPP_INFO(get_logger(), "GOAL RIFIUTATO da NAV2");
       }
     };
 
+
     struct_callbacks_goal_options.feedback_callback = [this]( NavigationGoalHandle::SharedPtr, NavigationFeedback feedback) {
 
-        float distance_remaining = feedback->distance_remaining;
+      float distance_remaining = feedback->distance_remaining;
+      float completed_distance_percent = 1.0 - (feedback->distance_remaining / connection.distance);
+      send_feedback(completed_distance_percent, "Move in corso");
+    };
 
-        if(distance_remaining > 0.3 || is_initial_distance_set){
-          if(!is_initial_distance_set){ //0.3 è precauzione perchè qualche volta restituisce valori bassi senza senso all'inizio;
-            initial_distance = feedback->distance_remaining;
-            is_initial_distance_set = true;
-          }
-          
-          float completed_distance_percent = 1.0 - (feedback->distance_remaining / initial_distance);
-          send_feedback(completed_distance_percent, "Move running");
-          // RCLCPP_INFO(get_logger(), "distance_remaining: %.3f m (%.3f /)", feedback->distance_remaining, completed_distance_percent);
-        }else{
-          RCLCPP_INFO(get_logger(), "DEBUG: feedback->distance_remaining under limit: %.3f m", distance_remaining);
-        }
-      };
     
     //! CHECK the docs for this:
     struct_callbacks_goal_options.result_callback = [this](const NavigationGoalHandle::WrappedResult & result) {
       switch (result.code) {
           case rclcpp_action::ResultCode::SUCCEEDED:
-              finish(true, 1.0, "Move completed");
+              finish(true, 1.0, "Move completata");
               break;
           case rclcpp_action::ResultCode::ABORTED:
-              finish(false, 0.0, "Navigation aborted");
+              finish(false, 0.0, "Navigazione interrotta (aborted)");
               break;
           case rclcpp_action::ResultCode::CANCELED:
-              finish(false, 0.0, "Navigation cancelled");
+              finish(false, 0.0, "Navigazione annullata (cancelled)");
               break;
       }
       // result.result  - this is the Empty msg, useless
@@ -329,7 +157,155 @@ public:
 private:
   void do_work(){
     RCLCPP_INFO(get_logger(), "PROVA do_work");
+    if(!battery_sufficient_){
+      finish(false, 0.0, battery_not_sufficient_error_);
+    }
   }
+
+
+  //! SOLO FUNZIONI DI SUPPORTO QUI AVANTI:
+
+  //! Ritorna energia necessaria per wp1 -> wp2
+  std::optional<float> estimate_segment_energy(const Robot & rb, const std::string & from_wp, const std::string & to_wp){
+    Connection cn;
+    try {
+      cn = get_connection(from_wp, to_wp);
+    } catch (const std::runtime_error & e) {
+      RCLCPP_WARN(get_logger(), "Connessione [%s -> %s] NON trovata nella knowledge base: %s",
+                  from_wp.c_str(), to_wp.c_str(), e.what());
+      return std::nullopt;
+    }
+
+    if (rb.max_robot_velocity <= 0.0f) {
+      RCLCPP_WARN(get_logger(), "Il robot [%s] ha max_robot_velocity <= 0, impossibile stimare l'energia", robot_name_.c_str());
+      return std::nullopt;
+    }
+
+    float costmap_factor = cn.costmap_estimate / 100.0;
+    float travel_time = cn.distance / rb.max_robot_velocity;
+    // float energy = rb.motor_power * travel_time * costmap_factor;
+    float energy = rb.motor_power * travel_time; //!FIX THIS
+
+    RCLCPP_INFO(get_logger(), "  segmento [%s -> %s]: distance=%.3f m, costmap_estimate=%.3f, "
+                "costmap_factor=%.3f, energy=%.3f J",
+                from_wp.c_str(), to_wp.c_str(), cn.distance, cn.costmap_estimate, costmap_factor, energy);
+
+    return energy;
+  }
+
+
+  //! Ritorna il nome del waypoint della stazione, o std::nullopt se non trovata.
+  std::optional<std::string> find_charging_station_waypoint(const std::string & from_wp){
+    std::optional<std::string> closest_wp = std::nullopt;
+    float closest_distance = std::numeric_limits<float>::max();
+
+    for (const auto & pred : problem_expert_client_->getPredicates()) {
+      if (pred.name != "charging_station_at" || pred.parameters.size() < 2) {
+        continue;
+      }
+      std::string cs_wp = pred.parameters[1].name;
+
+      float distance = 0.0f;  // 0 se il robot è già lì
+      if (cs_wp != from_wp) {
+        try {
+          distance = get_connection(from_wp, cs_wp).distance;
+        } catch (const std::runtime_error & e) {
+          RCLCPP_WARN(get_logger(), "Stazione [%s] ignorata, nessuna connessione da [%s]: %s",
+                      cs_wp.c_str(), from_wp.c_str(), e.what());
+          continue;  // solo questa stazione viene scartata, non è un errore fatale
+        }
+      }
+
+      if (distance < closest_distance) {
+        closest_distance = distance;
+        closest_wp = cs_wp;
+      }
+    }
+
+    if (closest_wp.has_value()) {
+      RCLCPP_INFO(get_logger(), "Stazione di ricarica più vicina a [%s]: [%s] (distanza=%.3f m)",
+                  from_wp.c_str(), closest_wp.value().c_str(), closest_distance);
+    } else {
+      RCLCPP_WARN(get_logger(), "Nessuna stazione di ricarica raggiungibile da [%s]", from_wp.c_str());
+    }
+
+    return closest_wp;
+  }
+
+
+  // Rimuove il predicato (not_battery_low ?r) dalla knowledge base: segnala
+  // al planner che il prossimo piano deve passare per la stazione di ricarica.
+  void remove_not_battery_low_predicate(){
+    bool removed = problem_expert_client_->removePredicate(
+        plansys2::Predicate("(not_battery_low " + robot_name_ + ")"));
+    if (removed) {
+      RCLCPP_WARN(get_logger(), "Rimosso il predicato (not_battery_low %s): batteria troppo bassa per i segmenti pianificati",
+                  robot_name_.c_str());
+    } else {
+      RCLCPP_ERROR(get_logger(), "FALLITA la rimozione del predicato (not_battery_low %s)", robot_name_.c_str());
+    }
+  }
+
+
+  //! Esegue il controllo batteria completo: wp_from -> wp_to -> charging_station.
+  bool check_battery_sufficient(){
+    Robot rb;
+    try {
+      rb = get_robot(robot_name_);
+    } catch (const std::runtime_error & e) {
+      RCLCPP_ERROR(get_logger(), "Robot [%s] non trovato: %s", robot_name_.c_str(), e.what());
+      return false;
+    }
+    RCLCPP_INFO(get_logger(), "Robot [%s]: current_battery=%.3f J", robot_name_.c_str(), rb.current_battery);
+
+    auto charging_station_waypoint_opt = find_charging_station_waypoint(wp_dest_name_);
+    if (!charging_station_waypoint_opt.has_value()) {
+      //todo finish(false, 0.0, "No charging_station_at predicate found");
+      battery_not_sufficient_error_ = "Nessun predicato charging_station_at trovato";
+      return false;
+    }
+    std::string charging_station_waypoint = charging_station_waypoint_opt.value();
+
+    // Tratto wp_from -> wp_to (quello che move sta per eseguire)
+    auto energy_first_segment = estimate_segment_energy(rb, wp_from_name_, wp_dest_name_);
+    if (!energy_first_segment.has_value()) {
+      //todo finish(false, 0.0, "Missing connection data for wp_from -> wp_to, cannot check battery");
+      battery_not_sufficient_error_ = "Dati di connessione mancanti per wp_from -> wp_to, impossibile controllare la batteria";
+      return false;
+    }
+
+    // Tratto wp_to -> charging_station (per garantire che dopo move il robot
+    // possa ancora raggiungere una stazione di ricarica)
+
+    std::optional<float> energy_second_segment;
+    if(wp_dest_name_ == charging_station_waypoint){
+      energy_second_segment = 0.0;
+    }else{
+      energy_second_segment = estimate_segment_energy(rb, wp_dest_name_, charging_station_waypoint);
+      if (!energy_second_segment.has_value()) {
+        //todo finish(false, 0.0, "Missing connection data for wp_to -> charging_station, cannot check battery");
+        battery_not_sufficient_error_ = "Dati di connessione mancanti per wp_to -> charging_station, impossibile controllare la batteria";
+        return false;
+      }
+    }
+    
+
+    float total_energy_needed = energy_first_segment.value() + energy_second_segment.value();
+    RCLCPP_INFO(get_logger(), "Energia totale necessaria: %.3f J (disponibile: %.3f J)",
+                total_energy_needed, rb.current_battery);
+
+    if (rb.current_battery < total_energy_needed) {
+      // Batteria insufficiente: segnala al planner rimuovendo (not_battery_low r).
+      // Il prossimo piano generato dovrà passare per la stazione di ricarica.
+      remove_not_battery_low_predicate();
+      //todo finish(false, 0.0, "Battery too low for wp_from -> wp_to -> charging_station");
+      battery_not_sufficient_error_ = "Batteria troppo bassa per wp_from -> wp_to -> charging_station";
+      return false;
+    }
+
+    return true;
+  }
+
 
   using NavigationGoalHandle = rclcpp_action::ClientGoalHandle<nav2_msgs::action::NavigateToPose>;
   using NavigationFeedback = const std::shared_ptr<const nav2_msgs::action::NavigateToPose::Feedback>;
@@ -355,7 +331,11 @@ private:
   // --- NUOVO: stato per il controllo batteria ---
   std::string robot_name_;
   std::string wp_from_name_;
+  std::string wp_dest_name_;
+  Connection connection;
   std::shared_ptr<plansys2::ProblemExpertClient> problem_expert_client_;
+  bool battery_sufficient_;
+  std::string battery_not_sufficient_error_;
 
 };
 

@@ -30,6 +30,9 @@ public:
     rgb_saved_ = false;
     depth_saved_ = false;
 
+    // Directory fissa di destinazione per gli snapshot
+    snapshots_dir_ = "/root/limo_ws/src/limo_ros2/limo_planner/imgs";
+
     using namespace std::placeholders;
 
     subscriber_to_rgb_image_ = create_subscription<sensor_msgs::msg::Image>(
@@ -52,12 +55,6 @@ public:
   }
 
   void init_knowledge(){
-    std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
-    waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
-    objects_filepath_ = pkg_share + "/config/objects.yaml";
-    robots_filepath_ = pkg_share + "/config/robots.yaml";
-    snapshots_dir_ = "/root/limo_ws/src/limo_ros2/limo_planner/imgs";
-
     // The action is parameterized as (?r - robot ?wp - waypoint)
     wp_name_ = get_arguments()[1];
 

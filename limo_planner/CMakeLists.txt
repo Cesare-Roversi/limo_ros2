@@ -58,7 +58,14 @@ set(dependencies
 # LIBRERIA:
 add_library(limo_utils
     src/utils/debug.cpp
-    src/utils/world_data_utils.cpp
+    src/utils/controller_functions.cpp
+    src/utils/parser.cpp
+    src/utils/get_user_input.cpp
+    src/utils/utils_connections.cpp
+    src/utils/utils_global_vars.cpp
+    src/utils/utils_objects.cpp
+    src/utils/utils_robots.cpp
+    src/utils/utils_waypoints.cpp
     src/utils/arm_world_data_utils.cpp
 )
 ament_target_dependencies(limo_utils ${dependencies})

@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot_combinato">
+  
+  <!-- controller, disabilita front wheel drive x ackermann_steering_controller (non supportato) e topic remappings-->
+  <xacro:arg name="controller_type" default="ackermann_steering_controller" />
+  <!-- <xacro:arg name="controller_type" default="diff_drive_controller" />  -->
+  
+  <xacro:include filename="$(find limo_description)/urdf/limo_ackermannEdifferential.xacro.urdf" />	
+  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_280_pi_adaptive_gripper.urdf" />
+
+  <xacro:limo_car controller_type="$(arg controller_type)"/>
+  <xacro:firefighter/>
+  <joint name="base_to_arm_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="g_base"/>
+	<origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find mycobot_description)/config/mycobot_controllers.yaml</parameters>
+      <ros>
+        <xacro:if value="${'$(arg controller_type)' == 'ackermann_steering_controller'}">
+          <remapping>/ackermann_steering_controller/odometry:=/controller_odom</remapping>
+          <remapping>/ackermann_steering_controller/reference:=/cmd_vel_stamped</remapping>
+        </xacro:if>
+        <xacro:unless value="${'$(arg controller_type)' == 'ackermann_steering_controller'}">
+          <remapping>/diff_drive_controller/odom:=/controller_odom</remapping>
+          <remapping>/diff_drive_controller/cmd_vel:=/cmd_vel_stamped</remapping>
+        </xacro:unless>
+      </ros>
+    </plugin>
+  </gazebo>
+
+  
+    <xacro:include filename="$(find limo_description)/urdf/control/limo_mycobot_control.xacro.urdf" />
+    <xacro:limo_mycobot_ros2_control controller_type="$(arg controller_type)"/>
+</robot>

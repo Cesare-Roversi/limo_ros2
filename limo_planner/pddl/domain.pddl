@@ -44,7 +44,7 @@
       (at start (not (doing_nothing ?r)))
       (at end (doing_nothing ?r))
       (at end (arm_retracted ?r))
-      (at end (not(not_arm_retracted ?r)))
+      (at end (not (not_arm_retracted ?r)))
     )
   )
 
@@ -61,7 +61,7 @@
       (at start (not (doing_nothing ?r)))
       (at end (doing_nothing ?r))
       (at end (robot_at ?r ?wp2))
-      (at start (not (robot_at ?r ?wp1)))
+      (at end (not (robot_at ?r ?wp1)))
     )
   )
 

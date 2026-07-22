@@ -1,0 +1,180 @@
+
+
+#include <deque>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <iostream>
+
+#include "plansys2_problem_expert/ProblemExpertClient.hpp"
+#include "world_data_utils.hpp"
+#include "controller_functions.hpp"
+
+using namespace std;
+
+// ============================================================
+// check_if_connected_list
+// ------------------------------------------------------------
+// Itera su tutte le coppie ordinate (wp_i, wp_j) con i != j
+// della lista fornita. Per ogni coppia il cui predicato
+// (connected wp_i wp_j) non è ancora istanziato nella problem
+// expert, viene inserito un goal corrispondente nella coda.
+// ============================================================
+bool check_if_connected_list(
+    const std::vector<std::string> & waypoints,
+    std::deque<std::string> & goal_queue,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem_expert)
+{
+    bool added_at_least_one_goal = false;
+    for (size_t i = 0; i < waypoints.size(); ++i) {
+        for (size_t j = 0; j < waypoints.size(); ++j) {
+            if (i == j) {
+                continue;
+            }
+
+            const std::string & wp_a = waypoints[i];
+            const std::string & wp_b = waypoints[j];
+
+            std::string predicate_str = "(connected " + wp_a + " " + wp_b + ")";
+
+            bool already_connected = problem_expert->existPredicate(plansys2::Predicate(predicate_str));
+
+            if (!already_connected) {
+                std::string goal_str = "(and " + predicate_str + ")";
+                goal_queue.push_back(goal_str);
+
+                cout << "check_if_connected_list: aggiunto goal " << goal_str << endl;
+                added_at_least_one_goal = true;
+            }
+        }
+    }
+
+    cout << "ERRORE[check_if_connected_list]: tutte le connessioni specificate esistono già, NON verranno ricalcolate"<< endl;
+    return added_at_least_one_goal;
+}
+
+// ============================================================
+// Funzione di supporto interna: trova la waypoint attuale del
+// robot interrogando il predicato (robot_at ?robot ?wp).
+// Ritorna stringa vuota se non trovata.
+// ============================================================
+static std::string get_robot_current_waypoint(
+    const std::string & robot_name,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem_expert)
+{
+    auto predicates = problem_expert->getPredicates();
+
+    for (const auto & pred : predicates) {
+        std::string pred_str = parser::pddl::toString(pred);
+
+        if (pred_str.rfind("(robot_at " + robot_name + " ", 0) == 0) {
+            std::string trimmed = pred_str.substr(0, pred_str.size() - 1); // rimuovo ')'
+            size_t last_space = trimmed.find_last_of(' ');
+            return trimmed.substr(last_space + 1);
+        }
+    }
+
+    return "";
+}
+
+// ============================================================
+// plan_patrol
+// ------------------------------------------------------------
+//
+// 2. Interroga la knowledge base per la posizione attuale del
+//    robot (robot_at).
+// 3. Calcola l'ordine di visita con un semplice algoritmo
+//    greedy nearest-neighbor: parte dalla posizione attuale e,
+//    ad ogni passo, sceglie tra le waypoint non ancora visitate
+//    quella con distanza minore (letta con get_connection).
+// 4. Inserisce nella coda i goal (patrolled ?wp) nell'ordine
+//    trovato.
+//
+// get_connection lancia std::runtime_error se la connessione
+// richiesta non esiste: qui NON viene catturata, quindi in tal
+// caso plan_patrol fallisce e basta, propagando l'eccezione al
+// chiamante.
+// ============================================================
+bool plan_patrol(
+    const std::string & robot_name,
+    const std::vector<std::string> & waypoints,
+    std::deque<std::string> & goal_queue,
+    std::shared_ptr<plansys2::ProblemExpertClient> problem_expert)
+{
+  // 2. Posizione attuale del robot
+  std::string current_wp = get_robot_current_waypoint(robot_name, problem_expert);
+  if (current_wp.empty()) {
+    cout << "ERRORE[plan_patrol]: impossibile determinare la posizione attuale di "
+         << robot_name << " ANNULLO OPERAZIONE " << endl;
+    return false;
+  }
+
+  // Lista dei goal nell'ordine finale in cui verranno accodati
+  std::vector<std::string> order;
+
+  // Il waypoint attuale va comunque pattugliato: lo aggiungo subito,
+  // il robot non deve spostarsi per raggiungerlo.
+  bool current_wp_in_list = false;
+  for (const auto & wp : waypoints) {
+    if (wp == current_wp) {
+      current_wp_in_list = true;
+      break;
+    }
+  }
+  if (current_wp_in_list) {
+    order.push_back(current_wp);
+  }
+
+  // Waypoint ancora da visitare (tutti tranne quello attuale, che è già gestito sopra)
+  std::vector<std::string> to_visit;
+  for (const auto & wp : waypoints) {
+    if (wp != current_wp) {
+      to_visit.push_back(wp);
+    }
+  }
+
+  // 3. Greedy nearest-neighbor sui restanti waypoint
+  std::string from_wp = current_wp;
+  while (!to_visit.empty()) {
+    size_t best_index = 0;
+    float best_distance = -1.0f;
+    for (size_t i = 0; i < to_visit.size(); ++i) {
+      try {
+        Connection cn = get_connection(from_wp, to_visit[i]);
+        if (best_distance < 0.0f || cn.distance < best_distance) {
+          best_distance = cn.distance;
+          best_index = i;
+        }
+      } catch (const std::exception & e) {
+        std::cout << "ERRORE[plan_patrol]: " << e.what() << std::endl;
+        return false;
+      }
+    }
+    std::string next_wp = to_visit[best_index];
+    order.push_back(next_wp);
+    to_visit.erase(to_visit.begin() + best_index);
+    from_wp = next_wp;
+  }
+
+  // 4. Inserimento dei goal (patrolled ?wp) nell'ordine trovato
+  for (const auto & wp : order) {
+    std::string goal_str = "(and (patrolled " + wp + "))";
+    goal_queue.push_back(goal_str);
+    cout << "plan_patrol: aggiunto goal " << goal_str << endl;
+  }
+
+  return true;
+}
+
+
+
+
+void print_goal_queue(const std::deque<std::string> & goal_queue)
+{   
+    cout << "GOAL_QUEUE:" << endl;
+    for (const auto & goal : goal_queue) {
+        cout << goal << endl;
+    }
+    cout << "__GOAL_QUEUE:" << endl;
+}

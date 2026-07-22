@@ -10,6 +10,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+
 #include <sstream>
 #include <iomanip>
 #include <string>
@@ -127,7 +131,21 @@ void print_world_model(
 
 
 
+void print_pose_stamped(const geometry_msgs::msg::PoseStamped& msg){
+    std::cout << endl << "WAYPOINT:" << std::endl;
+    std::cout << "header.frame_id: " << msg.header.frame_id << std::endl;
+    std::cout << "header.stamp: " << msg.header.stamp.sec << "."
+                << msg.header.stamp.nanosec << std::endl;
 
+    std::cout << "position: (" << msg.pose.position.x << ", "
+                                << msg.pose.position.y << ", "
+                                << msg.pose.position.z << ")" << std::endl;
+
+    std::cout << "orientation: (" << msg.pose.orientation.x << ", "
+                                << msg.pose.orientation.y << ", "
+                                << msg.pose.orientation.z << ", "
+                                << msg.pose.orientation.w << ")" << endl << endl;
+}
 
 
 

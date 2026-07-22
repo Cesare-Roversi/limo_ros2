@@ -1,0 +1,324 @@
+<?xml version="1.0"?>
+<robot name="ackermann_drive" xmlns:xacro="http://ros.org/wiki/xacro">
+  
+
+  <!-- Variables -->
+  <xacro:property name="M_PI" value="3.14159"/>
+
+  <!-- Vehicle Geometries -->
+  <xacro:property name="base_x_size" value="0.13" /> 
+  <xacro:property name="base_y_size" value="0.12" />
+  <xacro:property name="base_z_size" value="0.10" />
+
+  <!-- 
+  ! questo file corrisponde al robot reale
+  wheelbase = distanza asse ruote anteriori e asse route posteriori
+  track = distanza tra 2 ruote dello stesso asse
+  wheel_lenght = spessore ruota
+  -->
+  <xacro:property name="wheelbase" value="0.2"/>
+  <xacro:property name="track" value="0.14"/>
+  <xacro:property name="wheel_vertical_offset" value="-0.100998" />
+  <xacro:property name="base_mass" value="2.1557"/>
+
+  <xacro:property name="wheel_length" value="0.045" />
+  <xacro:property name="wheel_radius" value="0.045" />
+
+  <xacro:arg name="d435_range_max_depth" default="5.0" />
+  <xacro:arg name="namespace" default="limo_ackermann" />
+
+
+
+
+  <link name="base_link"/>
+  
+  <!-- Chassis -->
+  <link name="chassis">
+      <visual>
+          <origin xyz="0 0 0.0" rpy="0 0 1.57" />
+          <geometry>
+              <!-- <mesh filename="model://limo_base.dae" scale="1 1 1"/> -->
+              <box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
+          </geometry>
+      </visual>
+      <collision>
+          <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+          <origin xyz="0 0 0.0" rpy="0 0 1.57" />
+        <geometry>
+            <box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${base_mass}" />
+        <inertia ixx="0.24" ixy="0" ixz="0" 
+                     iyy="0.96" iyz="0" 
+                     izz="0.96" />
+    </inertial>
+  </link>
+
+  <joint name="chassis_joint" type="fixed">
+    <origin xyz="0.0 0 0.0" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="chassis" />
+  </joint>
+
+
+
+  <!-- rear left wheel Link -->
+  <link name="rear_left_wheel">
+    <collision>
+      <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+      <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+      </geometry>
+    </collision>
+    <visual>
+      <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+      <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+      <geometry>
+          <!-- <mesh filename="model://limo_wheel.dae" /> -->
+
+          <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+      </geometry>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 0" />
+      <mass value="0.5" />
+      <inertia ixx="0.01055" ixy="0" ixz="0" iyy="0.00075" iyz="0" izz="0.01055" /> 
+    </inertial>
+  </link>
+
+  <joint name="rear_left_wheel_joint" type="continuous">
+    <origin xyz="${-wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+    <parent link="chassis" />
+    <child link="rear_left_wheel" />
+    <axis xyz="0 1 0" />
+    <!-- <dynamics damping="0.2" /> -->
+  </joint>
+
+  <!-- rear right wheel Link -->
+  <link name="rear_right_wheel">
+    <collision>
+        <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+      <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+      </geometry>
+    </collision>
+    <visual>
+        <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+        <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+        <geometry>
+            <!-- <mesh filename="model://limo_wheel.dae" /> -->
+            <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+        </geometry>
+    </visual>
+    <inertial>
+        <origin xyz="0 0 0" />
+        <mass value="0.5" />
+        <inertia ixx="0.01055" ixy="0" ixz="0" iyy="0.00075" iyz="0" izz="0.01055" /> 
+    </inertial>
+  </link>
+
+  <joint name="rear_right_wheel_joint" type="continuous">
+    <origin xyz="${-wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="${M_PI} 0 0" />
+    <parent link="chassis" />
+    <child link="rear_right_wheel" />
+    <axis xyz="0 -1 0" />
+    <!-- <dynamics damping="0.2" /> -->
+  </joint>
+
+  <!-- left steer Link -->
+  <link name="left_wheel_steering">
+    <inertial>
+      <mass value="0.25" />
+      <inertia ixx="0.00525" ixy="0" ixz="0" iyy="0.00035" iyz="0" izz="0.00525" />
+      <origin xyz="0 0 0" />
+
+    </inertial>
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder length="0.0001" radius="0.0001" />
+        </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+      <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius-0.01}" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="left_wheel_steering_joint" type="revolute">
+    <origin xyz="${wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+    <parent link="chassis" />
+    <child link="left_wheel_steering" />
+    <!-- <xacro:insert_block name="joint_pose"/> -->
+    <axis xyz="0 0 1" />
+    <dynamics damping="1.0" friction="2.0"/>
+    <limit lower="-0.523598767" upper="0.523598767" effort="5" velocity="0.5" />
+  </joint>
+
+  <!-- right steer Link -->
+  <link name="right_wheel_steering">
+    <inertial>
+      <mass value="0.25" />
+      <inertia ixx="0.00525" ixy="0" ixz="0" iyy="0.00035" iyz="0" izz="0.00525" />
+      <origin xyz="0 0 0" />
+
+    </inertial>
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder length="0.0001" radius="0.0001" />
+        </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+      <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius-0.01}" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="right_wheel_steering_joint" type="revolute">
+    <origin xyz="${wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="${M_PI} 0 0" />
+    <parent link="chassis" />
+    <child link="right_wheel_steering" />
+    <!-- <xacro:insert_block name="joint_pose"/> -->
+    <axis xyz="0 0 -1"/>
+    <dynamics damping="1.0" friction="2.0"/>
+    <limit lower="-0.523598767" upper="0.523598767" effort="5" velocity="0.5" />
+  </joint>
+
+  <!-- front left wheel Link -->
+  <link name="front_left_wheel">
+    <collision>
+      <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+      <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+      </geometry>
+    </collision>
+    <visual>
+        <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+        <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+        <geometry>
+            <!-- <mesh filename="file://$(find limo_description)/meshes/limo_wheel.dae" /> -->
+            <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+        </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.25" />
+      <inertia ixx="0.00525" ixy="0" ixz="0" iyy="0.00035" iyz="0" izz="0.00525" />
+      <origin xyz="0 0 0" />
+
+    </inertial>
+  </link>
+
+  <joint name="front_left_wheel_joint" type="continuous">
+    <origin xyz="0 0 0" rpy="0 0  0" />
+    <parent link="left_wheel_steering" />
+    <child link="front_left_wheel" />
+    <axis xyz="0 1 0" />
+    <!-- <dynamics damping="0.2" /> -->
+  </joint>
+
+  <!-- front right wheel Link -->
+  <link name="front_right_wheel">
+    <collision>
+      <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+      <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+      </geometry>
+    </collision>
+    <visual>
+        <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
+        <origin xyz="0 ${wheel_length/2} 0" rpy="1.57 0 0" />
+        <geometry>
+            <!-- <mesh filename="file://$(find limo_description)/meshes/limo_wheel.dae" /> -->
+            <cylinder length="${wheel_length}" radius="${wheel_radius}" />
+        </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.25" />
+      <inertia ixx="0.00525" ixy="0" ixz="0" iyy="0.00035" iyz="0" izz="0.00525" />
+      <origin xyz="0 0 0" />
+    </inertial>
+  </link>
+
+  <joint name="front_right_wheel_joint" type="continuous">
+    <origin xyz="0 0 0" rpy="0 0  0" />
+    <parent link="right_wheel_steering" />
+    <child link="front_right_wheel" />
+    <axis xyz="0 -1 0"/>
+    <!-- <dynamics damping="0.2" /> -->
+  </joint>
+
+
+  <!-- ! HARDWARE CONFIG FOR THE CAR PART -->
+  <ros2_control name="GazeboSimSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <joint name="rear_left_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="velocity" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="rear_right_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="velocity" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="left_wheel_steering_joint">
+      <command_interface name="position" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="right_wheel_steering_joint">
+      <command_interface name="position" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="front_left_wheel_joint">
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="front_right_wheel_joint">
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+  </ros2_control>
+
+
+  <!-- ! ALL GAZEBO PLUGINS -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find limo_car)/config/ackermann_drive_controller.yaml</parameters>
+    </plugin>
+
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>joint_states</topic>
+    </plugin>
+
+    <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+      <publish_link_pose>true</publish_link_pose>
+      <publish_sensor_pose>true</publish_sensor_pose>
+      <publish_model_pose>false</publish_model_pose>
+      <use_pose_vector_msg>true</use_pose_vector_msg>
+    </plugin>
+
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors"/>
+  </gazebo>
+
+
+  <!-- ! ALL SENSORS -->
+  <xacro:include filename="$(find limo_description)/urdf/sensors/lidar.xacro.urdf"/>
+  <xacro:include filename="$(find limo_description)/urdf/sensors/imu.xacro.urdf"/>
+  <xacro:include filename="$(find limo_description)/urdf/sensors/cameras.xacro.urdf"/>
+
+  <!-- ! ROBOT ARM -->
+  <!-- metti qui !!!! -->
+
+</robot>

@@ -35,8 +35,9 @@ public:
 struct Connection {
     float distance;
     float costmap_estimate;
+    geometry_msgs::msg::PoseStamped approach_wp;
 
     Connection() = default;
-    Connection(float distance, float costmap_estimate)
-        : distance(distance), costmap_estimate(costmap_estimate) {}
+    Connection(float distance, float costmap_estimate, const geometry_msgs::msg::PoseStamped & approach_wp)
+        : distance(distance), costmap_estimate(costmap_estimate), approach_wp(approach_wp) {}
 };

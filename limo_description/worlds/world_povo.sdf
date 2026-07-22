@@ -17,63 +17,358 @@
       <background>0.699999988 0.699999988 0.699999988 1</background>
       <shadows>true</shadows>
     </scene>
-    <model name='ground_plane'>
-      <static>true</static>
-      <link name='link'>
-        <collision name='collision'>
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <surface>
-            <friction>
-              <ode/>
-            </friction>
-            <bounce/>
-            <contact/>
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <material>
-            <ambient>0.800000012 0.800000012 0.800000012 1</ambient>
-            <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
-            <specular>0.800000012 0.800000012 0.800000012 1</specular>
-          </material>
-        </visual>
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-        </inertial>
-        <enable_wind>false</enable_wind>
-      </link>
-      <pose>0 0 0 0 0 0</pose>
-      <self_collide>false</self_collide>
-    </model>
+
+
+    <!-- Vai a prendere le impostazioni di default da: ~/.gz/sim/8/gui.config -->
+    
+    <gui fullscreen='false'>
+
+      <window>
+        <position_x>-1</position_x>
+        <position_y>-1</position_y>
+        <state/>
+        <width>1000</width>
+        <height>845</height>
+        <style material_theme='Light' material_primary='#ff5722' material_accent='#03a9f4'
+              toolbar_color_light='#f3f3f3' toolbar_text_color_light='#111111'
+              toolbar_color_dark='#414141' toolbar_text_color_dark='#f3f3f3'
+              plugin_toolbar_color_light='' plugin_toolbar_text_color_light=''
+              plugin_toolbar_color_dark='' plugin_toolbar_text_color_dark=''/>
+        <menus>
+          <drawer visible='true' default='false'/>
+          <plugins visible='true' from_paths='true'/>
+        </menus>
+      </window>
+
+      <plugin filename='MinimalScene' name='3D View'>
+        <gz-gui>
+          <title>3D View</title>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>581</property>
+          <property key='height' type='double'>797</property>
+          <property key='opacity' type='double'>1</property>
+          <property key='enabled' type='bool'>true</property>
+          <property key='visible' type='bool'>true</property>
+          <property key='state' type='string'>docked</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>true</property>
+          <property key='standalone' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <!-- ONLY this line changed from the original gui.config -->
+        <camera_pose>109.98 27.59 150 0 1.5708 0</camera_pose>
+      </plugin>
+
+      <plugin filename='EntityContextMenuPlugin' name='Entity context menu'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>true</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='GzSceneManager' name='Scene Manager'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='InteractiveViewControl' name='Interactive view control'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='CameraTracking' name='Camera Tracking'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='MarkerManager' name='Marker manager'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='SelectEntities' name='Select Entities'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='Spawn' name='Spawn Entities'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='VisualizationCapabilities' name='Visualization Capabilities'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='WorldControl' name='World control'>
+        <gz-gui>
+          <title>World control</title>
+          <anchors target='3D View'>
+            <line own='left' target='left'/>
+            <line own='bottom' target='bottom'/>
+          </anchors>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>725</property>
+          <property key='z' type='double'>1</property>
+          <property key='width' type='double'>1199</property>
+          <property key='height' type='double'>72</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <use_event>true</use_event>
+      </plugin>
+
+      <plugin filename='WorldStats' name='World stats'>
+        <gz-gui>
+          <title>World stats</title>
+          <anchors target='3D View'>
+            <line own='right' target='right'/>
+            <line own='bottom' target='bottom'/>
+          </anchors>
+          <property key='x' type='double'>291</property>
+          <property key='y' type='double'>687</property>
+          <property key='z' type='double'>1</property>
+          <property key='width' type='double'>290</property>
+          <property key='height' type='double'>110</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+
+      <plugin filename='Shapes' name='Shapes'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>300</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#666666</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='Lights' name='Lights'>
+        <gz-gui>
+          <property key='x' type='double'>300</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>150</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#666666</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='TransformControl' name='Transform control'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>50</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>250</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#777777</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='Screenshot' name='Screenshot'>
+        <gz-gui>
+          <property key='x' type='double'>250</property>
+          <property key='y' type='double'>50</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>50</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#777777</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='CopyPaste' name='CopyPaste'>
+        <gz-gui>
+          <property key='x' type='double'>300</property>
+          <property key='y' type='double'>50</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>100</property>
+          <property key='height' type='double'>50</property>
+          <property key='state' type='string'>floating</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>false</property>
+          <property key='cardBackground' type='string'>#777777</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='ComponentInspector' name='Component inspector'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>400</property>
+          <property key='height' type='double'>375</property>
+          <property key='state' type='string'>docked</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>true</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename='EntityTree' name='Entity tree'>
+        <gz-gui>
+          <property key='x' type='double'>0</property>
+          <property key='y' type='double'>0</property>
+          <property key='z' type='double'>0</property>
+          <property key='width' type='double'>400</property>
+          <property key='height' type='double'>421</property>
+          <property key='state' type='string'>docked</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='resizable' type='bool'>true</property>
+          <property key='cardBackground' type='string'>#00000000</property>
+          <property key='pluginToolBarColor' type='string'>#bbdefb</property>
+          <property key='pluginToolBarTextColor' type='string'>#111111</property>
+        </gz-gui>
+      </plugin>
+
+      <dialog name='quick_start' show_again='true'/>
+
+    </gui>
+
     <include>
       <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources</uri>
       <name>Povo</name>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>109.9974940 27.50200376 -0.20000000000000001 0 0 -1.5707963267948966</pose>
     </include>
     <light name='sun' type='directional'>
       <pose>0 0 10 0 0 0</pose>
-      <cast_shadows>true</cast_shadows>
+      <cast_shadows>false</cast_shadows>
       <intensity>1</intensity>
       <direction>-0.5 0.10000000000000001 -0.90000000000000002</direction>
       <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>

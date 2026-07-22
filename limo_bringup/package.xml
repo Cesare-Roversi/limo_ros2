@@ -2,30 +2,26 @@
 <package format="3">
   <name>limo_bringup</name>
   <version>0.0.0</version>
-  <description>The limo_bringup package</description>
-
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="qie@todo.todo">qie</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Bringup launch e configurazione per il robot LIMO (Nav2 + SLAM Toolbox)</description>
+  <maintainer email="hansolo@notarealadress.com">hansolo</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>rclcpp</depend>
-  <depend>std_msgs</depend>
-  <depend>nav_msgs</depend>
-  <depend>geometry_msgs</depend>
-  <depend>sensor_msgs</depend>
-  <depend>limo_msgs</depend>
-  <depend>tf2</depend>
-  <depend>tf2_ros</depend>
+  <depend>ament_index_python</depend> 
+  <depend>launch</depend> 
+  <depend>launch_ros</depend>
+  <depend>nav2_bringup</depend>
+  <depend>rviz2</depend>
+  <depend>slam_toolbox</depend>
+  <depend>twist_stamper</depend>
 
-  <exec_depend>teleop_twist_keyboard</exec_depend>
+  <depend>limo_description</depend>
+  <depend>limo_car</depend>
 
-
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
+  <!-- Plugin Nav2, ricordati di aggiungerli! -->
+  <depend>nav2_smac_planner</depend>
+  <depend>nav2_regulated_pure_pursuit_controller</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

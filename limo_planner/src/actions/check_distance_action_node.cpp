@@ -27,6 +27,10 @@ using namespace std;
 // statici sulla global_costmap (arbitrario, come da richiesta).
 static constexpr int kCostmapSamples = 10;
 
+// Distanza (in metri, misurata lungo il path) a cui posizionare approach_wp
+// rispetto al waypoint di destinazione (arbitraria, come da richiesta).
+static constexpr double kApproachDistance = 0.5;
+
 class CheckDistanceAction : public plansys2::ActionExecutorClient
 {
 public:
@@ -35,49 +39,19 @@ public:
     // perché questa azione NON naviga: si limita a CALCOLARE il path tra 2 waypoint.
   }
 
-  void print_pose_stamped(const geometry_msgs::msg::PoseStamped& msg){
-    std::cout << endl << "WAYPOINT:" << std::endl;
-    std::cout << "header.frame_id: " << msg.header.frame_id << std::endl;
-    std::cout << "header.stamp: " << msg.header.stamp.sec << "."
-              << msg.header.stamp.nanosec << std::endl;
-
-    std::cout << "position: (" << msg.pose.position.x << ", "
-                              << msg.pose.position.y << ", "
-                              << msg.pose.position.z << ")" << std::endl;
-
-    std::cout << "orientation: (" << msg.pose.orientation.x << ", "
-                                << msg.pose.orientation.y << ", "
-                                << msg.pose.orientation.z << ", "
-                                << msg.pose.orientation.w << ")" << endl << endl;
-  }
-
 
   void init_knowledge(){
-    // std::string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
-    // waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
-    // objects_filepath_ = pkg_share + "/config/objects.yaml";
-    // robots_filepath_ = pkg_share + "/config/robots.yaml";
-    // connections_filepath_ = pkg_share + "/config/connections.yaml";
-
-    waypoints_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/waypoints.yaml";
-    connections_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/connections.yaml"; //!HARDCODA DA UN ALTRA PARTE!!!!!
-
-    cout << "RIGA: 1" << endl;
-
-    cout << "connections_filepath_:  " << connections_filepath_ << endl;
 
     clear_all_map();
-    cout << "RIGA: 2" << endl;
     load_waypoints_from_yaml();
-    cout << "RIGA: 3" << endl;
     load_connections_from_yaml();
-    cout << "RIGA: 4" << endl;
+    cout << "CIAO1" << endl;
+    print_connections();
 
     // I 2 waypoint arrivano come parametri dell'azione PDDL: (?wp1 ?wp2)
     wp1_name_ = get_arguments()[0];
     wp2_name_ = get_arguments()[1];
 
-    cout << "RIGA: 5" << endl;
     RCLCPP_INFO(get_logger(), "Checking distance between [%s] and [%s]", wp1_name_.c_str(), wp2_name_.c_str());
 
     start_pos_ = get_waypoint(wp1_name_);
@@ -92,8 +66,19 @@ public:
     init_knowledge();
     send_feedback(0.0, "Check_distance starting");
 
-    // Sottoscrizione alla global_costmap: ci serve per stimare la vicinanza a
-    // ostacoli statici campionando N punti lungo il path calcolato.
+    //todo controllo se la connessione è già stata calcolata:    
+    
+    try {
+      cout << "IN: CONNECTIONS:" << endl;
+      print_connections();
+
+      Connection connection = get_connection(wp1_name_, wp2_name_);
+      connection_was_already_present_ = true;
+      return ActionExecutorClient::on_activate(previous_state);
+    } catch (const std::runtime_error &) {
+      connection_was_already_present_ = false;
+    }
+
     // QoS transient_local perché costmap è tipicamente pubblicata cosi da Nav2.
     rclcpp::QoS costmap_qos(1);
     costmap_qos.transient_local();
@@ -141,16 +126,12 @@ public:
       }
     };
 
-    // ComputePathToPose non ha un feedback definito (nessun campo), quindi non serve
-    // registrare una feedback_callback qui (a differenza di MoveAction).
 
     struct_callbacks_goal_options.result_callback = [this](const ComputePathGoalHandle::WrappedResult & result) {
       switch (result.code) {
           case rclcpp_action::ResultCode::SUCCEEDED:
           {
-            // result.result è un ComputePathToPose::Result, che (in Humble) contiene:
-            //   nav_msgs/Path path                     -> la sequenza di pose calcolata
-            //   builtin_interfaces/Duration planning_time -> tempo impiegato dal planner
+            
             computed_path_ = result.result->path;
             planning_time_ = result.result->planning_time;
 
@@ -167,20 +148,18 @@ public:
                         planning_time_.sec,
                         planning_time_.nanosec);
 
-            // --- Calcolo distanza e stima costmap, poi salvataggio in connections.yaml ---
+            // --- Calcolo distanza, stima costmap e approach_wp, poi salvataggio in connections.yaml ---
             double path_distance = compute_path_length(computed_path_);
             double costmap_estimate = sample_costmap_along_path(computed_path_, kCostmapSamples);
+            geometry_msgs::msg::PoseStamped approach_wp = compute_approach_waypoint(computed_path_, kApproachDistance);
 
-            RCLCPP_INFO(get_logger(), "distance=%.3f m, costmap_estimate=%.3f (avg cost over %d samples)",
-                        path_distance, costmap_estimate, kCostmapSamples);
+            RCLCPP_INFO(get_logger(), "distance=%.3f m, costmap_estimate=%.3f (avg cost over %d samples), approach_wp=(%.3f, %.3f)",
+                        path_distance, costmap_estimate, kCostmapSamples,
+                        approach_wp.pose.position.x, approach_wp.pose.position.y);
 
-            // affect_plansys2_kb=false: l'effetto (connected ?wp1 ?wp2) viene già
-            // applicato automaticamente da PlanSys2 tramite finish(true, ...) qui
-            // sotto, dato che è l'effetto dichiarato dell'azione PDDL. Aggiungerlo
-            // anche qui a mano sarebbe ridondante (e servirebbe un
-            // problem_expert_client_ che questo nodo non ha).
+            
             add_connection(wp1_name_, wp2_name_, path_distance, costmap_estimate,
-                            false, nullptr);
+                            approach_wp, false, nullptr);
 
             // Azione PDDL riuscita: l'effetto (connected ?wp1 ?wp2) verrà applicato da PlanSys2
             finish(true, 1.0, "Check_distance completed: waypoints are connected");
@@ -204,8 +183,14 @@ public:
 private:
   void do_work(){
     RCLCPP_INFO(get_logger(), "PROVA do_work (check_distance)");
+    if(connection_was_already_present_){
+      finish(true, 1.0, "connection was already present in yaml file");
+    }
   }
 
+
+
+  //! SOLO FUNZIONI DI SUPPORTO QUI AVANTI:
   // Somma delle distanze euclidee 2D tra pose consecutive del path.
   double compute_path_length(const nav_msgs::msg::Path & path){
     double length = 0.0;
@@ -265,6 +250,92 @@ private:
     return (valid_samples > 0) ? (sum_cost / valid_samples) : -1.0;
   }
 
+  
+  // Trova il punto sul path la cui distanza IN LINEA D'ARIA dal waypoint di
+// destinazione (ultima posa del path) è pari a 'approach_distance', tale
+// punto deve inoltre giacere su un segmento del path.
+//
+// Si procede a ritroso dal goal: per ogni segmento [prev, curr] (curr più
+// vicino al goal di prev) si controlla se la circonferenza di raggio
+// approach_distance centrata sul goal interseca il segmento, cioè se curr è
+// dentro il raggio e prev è fuori (o sopra). In tal caso si risolve
+// l'intersezione segmento-cerchio e si usa quel punto. Lo yaw è la direzione
+// di marcia del segmento (prev -> curr, cioè verso il goal).
+// Se l'intero path resta dentro il raggio (mai un'intersezione), si usa la
+// prima posa del path come fallback.
+geometry_msgs::msg::PoseStamped compute_approach_waypoint(const nav_msgs::msg::Path & path, double approach_distance){
+
+  geometry_msgs::msg::PoseStamped approach_wp;
+  approach_wp.header.frame_id = "map";
+
+  if (path.poses.empty()) {
+    return approach_wp;
+  }
+  if (path.poses.size() == 1) {
+    approach_wp = path.poses[0];
+    return approach_wp;
+  }
+
+  const auto & goal = path.poses.back().pose.position;
+
+  for (size_t i = path.poses.size() - 1; i > 0; --i) {
+    const auto & curr = path.poses[i].pose.position;      // più vicino al goal
+    const auto & prev = path.poses[i - 1].pose.position;  // più lontano dal goal
+
+    double dx = curr.x - prev.x;
+    double dy = curr.y - prev.y;
+    double yaw = std::atan2(dy, dx);  // direzione di marcia prev -> curr (verso il goal)
+
+    double dist_curr = std::hypot(curr.x - goal.x, curr.y - goal.y);
+    double dist_prev = std::hypot(prev.x - goal.x, prev.y - goal.y);
+
+    // Il segmento contiene un punto a distanza 'approach_distance' dal goal
+    // solo se un estremo è dentro il raggio e l'altro fuori (o esattamente sopra).
+    if (dist_curr <= approach_distance && dist_prev >= approach_distance) {
+      // Intersezione segmento-cerchio: parametrizzo il segmento come
+      // P(t) = prev + t * (curr - prev), t in [0, 1], e risolvo
+      // |P(t) - goal| = approach_distance.
+      double fx = prev.x - goal.x;
+      double fy = prev.y - goal.y;
+
+      double a = dx * dx + dy * dy;
+      double b = 2.0 * (fx * dx + fy * dy);
+      double c = fx * fx + fy * fy - approach_distance * approach_distance;
+
+      double t = 0.0;
+      if (a > 1e-9) {
+        double discriminant = b * b - 4.0 * a * c;
+        discriminant = std::max(0.0, discriminant);  // clamp per sicurezza numerica
+        double sqrt_disc = std::sqrt(discriminant);
+        // Prendo la radice più vicina a curr (t più grande), cioè quella nel
+        // verso "andando dal prev verso il goal" più prossima alla fine del segmento.
+        double t1 = (-b + sqrt_disc) / (2.0 * a);
+        double t2 = (-b - sqrt_disc) / (2.0 * a);
+        t = std::max(t1, t2);
+        t = std::clamp(t, 0.0, 1.0);
+      }
+
+      approach_wp.pose.position.x = prev.x + t * dx;
+      approach_wp.pose.position.y = prev.y + t * dy;
+      approach_wp.pose.position.z = 0.0;
+
+      approach_wp.pose.orientation.x = 0.0;
+      approach_wp.pose.orientation.y = 0.0;
+      approach_wp.pose.orientation.z = std::sin(yaw / 2.0);
+      approach_wp.pose.orientation.w = std::cos(yaw / 2.0);
+
+      return approach_wp;
+    }
+  }
+
+  // Nessun segmento interseca il raggio (l'intero path resta entro
+  // approach_distance dal goal): fallback sulla prima posa del path.
+  approach_wp = path.poses.front();
+  return approach_wp;
+}
+
+  
+
   using ComputePathGoalHandle = rclcpp_action::ClientGoalHandle<nav2_msgs::action::ComputePathToPose>;
 
   // WAYPOINTS coinvolti nel check
@@ -285,6 +356,8 @@ private:
   // Costmap globale, usata solo per il sampling: non persistita, solo in RAM.
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr costmap_sub_;
   nav_msgs::msg::OccupancyGrid::SharedPtr latest_costmap_;
+
+  bool connection_was_already_present_;
 };
 
 

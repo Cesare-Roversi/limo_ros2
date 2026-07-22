@@ -19,7 +19,7 @@ def generate_launch_description():
 
     #Materiale per moveit2
     urdf_absolute_path = os.path.join(
-        share_limo_description, "urdf", "limo_ackermann_mycobot.xacro.urdf"
+        share_limo_description, "urdf", "limo_mycobot.xacro.urdf"
     )
     moveit_config = (
         MoveItConfigsBuilder("custom_robot", package_name="mycobot_280_moveit2")
@@ -132,10 +132,6 @@ def generate_launch_description():
         put_down_object_action_node,
         retract_arm_action_node,
         check_distance_action_node,
-        # move_with_object_cmd_node,
-        # pick_cmd_node,
-        # unload_cmd_node,
-        # arm_move_cmd_node,
-        controller_node
+        # controller_node
     ])
 
