@@ -44,7 +44,7 @@
       (at start (not (doing_nothing ?r)))
       (at end (doing_nothing ?r))
       (at end (arm_retracted ?r))
-      (at end (not(not_arm_retracted ?r)))
+      (at end (not (not_arm_retracted ?r)))
     )
   )
 

@@ -301,5 +301,5 @@
   <xacro:include filename="$(find limo_description)/urdf/sensors/lidar.xacro.urdf"/>
   <xacro:include filename="$(find limo_description)/urdf/sensors/imu.xacro.urdf"/>
   <xacro:include filename="$(find limo_description)/urdf/sensors/cameras.xacro.urdf"/>
-
+</xacro:macro>
 </robot>
