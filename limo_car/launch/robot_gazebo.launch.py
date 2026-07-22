@@ -20,7 +20,8 @@ from launch.conditions import IfCondition
 from launch.actions import SetEnvironmentVariable
 from launch.actions import LogInfo
 
-
+from launch.actions import AppendEnvironmentVariable
+from moveit_configs_utils import MoveItConfigsBuilder
 
 def generate_launch_description():
 
@@ -94,6 +95,17 @@ def generate_launch_description():
         }.items(),
     )
 
+    set_gazebo_resource_path = SetEnvironmentVariable(
+        name='GAZEBO_RESOURCE_PATH',
+        value=share_limo_description
+    )
+
+    #aggiungo la path per il mycobot
+    mycobot_description_path = get_package_share_directory('mycobot_description')
+    set_gz_resource_path = AppendEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=[mycobot_description_path + '/../']
+    )
     
     spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=['-topic', 'robot_description', '-entity', 'mbot',
@@ -114,6 +126,34 @@ def generate_launch_description():
     )
     delayed_joint_state_broadcaster_spawner = TimerAction(period=jsb_delay_val, actions=[joint_state_broadcaster_spawner])
 
+
+
+    #Materiale per moveit2 e controller del braccio:
+    urdf_absolute_path = os.path.join(
+        share_limo_description, "urdf", "limo_mycobot.xacro.urdf"
+    )
+    moveit_config = (
+        MoveItConfigsBuilder("custom_robot", package_name="mycobot_280_moveit2")
+        .robot_description(file_path=urdf_absolute_path)
+        .robot_description_semantic(file_path="config/firefighter.srdf")
+        .trajectory_execution(file_path="config/moveit_controllers.yaml")
+        .planning_pipelines(
+            pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"]
+        )
+        .to_moveit_configs()
+    )
+    arm_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arm_group_controller", "--controller-manager", "/controller_manager"],
+        output="screen",
+    )
+    gripper_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_action_controller", "--controller-manager", "/controller_manager"],
+        output="screen",
+    )
     
     # Se può lanciare il bridge in una nuova finestra di terminale lo fa:
     has_desktop_environment = os.environ.get('XDG_CURRENT_DESKTOP', 'NONE') != 'NONE'
@@ -143,8 +183,17 @@ def generate_launch_description():
         condition=IfCondition(start_rviz_gazebo)
     )
 
+    move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[moveit_config.to_dict(), {'use_sim_time': use_sim_time}],
+        arguments=['--ros-args', '--disable-stdout-logs'],
+    )
+
 
     return LaunchDescription([
+        set_gz_resource_path,
         declare_use_sim_time,
         declare_world_path,
         declare_spawn_x,
@@ -159,6 +208,7 @@ def generate_launch_description():
         gz_sim_launch,
         spawn_entity,
         robot_localization_node,
+        move_group_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
@@ -171,7 +221,18 @@ def generate_launch_description():
                 on_exit=[robot_controller_spawner],
             )
         ),
-
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[arm_controller_spawner],
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[gripper_controller_spawner],
+            )
+        ),
         TimerAction(period=bridge_rviz_delay_val, actions=[ros_gz_bridge, rviz_node]),
 
         LogInfo(msg=['[DEBUG] start_rviz_gazebo value: ', start_rviz_gazebo])

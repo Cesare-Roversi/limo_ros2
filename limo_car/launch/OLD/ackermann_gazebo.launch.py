@@ -121,7 +121,7 @@ def generate_launch_description():
 
     #Materiale per moveit2 e controller del braccio:
     urdf_absolute_path = os.path.join(
-        share_limo_description, "urdf", "limo_ackermann_mycobot.xacro.urdf"
+        share_limo_description, "urdf", "limo_mycobot.xacro.urdf"
     )
     moveit_config = (
         MoveItConfigsBuilder("custom_robot", package_name="mycobot_280_moveit2")
