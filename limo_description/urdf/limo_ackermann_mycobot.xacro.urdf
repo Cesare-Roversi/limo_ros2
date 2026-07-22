@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot_combinato">
+
+  <xacro:include filename="$(find limo_description)/urdf/limo_ackermann.xacro.urdf" />	
+  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_280_pi_adaptive_gripper.urdf" />
+
+  <xacro:ackermann_drive/>
+  <xacro:firefighter/>
+  <joint name="base_to_arm_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="g_base"/>
+	<origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find mycobot_description)/config/mycobot_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+   <ros2_control name="MycobotSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <joint name="joint2_to_joint1">
+        <command_interface name="position">
+            <param name="min">-2.879793</param>
+            <param name="max">2.879793</param>
+        </command_interface>
+        <state_interface name="position">
+            <!--<param name="initial_value">${initial_positions['joint2_to_joint1']}</param>-->
+        </state_interface>
+        <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint3_to_joint2">
+        <command_interface name="position">
+            <param name="min">-2.879793</param>
+            <param name="max">2.879793</param>
+        </command_interface>
+        <state_interface name="position">
+        </state_interface>
+        <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint4_to_joint3">
+        <command_interface name="position">
+            <param name="min">-2.879793</param>
+            <param name="max">2.879793</param>
+        </command_interface>
+        <state_interface name="position">
+        </state_interface>
+        <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint5_to_joint4">
+        <command_interface name="position">
+            <param name="min">-2.879793</param>
+            <param name="max">2.879793</param>
+        </command_interface>
+        <state_interface name="position">
+        </state_interface>
+        <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint6_to_joint5">
+        <command_interface name="position">
+            <param name="min">-2.879793</param>
+            <param name="max">2.879793</param>
+        </command_interface>
+        <state_interface name="position">
+        </state_interface>
+        <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint6output_to_joint6">
+        <command_interface name="position">
+            <param name="min">-3.054326</param>
+            <param name="max">3.054326</param>
+        </command_interface>
+        <state_interface name="position">
+        </state_interface>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_controller">
+        <command_interface name="position">
+            <param name="min">-0.7</param>
+            <param name="max">0.15</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_base_to_gripper_left2">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_left3_to_gripper_left1">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">-1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_base_to_gripper_right3">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">-1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_base_to_gripper_right2">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="gripper_right3_to_gripper_right1">
+        <param name="mimic">gripper_controller</param>
+        <param name="multiplier">1.0</param>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="rear_left_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="velocity" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="rear_right_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="velocity" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="left_wheel_steering_joint">
+      <command_interface name="position" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="right_wheel_steering_joint">
+      <command_interface name="position" />
+      <state_interface name="position" />
+    </joint>
+    <joint name="front_left_wheel_joint">
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="front_right_wheel_joint">
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+  </ros2_control>
+</robot>

@@ -22,6 +22,15 @@ find_package(cv_bridge REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(OpenCV REQUIRED)
 
+#Verify#
+find_package(rclcpp_lifecycle REQUIRED)
+find_package(lifecycle_msgs REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(control_msgs REQUIRED)
+#-----#
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -35,6 +44,15 @@ set(dependencies
     plansys2_planner
     plansys2_problem_expert
     plansys2_pddl_parser
+  #Verify#
+    rclcpp_lifecycle
+    lifecycle_msgs
+    moveit_ros_planning_interface
+    geometry_msgs
+    tf2
+    tf2_geometry_msgs
+    control_msgs
+  #-----#
 )
 
 # LIBRERIA:
@@ -48,6 +66,7 @@ add_library(limo_utils
     src/utils/utils_objects.cpp
     src/utils/utils_robots.cpp
     src/utils/utils_waypoints.cpp
+    src/utils/arm_world_data_utils.cpp
 )
 ament_target_dependencies(limo_utils ${dependencies})
 target_include_directories(limo_utils PUBLIC include)

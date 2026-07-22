@@ -6,6 +6,7 @@
     robot
     object
     waypoint
+    arm_position
     charging_station
   )
 
@@ -13,10 +14,12 @@
     (robot_at     ?r  - robot   ?wp  - waypoint)
     (arm_free     ?r  - robot)
     (arm_retracted ?r - robot)
+    (not_arm_retracted ?r - robot)
+    (arm_at ?r - robot ?p - arm_position)
     (picked_up_obj ?r - robot   ?o   - object)
     (not_battery_low  ?r  - robot)
     (doing_nothing ?r - robot)
-
+    (object_at_arm_position    ?o  - object  ?p  - arm_position)
     (object_at    ?o  - object  ?wp  - waypoint)
     (connected   ?wp1 - waypoint ?wp2 - waypoint)
     (patrolled ?wp - waypoint)
@@ -41,6 +44,7 @@
       (at start (not (doing_nothing ?r)))
       (at end (doing_nothing ?r))
       (at end (arm_retracted ?r))
+      (at end (not(not_arm_retracted ?r)))
     )
   )
 
@@ -61,37 +65,37 @@
     )
   )
 
-  ; at end (not (robot_at ?r ?wp1)) INVECE CHE: at start
-
   (:durative-action pickup_obj
-    :parameters (?r - robot ?o - object ?wp - waypoint)
+    :parameters (?r - robot ?o - object ?wp - waypoint ?p - arm_position)
     :duration (= ?duration 1)
     :condition (and
+      (at start (not_arm_retracted ?r))
       (at start (doing_nothing ?r))
       (at start (robot_at ?r ?wp))
       (at start (object_at ?o ?wp))
+      (at start (object_at_arm_position ?o ?p))
+      (at start (arm_at ?r ?p))
       (at start (arm_free ?r))
-      (at start (arm_retracted ?r))
       (at start (not_battery_low ?r))
     )
     :effect (and
       (at start (not (doing_nothing ?r)))
       (at end (doing_nothing ?r))
       (at end (picked_up_obj ?r ?o))
-      (at start (not (arm_free ?r)))
-      (at start (not (arm_retracted ?r)))
+      (at end (not (arm_free ?r)))
       (at start (not (object_at ?o ?wp)))
     )
   )
 
   (:durative-action put_down_object
-    :parameters (?r - robot ?o - object ?wp - waypoint)
+    :parameters (?r - robot ?o - object ?wp - waypoint ?p - arm_position)
     :duration (= ?duration 1)
     :condition (and
+      (at start (not_arm_retracted ?r))
       (at start (doing_nothing ?r))
       (at start (robot_at ?r ?wp))
       (at start (picked_up_obj ?r ?o))
-      (at start (arm_retracted ?r))
+      (at start (arm_at ?r ?p))
       (at start (not_battery_low ?r))
     )
     :effect (and
@@ -100,21 +104,24 @@
       (at start (not (picked_up_obj ?r ?o)))
       (at end (arm_free ?r))
       (at end (object_at ?o ?wp))
-      (at start (not (arm_retracted ?r)))
+      (at end (object_at_arm_position ?o ?p))
     )
   )
 
   (:durative-action move_arm
-    :parameters (?r - robot)
+    :parameters (?r - robot ?p - arm_position)
     :duration (= ?duration 1)
     :condition (and
       (at start (doing_nothing ?r))
       (at start (not_battery_low ?r))
+      (at start (arm_retracted ?r))
     )
     :effect (and
       (at start (not (doing_nothing ?r)))
       (at end (doing_nothing ?r))
-      (at start (not (arm_retracted ?r)))
+      (at end (arm_at ?r ?p))
+      (at end (not (arm_retracted ?r)))
+      (at end (not_arm_retracted ?r))
     )
   )
 

@@ -19,6 +19,8 @@ from launch.actions import TimerAction
 from launch.conditions import IfCondition
 from launch.actions import SetEnvironmentVariable
 
+from launch.actions import AppendEnvironmentVariable
+from moveit_configs_utils import MoveItConfigsBuilder
 #! è molto simile a ackermann_gazebo.launch.py, questo sarà in nostro principale
 
 
@@ -54,7 +56,7 @@ def generate_launch_description():
     declare_spawn_y = DeclareLaunchArgument('spawn_y', default_value='32.0')
     declare_spawn_z = DeclareLaunchArgument('spawn_z', default_value='0.6')
     declare_spawn_yaw = DeclareLaunchArgument('spawn_yaw', default_value='0.0')
-    declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='false')
+    declare_start_rviz = DeclareLaunchArgument('start_rviz', default_value='true')
     declare_rviz_config = DeclareLaunchArgument('rviz_config', default_value=os.path.join(share_limo_car, 'config', 'limo_visual.rviz'))
     declare_jsb_delay = DeclareLaunchArgument('jsb_delay', default_value='20.0')
     declare_bridge_rviz_delay = DeclareLaunchArgument('bridge_rviz_delay', default_value='10.0')
@@ -86,7 +88,18 @@ def generate_launch_description():
         }.items(),
     )
 
-    
+    set_gazebo_resource_path = SetEnvironmentVariable(
+        name='GAZEBO_RESOURCE_PATH',
+        value=share_limo_description
+    )
+
+    #aggiungo la path per il mycobot
+    mycobot_description_path = get_package_share_directory('mycobot_description')
+    set_gz_resource_path = AppendEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=[mycobot_description_path + '/../']
+    )
+
     #! mbot, come sa' cos è???
     spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=['-topic', 'robot_description', '-entity', 'mbot',
@@ -105,6 +118,33 @@ def generate_launch_description():
         package='controller_manager', executable='spawner', arguments=['joint_state_broadcaster'],
     )
     delayed_joint_state_broadcaster_spawner = TimerAction(period=jsb_delay_val, actions=[joint_state_broadcaster_spawner])
+
+    #Materiale per moveit2 e controller del braccio:
+    urdf_absolute_path = os.path.join(
+        share_limo_description, "urdf", "limo_ackermann_mycobot.xacro.urdf"
+    )
+    moveit_config = (
+        MoveItConfigsBuilder("custom_robot", package_name="mycobot_280_moveit2")
+        .robot_description(file_path=urdf_absolute_path)
+        .robot_description_semantic(file_path="config/firefighter.srdf")
+        .trajectory_execution(file_path="config/moveit_controllers.yaml")
+        .planning_pipelines(
+            pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"]
+        )
+        .to_moveit_configs()
+    )
+    arm_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["arm_group_controller", "--controller-manager", "/controller_manager"],
+        output="screen",
+    )
+    gripper_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_action_controller", "--controller-manager", "/controller_manager"],
+        output="screen",
+    )
 
     
     # Se può lanciare il bridge in una nuova finestra di terminale lo fa:
@@ -134,9 +174,16 @@ def generate_launch_description():
         output='screen',
         condition=IfCondition(start_rviz)
     )
-
+    move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[moveit_config.to_dict(), {'use_sim_time': use_sim_time}],
+        arguments=['--ros-args', '--disable-stdout-logs'],
+    )
 
     return LaunchDescription([
+        set_gz_resource_path,
         declare_use_sim_time,
         declare_world_path,
         declare_spawn_x,
@@ -153,6 +200,7 @@ def generate_launch_description():
         gz_sim_launch,
         spawn_entity,
         robot_localization_node,
+        move_group_node,
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
@@ -163,6 +211,18 @@ def generate_launch_description():
             event_handler=OnProcessExit(
                 target_action=joint_state_broadcaster_spawner,
                 on_exit=[robot_controller_spawner],
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[arm_controller_spawner],
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=joint_state_broadcaster_spawner,
+                on_exit=[gripper_controller_spawner],
             )
         ),
 

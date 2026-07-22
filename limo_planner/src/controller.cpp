@@ -26,6 +26,7 @@
 #include "get_user_input.hpp"
 
 
+#include "arm_world_data_utils.hpp"
 
 using namespace std;
 
@@ -85,6 +86,7 @@ public:
     }
 
     void start_clients(){
+
         domain_expert_ = std::make_shared<plansys2::DomainExpertClient>();
         planner_client_ = std::make_shared<plansys2::PlannerClient>();
         problem_expert_ = std::make_shared<plansys2::ProblemExpertClient>();
@@ -103,8 +105,9 @@ public:
         waypoints_filepath_ = pkg_share + "/config/waypoints.yaml";
         objects_filepath_ = pkg_share + "/config/objects.yaml";
         robots_filepath_ = pkg_share + "/config/robots.yaml";
+        arm_positions_filepath_ = pkg_share + "/config/arm_positions.yaml";
 
-
+        
         clear_all(); //knowledge //! ATTENTO ATTENO ATTENTO
 
         add_waypoint("wp0", 120.0, 32.0, 0.0, problem_expert_); //SPAWN
@@ -134,6 +137,14 @@ public:
 
         cout << "cs1 instance -> " << problem_expert_->addInstance(plansys2::Instance("cs1", "charging_station")) << endl;
         cout << "(charging_station_at cs1 wp1) -> " << problem_expert_->addPredicate(plansys2::Predicate("(charging_station_at cs1 wp1)")) << endl;
+
+        add_object("o", 1.0, 0.3, 0.3, 0.1, problem_expert_);
+        cout << "(object_at o wp0) -> " << problem_expert_->addPredicate(plansys2::Predicate("(object_at o wp0)")) << endl;
+
+        add_arm_position("p0", 0.20, 0.0, 0.15, 0.0, 1.57, 0.0, problem_expert_);
+        add_arm_position("p1", -0.20, 0.0, 0.16, 0.00, 1.00, 0.00, problem_expert_);
+        cout << "(object_at_arm_position o p0) -> " << problem_expert_->addPredicate(plansys2::Predicate("(object_at_arm_position o p0)")) << endl;
+
     }
 
     void step() {
