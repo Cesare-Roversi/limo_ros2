@@ -17,7 +17,7 @@
   </joint>
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-        <parameters>$(find mycobot_description)/config/mycobot_controllers.yaml</parameters>
+        <parameters>$(find limo_car)/config/robot_controllers.yaml</parameters>
       <ros>
         <xacro:if value="${'$(arg controller_type)' == 'ackermann_steering_controller'}">
           <remapping>/ackermann_steering_controller/odometry:=/controller_odom</remapping>

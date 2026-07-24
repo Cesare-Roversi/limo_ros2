@@ -60,7 +60,7 @@
                 </state_interface>
                 <state_interface name="velocity"/>
             </joint>
-
+            
             <joint name="gripper_controller">
                 <command_interface name="position">
                     <param name="min">-0.7</param>
@@ -69,41 +69,38 @@
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
-
             <joint name="gripper_base_to_gripper_left2">
                 <param name="mimic">gripper_controller</param>
                 <param name="multiplier">1.0</param>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
-
             <joint name="gripper_left3_to_gripper_left1">
                 <param name="mimic">gripper_controller</param>
                 <param name="multiplier">-1.0</param>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
-
             <joint name="gripper_base_to_gripper_right3">
                 <param name="mimic">gripper_controller</param>
                 <param name="multiplier">-1.0</param>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
-
             <joint name="gripper_base_to_gripper_right2">
                 <param name="mimic">gripper_controller</param>
                 <param name="multiplier">1.0</param>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
-
             <joint name="gripper_right3_to_gripper_right1">
                 <param name="mimic">gripper_controller</param>
                 <param name="multiplier">1.0</param>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
+
+
             <joint name="rear_left_wheel_joint">
                 <command_interface name="velocity" />
                 <state_interface name="velocity" />
@@ -125,10 +122,16 @@
                 </joint>
             </xacro:if>
             <joint name="front_left_wheel_joint">
+                <xacro:unless value="${'$(arg controller_type)' == 'ackermann_steering_controller'}">
+                    <command_interface name="velocity" />
+                </xacro:unless>
                 <state_interface name="position" />
                 <state_interface name="velocity" />
             </joint>
             <joint name="front_right_wheel_joint">
+                <xacro:unless value="${'$(arg controller_type)' == 'ackermann_steering_controller'}">
+                    <command_interface name="velocity" />
+                </xacro:unless>
                 <state_interface name="position" />
                 <state_interface name="velocity" />
             </joint>

@@ -1,9 +1,11 @@
 #include "world_data_utils.hpp"
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
-std::string waypoints_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/waypoints.yaml";
-std::string objects_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/objects.yaml";
-std::string robots_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/robots.yaml";
-std::string connections_filepath_ = "/root/limo_ws/src/limo_ros2/limo_planner/config/connections.yaml";
+
+std::string waypoints_filepath_ = ament_index_cpp::get_package_share_directory("limo_planner") + "/config/waypoints.yaml";
+std::string objects_filepath_ = ament_index_cpp::get_package_share_directory("limo_planner") + "/config/objects.yaml";
+std::string robots_filepath_ = ament_index_cpp::get_package_share_directory("limo_planner") + "/config/robots.yaml";
+std::string connections_filepath_ = ament_index_cpp::get_package_share_directory("limo_planner") + "/config/connections.yaml";
 
 std::unordered_map<std::string, geometry_msgs::msg::PoseStamped> map_waypoints;
 std::unordered_map<std::string, Object> map_objects;
