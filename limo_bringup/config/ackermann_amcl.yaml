@@ -9,14 +9,18 @@ amcl:
   ros__parameters:
     set_initial_pose: true
     initial_pose:
+      #For Laboratory:
       x: 0.804443
       y: 2.446670
       z: 0.450000
       yaw: -1.57
+      #---
+      #For Povo:
       #x: 120.000
       #y: 32.000
       #z: 0.450000
       #yaw: 0.0
+      #---
 
     use_sim_time: True
 

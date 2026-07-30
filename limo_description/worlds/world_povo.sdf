@@ -364,8 +364,12 @@
     <include>
       <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources</uri>
       <name>Povo</name>
+      <!-- for Povo: -->
       <!--      <pose>109.9974940 27.50200376 -0.20000000000000001 0 0 -1.5707963267948966</pose>-->
+      <!-- -->
+      <!-- for Laboratory: -->
       <pose>0 0 0.20000000000000001 0 0 1.5707963267948966</pose>
+      <!-- -->
     </include>
     <light name='sun' type='directional'>
       <pose>0 0 10 0 0 0</pose>

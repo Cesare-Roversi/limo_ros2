@@ -6,6 +6,8 @@
 
 <xacro:property name="joint_effort" value="56.0"/>
 <xacro:property name="joint_velocity" value="2.792527"/>
+<xacro:property name="gripper_joint_effort" value="12.0"/>
+<xacro:property name="gripper_joint_velocity" value="0.9"/>
 
 <xacro:property name="g_base_mass" value="0.33"/>
 <xacro:property name="joint1_mass" value="0.12"/>
@@ -454,7 +456,7 @@
 
   <joint name="gripper_controller" type="revolute">
     <axis xyz="0 0 1"/>
-    <limit effort = "${joint_effort}" lower = "-0.74" upper = "0.15" velocity = "${joint_velocity}"/>
+    <limit effort = "${gripper_joint_effort}" lower = "-0.74" upper = "0.15" velocity = "${gripper_joint_velocity}"/>
     <parent link="gripper_base"/>
     <child link="gripper_left3"/>
     <origin xyz= "-0.012 0.005 0" rpy = "0 0 0"/> 
@@ -462,7 +464,7 @@
 
   <joint name="gripper_base_to_gripper_left2" type="revolute">
     <axis xyz="0 0 1"/>
-    <limit effort = "${joint_effort}" lower = "-0.8" upper = "0.5" velocity = "${joint_velocity}"/>
+    <limit effort = "${gripper_joint_effort}" lower = "-0.8" upper = "0.5" velocity = "${gripper_joint_velocity}"/>
     <parent link="gripper_base"/>
     <child link="gripper_left2"/>
     <origin xyz= "-0.005 0.027 0" rpy = "0 0 0"/> 
@@ -471,7 +473,7 @@
 
   <joint name="gripper_left3_to_gripper_left1" type="revolute">
     <axis xyz="0 0 1"/>
-    <limit effort = "${joint_effort}" lower = "-0.5" upper = "0.5" velocity = "${joint_velocity}"/>
+    <limit effort = "${gripper_joint_effort}" lower = "-0.5" upper = "0.5" velocity = "${gripper_joint_velocity}"/>
     <parent link="gripper_left3"/>
     <child link="gripper_left1"/>
     <origin xyz= "-0.027 0.016 0" rpy = "0 0 0"/> 
@@ -480,7 +482,7 @@
 
   <joint name="gripper_base_to_gripper_right3" type="revolute">
     <axis xyz="0 0 1"/>
-    <limit effort = "${joint_effort}" lower = "-0.15" upper = "0.7" velocity = "${joint_velocity}"/>
+    <limit effort = "${gripper_joint_effort}" lower = "-0.15" upper = "0.7" velocity = "${gripper_joint_velocity}"/>
     <parent link="gripper_base"/>
     <child link="gripper_right3"/>
     <origin xyz= "0.012 0.005 0" rpy = "0 0 0"/> 
@@ -489,7 +491,7 @@
 
   <joint name="gripper_base_to_gripper_right2" type="revolute">
     <axis xyz="0 0 1"/>
-    <limit effort = "${joint_effort}" lower = "-0.5" upper = "0.8" velocity = "${joint_velocity}"/>
+    <limit effort = "${gripper_joint_effort}" lower = "-0.5" upper = "0.8" velocity = "${gripper_joint_velocity}"/>
     <parent link="gripper_base"/>
     <child link="gripper_right2"/>
     <origin xyz= "0.005 0.027 0" rpy = "0 0 0"/> 
@@ -498,7 +500,7 @@
 
   <joint name="gripper_right3_to_gripper_right1" type="revolute">
     <axis xyz="0 0 1"/>
-    <limit effort = "${joint_effort}" lower = "-0.5" upper = "0.5" velocity = "${joint_velocity}"/>
+    <limit effort = "${gripper_joint_effort}" lower = "-0.5" upper = "0.5" velocity = "${gripper_joint_velocity}"/>
     <parent link="gripper_right3"/>
     <child link="gripper_right1"/>
     <origin xyz= "0.027 0.016 0" rpy = "0 0 0"/> 

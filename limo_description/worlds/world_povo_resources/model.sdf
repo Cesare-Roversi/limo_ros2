@@ -7,7 +7,12 @@
       <collision name="collision">
         <geometry>
           <mesh>
+            <!--for Povo-->
+            <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/povo.stl</uri>
+            <!-- -->
+            <!--for Laboratory-->
             <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/World.stl</uri>
+            <!-- -->
           </mesh>
         </geometry>
       </collision>
@@ -15,7 +20,12 @@
       <visual name="visual1">
         <geometry>
           <mesh>
+            <!--for Povo-->
+            <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/povo.stl</uri>
+            <!-- -->
+            <!--for Laboratory-->
             <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/World.stl</uri>
+            <!-- -->
           </mesh>
         </geometry>
 

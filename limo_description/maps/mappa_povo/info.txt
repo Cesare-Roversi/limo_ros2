@@ -1,4 +1,4 @@
-questa è la verione croppata giusta;
+questa è la verione croppata giusta per Povo;
 DIM PIXEL:
 10455
 2614
