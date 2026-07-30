@@ -1,6 +1,6 @@
 #include <memory>
 #include <string>
-
+#include <vector>
 #include "plansys2_executor/ActionExecutorClient.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "moveit/move_group_interface/move_group_interface.h"
@@ -18,8 +18,7 @@ public:
   MoveArmAction() : plansys2::ActionExecutorClient("move_arm", 500ms){}
 
   void init_knowledge(){
-    start_time_ = now();
-    RCLCPP_INFO(get_logger(), "MoveArm: avvio movimento braccio per %.1f secondi", ACTION_DURATION);
+    RCLCPP_INFO(get_logger(), "MoveArm: avvio movimento braccio");
 
     auto const moveit_node = std::make_shared<rclcpp::Node>(
         "move_arm",
@@ -40,12 +39,6 @@ public:
 private:
   moveit::planning_interface::MoveGroupInterface *move_group_interface;
   void do_work(){
-    double elapsed = (now() - start_time_).seconds();
-
-    if (elapsed >= ACTION_DURATION) {
-      finish(true, 1.0, "Move arm completed");
-      return;
-    }
 
     string pkg_share = ament_index_cpp::get_package_share_directory("limo_planner");
     arm_positions_filepath_ = pkg_share+"/config/arm_positions.yaml";
@@ -61,6 +54,7 @@ private:
     string pose_name=args[1];
     moveit::planning_interface::MoveGroupInterface *move_group_interface_lambda=move_group_interface;
     geometry_msgs::msg::PoseStamped target_pose= get_arm_position(pose_name);
+    target_pose.pose.position.z += 0.03;
     move_group_interface->setPoseTarget(target_pose);
     auto const [success, plan] = [move_group_interface_lambda]{
         moveit::planning_interface::MoveGroupInterface::Plan msg;
@@ -68,20 +62,57 @@ private:
         return std::make_pair(ok, msg);
     }();
     if(success){
-        move_group_interface->execute(plan);
+        moveit::core::MoveItErrorCode success2 = move_group_interface->execute(plan);
+        if(success2==moveit::core::MoveItErrorCode::SUCCESS){
+            send_feedback(0.55, "Move arm in corso");
+            std::vector<geometry_msgs::msg::Pose> waypoints;
+            cout<<target_pose.pose.position.z<<endl;
+            waypoints.push_back(target_pose.pose);
+            target_pose.pose.position.z -= 0.03;
+            cout<<target_pose.pose.position.z<<endl;
+            waypoints.push_back(target_pose.pose);
+            moveit_msgs::msg::RobotTrajectory trajectory;
+            const double eef_step = 0.01;
+            const double jump_threshold = 0.0;
+            double fraction = move_group_interface->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+            cout << "move_arm: computeCartesianPath fraction: " << fraction << endl;
+            cout << "move_arm: trajectory points: " << trajectory.joint_trajectory.points.size() << endl;
+            send_feedback(0.55+ fraction * 35.0/100.0, "Move arm in corso");
+            moveit::core::MoveItErrorCode success3 = move_group_interface->execute(trajectory);
+            if(success3==moveit::core::MoveItErrorCode::SUCCESS){
+                cout << "move_arm: execute trajectory result: CIAOOOOOOOOAMICCIIII" << endl;
+                finish(true, 1.0, "Move arm completed");
+                return;
+            } else {
+                RCLCPP_ERROR(get_logger(), "move_arm: esecuzione fallita ");
+                finish(false, 0.0, "Move arm: execution failed");
+                return;
+            }
+        }
+        //target_pose.pose.position.z -= 0.02;
+        //move_group_interface->setPoseTarget(target_pose);
+        //auto const [success2, plan2] = [move_group_interface_lambda]{
+            //moveit::planning_interface::MoveGroupInterface::Plan msg;
+            //auto const ok= static_cast <bool> (move_group_interface_lambda->plan(msg));
+          //  return std::make_pair(ok, msg);
+        //}();
+        //if(success2){
+          //  send_feedback(0.7, "Move arm in corso");
+            //move_group_interface->execute(plan2);
+        //} else {
+          //  RCLCPP_ERROR(get_logger(), "move_arm: pianificazione fallita ");
+            //finish(false, 0.0, "Move arm: planning failed");
+            //return;
+        //}
+        
     } else {
         RCLCPP_ERROR(get_logger(), "move_arm: pianificazione fallita ");
         finish(false, 0.0, "Move arm: planning failed");
         return;
     }
 
-    float progress = static_cast<float>(elapsed / ACTION_DURATION);
-    std::string msg = "Sto muovendo il braccio " + std::to_string(static_cast<int>(elapsed)) + "s";
-    send_feedback(progress, msg);
   }
 
-  static constexpr double ACTION_DURATION = 5.0;
-  rclcpp::Time start_time_;
 };
 
 

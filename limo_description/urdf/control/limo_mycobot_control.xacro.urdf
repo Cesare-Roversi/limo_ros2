@@ -89,7 +89,7 @@
             </joint>
             <joint name="gripper_base_to_gripper_right2">
                 <param name="mimic">gripper_controller</param>
-                <param name="multiplier">1.0</param>
+                <param name="multiplier">-1.0</param>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>

@@ -9,10 +9,14 @@ amcl:
   ros__parameters:
     set_initial_pose: true
     initial_pose:
-      x: 120.000
-      y: 32.000
+      x: 0.804443
+      y: 2.446670
       z: 0.450000
-      yaw: 0.0
+      yaw: -1.57
+      #x: 120.000
+      #y: 32.000
+      #z: 0.450000
+      #yaw: 0.0
 
     use_sim_time: True
 

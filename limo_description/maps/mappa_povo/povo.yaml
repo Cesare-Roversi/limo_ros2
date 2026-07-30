@@ -1,7 +1,11 @@
-image: povo.pgm
-resolution: 0.02104208398
+#image: povo.pgm
+#resolution: 0.02104208398
 # L'origine è [x, y, yaw]. [0,0,0] significa che il pixel in basso a sinistra è l'origine 0,0
-origin: [0.0, 0.0, 0.0]
+#origin: [0.0, 0.0, 0.0]
+#origin: [-5.606991, -4.13817924, 0.0]
+image: Mappa.png
+resolution: 0.00293176
+origin: [-3.1, -0.48, 0.0]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196

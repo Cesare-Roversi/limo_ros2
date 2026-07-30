@@ -29,7 +29,7 @@ static constexpr int kCostmapSamples = 10;
 
 // Distanza (in metri, misurata lungo il path) a cui posizionare approach_wp
 // rispetto al waypoint di destinazione (arbitraria, come da richiesta).
-static constexpr double kApproachDistance = 0.5;
+static constexpr double kApproachDistance = 0.0; //anziché 0.5
 
 class CheckDistanceAction : public plansys2::ActionExecutorClient
 {

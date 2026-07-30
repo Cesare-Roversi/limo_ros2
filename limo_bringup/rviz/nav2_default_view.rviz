@@ -9,7 +9,7 @@ Panels:
         - /lookahead_collision_arc (controller)1/Topic1
         - /local_footprint1/Topic1
       Splitter Ratio: 0.4888888895511627
-    Tree Height: 770
+    Tree Height: 369
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -127,10 +127,85 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        g_base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripper_base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripper_left1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripper_left2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripper_left3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripper_right1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripper_right2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gripper_right3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         imu_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        joint1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        joint2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        joint3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        joint4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        joint5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        joint6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        joint6_flange:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         left_wheel_steering:
           Alpha: 1
           Show Axes: false
@@ -210,8 +285,38 @@ Visualization Manager:
           Value: false
         front_right_wheel:
           Value: false
+        g_base:
+          Value: true
+        gripper_base:
+          Value: true
+        gripper_left1:
+          Value: true
+        gripper_left2:
+          Value: true
+        gripper_left3:
+          Value: true
+        gripper_right1:
+          Value: true
+        gripper_right2:
+          Value: true
+        gripper_right3:
+          Value: true
         imu_link:
           Value: false
+        joint1:
+          Value: true
+        joint2:
+          Value: true
+        joint3:
+          Value: true
+        joint4:
+          Value: true
+        joint5:
+          Value: true
+        joint6:
+          Value: true
+        joint6_flange:
+          Value: true
         left_wheel_steering:
           Value: false
         map:
@@ -262,6 +367,25 @@ Visualization Manager:
                 right_wheel_steering:
                   front_right_wheel:
                     {}
+              g_base:
+                joint1:
+                  joint2:
+                    joint3:
+                      joint4:
+                        joint5:
+                          joint6:
+                            joint6_flange:
+                              gripper_base:
+                                gripper_left2:
+                                  {}
+                                gripper_left3:
+                                  gripper_left1:
+                                    {}
+                                gripper_right2:
+                                  {}
+                                gripper_right3:
+                                  gripper_right1:
+                                    {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -895,18 +1019,18 @@ Visualization Manager:
       Scale: 30.50695037841797
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 123.07776641845703
+      X: 0.07800000160932541
       Y: 28.80304718017578
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1586
+  Height: 845
   Hide Left Dock: false
-  Hide Right Dock: true
+  Hide Right Dock: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000002d2000005ccfc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000007100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000004700000347000000f900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000018004e0061007600690067006100740069006f006e0020003201000003960000027d0000014d00fffffffb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000002f00ffffff000000010000010f0000034afc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d0000034a000000c500fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004420000003efc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d00650100000000000004500000000000000000000006fc000005cc00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002d2000002f7fc020000000afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b000001ac000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000018004e0061007600690067006100740069006f006e0020003201000001ed000001450000012300fffffffb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000002800ffffff000000010000010f000002f7fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003b000002f7000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004420000003efc0100000002fb0000000800540069006d00650100000000000004420000000000000000fb0000000800540069006d0065010000000000000450000000000000000000000217000002f700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   RealsenseCamera:
     collapsed: false
   Selection:
@@ -914,7 +1038,7 @@ Window Geometry:
   Tool Properties:
     collapsed: false
   Views:
-    collapsed: true
-  Width: 2518
-  X: 0
-  Y: 0
+    collapsed: false
+  Width: 1540
+  X: 8
+  Y: 31

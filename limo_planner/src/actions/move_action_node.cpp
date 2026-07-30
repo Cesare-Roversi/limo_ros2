@@ -120,6 +120,7 @@ public:
 
       float distance_remaining = feedback->distance_remaining;
       float completed_distance_percent = 1.0 - (feedback->distance_remaining / connection.distance);
+      if (completed_distance_percent < 0.0) completed_distance_percent = exp(completed_distance_percent/300); // evita percentuali negative
       send_feedback(completed_distance_percent, "Move in corso");
     };
 

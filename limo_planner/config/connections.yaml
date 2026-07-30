@@ -61,7 +61,7 @@ connections:
     approach_wp:
       x: 165.91718499534787
       y: 47.090754388158338
-      yaw: 1.376685569274088
+      yaw: 1.3766855692740878
   wp3_wp0:
     distance: 57.45821
     costmap_estimate: 3.29999995
@@ -83,3 +83,38 @@ connections:
       x: 103.58232574795848
       y: 10.590828137707478
       yaw: 3.1336466913088956
+  wp3_wp3:
+    distance: 0
+    costmap_estimate: -1
+    approach_wp:
+      x: 0
+      y: 1.5
+      yaw: 0
+  wp3_wp4:
+    distance: 0.941946268
+    costmap_estimate: 70.6999969
+    approach_wp:
+      x: 0.14362910856817157
+      y: 1.8875502075950732
+      yaw: 1.6115750761913781
+  wp3_wp5:
+    distance: 3.71489429
+    costmap_estimate: 58.7000008
+    approach_wp:
+      x: -1.6054253295847531
+      y: 2.3541132092006376
+      yaw: -2.1043803129320153
+  wp4_wp3:
+    distance: 0.00116917631
+    costmap_estimate: 100
+    approach_wp:
+      x: -0.18876239391975114
+      y: 2.3491483281645924
+      yaw: 0
+  wp5_wp3:
+    distance: 5.44342041
+    costmap_estimate: 27.3999996
+    approach_wp:
+      x: 0.29163255237570274
+      y: 1.216153917744331
+      yaw: -0.77068092929015908
