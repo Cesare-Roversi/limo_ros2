@@ -10,10 +10,10 @@
   <build_depend>rclpy</build_depend>
   <build_depend>rclcpp</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>mycobot_description</build_depend>
+  <build_depend>limo_description</build_depend>
 
 
-  <build_export_depend>mycobot_description</build_export_depend>
+  <build_export_depend>limo_description</build_export_depend>
 
 
   <exec_depend>rclpy</exec_depend>
@@ -26,7 +26,7 @@
   <exec_depend>rviz2</exec_depend>
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>python-tk</exec_depend>
-  <exec_depend>mycobot_description</exec_depend>
+  <exec_depend>limo_description</exec_depend>
 
 
   <test_depend>ament_copyright</test_depend>

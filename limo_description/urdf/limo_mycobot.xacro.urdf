@@ -6,7 +6,7 @@
   <!-- <xacro:arg name="controller_type" default="diff_drive_controller" />  -->
   
   <xacro:include filename="$(find limo_description)/urdf/limo_ackermannEdifferential.xacro.urdf" />	
-  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_pi/mycobot_280_pi_adaptive_gripper.urdf" />
+  <xacro:include filename="$(find limo_description)/urdf/mycobot_280_pi/mycobot_280_pi_adaptive_gripper.urdf" />
 
   <xacro:limo_car controller_type="$(arg controller_type)"/>
   <xacro:firefighter/>

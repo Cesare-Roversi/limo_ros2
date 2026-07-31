@@ -27,7 +27,7 @@ def generate_launch_description():
     model_launch_arg = DeclareLaunchArgument(
         name="model",
         default_value=os.path.join(
-            get_package_share_directory("mycobot_description"),
+            get_package_share_directory("limo_description"),
             "urdf/mycobot_280_pi/mycobot_280_pi.urdf"
         )
     )

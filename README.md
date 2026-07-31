@@ -153,73 +153,21 @@ Email: [tommaso.faraci@unitn.it](mailto:tommaso.faraci@unitn.it)
 
 ## URDF Model Graph
 
-[mycobot 280 m5](./mycobot_description/urdf/mycobot_280_m5/mycobot_280_m5.urdf)
-
-![280 m5](./demo_img/280m5/280_m5.png)
-
-[mycobot 280 m5 pump](./mycobot_description/urdf/mycobot_280_m5/mycobot_280_m5_with_pump.urdf)
-
-![280 m5 pump](./demo_img/280m5/280_m5_pump.png)
-
-[mycobot 280 m5 camera flange](./mycobot_description/urdf/mycobot_280_m5/mycobot_280_m5_with_camera_flange.urdf)
-
-![280 m5 camera flange](./demo_img/280m5/280_m5_camera_flange.png)
-
-[mycobot 280 m5 camera flange & pump](./mycobot_description/urdf/mycobot_280_m5/mycobot_280_m5_with_camera_flange_pump.urdf)
-
-![280 m5 camera flange & pump](./demo_img/280m5/280_m5_camera_flange_pump.png)
-
-[mycobot 280 m5 adaptive gripper](./mycobot_description/urdf/mycobot_280_m5/mycobot_280_m5_adaptive_gripper.urdf)
-![280 m5 adaptive gripper](./demo_img/280m5/280_m5_adaptive_gripper.png)
-
-[mycobot 280 pi](./mycobot_description/urdf/mycobot_280_pi/mycobot_280_pi.urdf)
+[mycobot 280 pi](./limo_description/urdf/mycobot_280_pi/mycobot_280_pi.urdf)
 
 ![280 pi](./demo_img/280pi/280_pi.png)
 
-[mycobot 280 pi pump](./mycobot_description/urdf/mycobot_280_pi/mycobot_280_pi_with_pump.urdf)
+[mycobot 280 pi pump](./limo_description/urdf/mycobot_280_pi/mycobot_280_pi_with_pump.urdf)
 
 ![280 pi pump](./demo_img/280pi/280_pi_pump.png)
 
-[mycobot 280 pi camera flange](./mycobot_description/urdf/mycobot_280_pi/mycobot_280_pi_with_camera_flange.urdf)
+[mycobot 280 pi camera flange](./limo_description/urdf/mycobot_280_pi/mycobot_280_pi_with_camera_flange.urdf)
 
 ![280 pi camera flange](./demo_img/280pi/280_pi_camera_flange.png)
 
-[mycobot 280 pi camera flange & pump](./mycobot_description/urdf/mycobot_280_pi/mycobot_280_pi_with_camera_flange_pump.urdf)
+[mycobot 280 pi camera flange & pump](./limo_description/urdf/mycobot_280_pi/mycobot_280_pi_with_camera_flange_pump.urdf)
 
 ![280 pi camera flange pump](./demo_img/280pi/280_pi_camera_flange_pump.png)
 
-[mycobot 280 pi adaptive gripper](./mycobot_description/urdf/mycobot_280_pi/mycobot_280_pi_adaptive_gripper.urdf)
+[mycobot 280 pi adaptive gripper](./limo_description/urdf/mycobot_280_pi/mycobot_280_pi_adaptive_gripper.urdf)
 ![280 pi adaptive gripper](./demo_img/280pi/280_pi_adaptive_gripper.png)
-
-
-[mycobot 280 JetsonNano](./mycobot_description/urdf/mycobot_280_jn/mycobot_280_jn.urdf)
-
-![280 jn](./demo_img/280jn/280jn.png)
-
-[mycobot 280 JetsonNano adaptive gripper](./mycobot_description/urdf/mycobot_280_jn/mycobot_280_jn_adaptive_gripper.urdf)
-![280 m5 adaptive gripper](./demo_img/280jn/280jn_adaptive_gripper.png)
-
-
-[mycobot 280 Arduino](./mycobot_description/urdf/mycobot_280_arduino/mycobot_280_arduino.urdf)
-
-![280 jn](./demo_img/280ar/280ar.png)
-
-[mycobot 280 Arduino adaptive gripper](./mycobot_description/urdf/mycobot_280_arduino/mycobot_280_arduino_adaptive_gripper.urdf)
-![280 AR adaptive gripper](./demo_img/280ar/280ar_adaptive_gripper.png)
-
-
-[mycobot 280 x3pi](./mycobot_description/urdf/mycobot_280_x3pi/mycobot_280_x3pi.urdf)
-
-![280 x3pi](./demo_img/280pi/280_pi.png)
-
-[mycobot 280 x5pi](./mycobot_description/urdf/mycobot_280_x5pi/mycobot_280_x5pi.urdf)
-
-![280 x5pi](./demo_img/280pi/280_pi.png)
-
-[mycobot 280 RDKX5](./mycobot_description/urdf/mycobot_280_rdkx5/mycobot_280_rdkx5.urdf)
-
-![280 rdkx5](./demo_img/280rdkx5/280rdkx5.png)
-
-[mycobot 280 RDKX5 adaptive gripper](./mycobot_description/urdf/mycobot_280_rdkx5/mycobot_280_rdkx5_adaptive_gripper.urdf)
-
-![280 rdkx5 gripper](./demo_img/280rdkx5/280rdkx5_adaptive_gripper.png)

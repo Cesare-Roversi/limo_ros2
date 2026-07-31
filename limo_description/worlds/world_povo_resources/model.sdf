@@ -8,7 +8,7 @@
         <geometry>
           <mesh>
             <!--for Povo-->
-            <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/povo.stl</uri>
+            <!--<uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/povo.stl</uri>-->
             <!-- -->
             <!--for Laboratory-->
             <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/World.stl</uri>
@@ -21,7 +21,7 @@
         <geometry>
           <mesh>
             <!--for Povo-->
-            <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/povo.stl</uri>
+            <!--<uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/povo.stl</uri>-->
             <!-- -->
             <!--for Laboratory-->
             <uri>file:///root/limo_ws/install/limo_description/share/limo_description/worlds/world_povo_resources/meshes/World.stl</uri>

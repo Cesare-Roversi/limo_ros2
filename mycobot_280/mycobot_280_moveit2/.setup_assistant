@@ -1,6 +1,6 @@
 moveit_setup_assistant_config:
   urdf:
-    package: mycobot_description
+    package: limo_description
     relative_path: urdf/mycobot_280_m5/mycobot_280_m5.urdf
   srdf:
     relative_path: config/firefighter.srdf

@@ -20,7 +20,6 @@ from launch.conditions import IfCondition
 from launch.actions import SetEnvironmentVariable
 from launch.actions import LogInfo
 
-from launch.actions import AppendEnvironmentVariable
 from moveit_configs_utils import MoveItConfigsBuilder
 
 def generate_launch_description():
@@ -103,17 +102,6 @@ def generate_launch_description():
         }.items(),
     )
 
-    set_gazebo_resource_path = SetEnvironmentVariable(
-        name='GAZEBO_RESOURCE_PATH',
-        value=share_limo_description
-    )
-
-    #aggiungo la path per il mycobot
-    mycobot_description_path = get_package_share_directory('mycobot_description')
-    set_gz_resource_path = AppendEnvironmentVariable(
-        name='GZ_SIM_RESOURCE_PATH',
-        value=[mycobot_description_path + '/../']
-    )
     
     spawn_entity = Node(package='ros_gz_sim', executable='create',
                         arguments=['-topic', 'robot_description', '-entity', 'mbot',
@@ -201,7 +189,6 @@ def generate_launch_description():
 
 
     return LaunchDescription([
-        set_gz_resource_path,
         declare_use_sim_time,
         declare_world_path,
         declare_spawn_x,
