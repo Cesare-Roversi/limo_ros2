@@ -39,4 +39,4 @@ Modify where indicated theese files:
 - `limo_description\worlds\world_povo.sdf`
 - `limo_description\worlds\world_povo_resources\model.sdf`
 
-And set the waypoint where the robot starts in `limo_planner\src\controller.cpp` to wp0 in order to work with Povo or to wp3 in order to work with Laboratory. Change also the spawn coordinates in `limo_car\launch\robot_gazebo.launch.py` and in the configuration file you are using in limo_bringup
+And set the waypoint where the robot starts in `limo_planner\src\controller.cpp` to wp0 in order to work with Povo or to wp4 in order to work with Laboratory. Change also the spawn coordinates in `limo_car\launch\robot_gazebo.launch.py` and in the configuration file you are using in limo_bringup
