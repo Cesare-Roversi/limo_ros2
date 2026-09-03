@@ -1,0 +1,7 @@
+int32 operation
+string request
+---
+bool success
+---
+string state
+plansys2_msgs/ActionExecutionInfo[] feedback 

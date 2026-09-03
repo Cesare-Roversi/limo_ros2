@@ -80,7 +80,7 @@ private:
             send_feedback(0.55+ fraction * 35.0/100.0, "Move arm in corso");
             moveit::core::MoveItErrorCode success3 = move_group_interface->execute(trajectory);
             if(success3==moveit::core::MoveItErrorCode::SUCCESS){
-                cout << "move_arm: execute trajectory result: CIAOOOOOOOOAMICCIIII" << endl;
+                cout << "move_arm: execute trajectory result" << endl;
                 finish(true, 1.0, "Move arm completed");
                 return;
             } else {

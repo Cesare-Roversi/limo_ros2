@@ -21,8 +21,13 @@ ros2 launch limo_bringup bringup_ackermann_amcl.launch.py
 ```bash
 ros2 launch limo_planner launch_default.launch.py
 ```
+and controller:
 ```bash
 ros2 run limo_planner controller
+```
+or for a GUI controller:
+```bash
+ros2 launch limo_planner launch_GUI.launch.py
 ```
 
 ## USEFUL FACTS FOR SIMULATIONS:

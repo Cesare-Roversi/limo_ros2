@@ -6,7 +6,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(plansys2_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -31,6 +33,9 @@ find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(control_msgs REQUIRED)
 #-----#
+#aggiunta action-server
+find_package(limo_planner_interfaces REQUIRED)
+#-----#
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -44,7 +49,6 @@ set(dependencies
     plansys2_planner
     plansys2_problem_expert
     plansys2_pddl_parser
-  #Verify#
     rclcpp_lifecycle
     lifecycle_msgs
     moveit_ros_planning_interface
@@ -52,6 +56,9 @@ set(dependencies
     tf2
     tf2_geometry_msgs
     control_msgs
+  #aggiunta action-server
+    limo_planner_interfaces
+    rclcpp_components
   #-----#
 )
 
@@ -140,7 +147,18 @@ add_executable(controller
 ament_target_dependencies(controller ${dependencies})
 target_link_libraries(controller limo_utils)
 
-
+#gui
+add_executable(controllerGUIhelper
+    src/controllerGUIhelper.cpp
+)
+target_include_directories(controllerGUIhelper PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_definitions(controllerGUIhelper
+  PRIVATE "LIMO_PLANNER_CPP_BUILDING_DLL")
+ament_target_dependencies(controllerGUIhelper ${dependencies})
+target_link_libraries(controllerGUIhelper limo_utils)
+#
 
 install(DIRECTORY launch pddl config
   DESTINATION share/${PROJECT_NAME}
@@ -156,9 +174,15 @@ install(TARGETS
   retract_arm_action_node
   check_distance_action_node
   controller
+  controllerGUIhelper
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+ament_python_install_package(${PROJECT_NAME})
+install(PROGRAMS
+    ${PROJECT_NAME}/scripts/controllerGUI.py
+    DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_export_dependencies(${dependencies})

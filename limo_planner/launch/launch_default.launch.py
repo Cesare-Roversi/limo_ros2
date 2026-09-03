@@ -8,11 +8,15 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from moveit_configs_utils import MoveItConfigsBuilder
+from launch.conditions import UnlessCondition
 
 
 #! ATTENTO!! NODI COMMENTATI
 
 def generate_launch_description():
+    use_gui = LaunchConfiguration('use_gui')
+    declare_use_gui = DeclareLaunchArgument('use_gui', default_value='false')
+
     share_limo_planner = get_package_share_directory('limo_planner')
     share_plansys2_bringup = get_package_share_directory('plansys2_bringup')
     share_limo_description = get_package_share_directory('limo_description')
@@ -118,7 +122,8 @@ def generate_launch_description():
         executable='controller',
         # name='controller',
         output='screen',
-        parameters=[]
+        parameters=[],
+        condition=UnlessCondition(use_gui)
     )
 
 
